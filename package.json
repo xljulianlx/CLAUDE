@@ -1,0 +1,16 @@
+{
+  "name": "halo-nutrition",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Tienda de suplementos deportivos con frasco 3D, SEO y pago con Mercado Pago Checkout Pro.",
+  "type": "module",
+  "engines": { "node": ">=18" },
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "fotos": "node scripts/render-fotos.mjs",
+    "preview": "node scripts/build.mjs --preview preview"
+  },
+  "dependencies": {
+    "mercadopago": "^2.0.0"
+  }
+}

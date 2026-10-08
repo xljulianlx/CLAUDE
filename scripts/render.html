@@ -1,0 +1,17 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Render de fotos</title>
+<canvas id="c" width="1000" height="1000"></canvas>
+<script type="module">
+  import { crearRender, crearEtiqueta, hexARgb } from '../src/assets/js/frasco-gl.js';
+  const c = document.getElementById('c');
+  const r = crearRender(c);
+  // Devuelve un data URL WebP del producto con el sabor indicado, a 'tam' px de lado.
+  window.renderFoto = (producto, sabor, tam, giro = 0.35) => {
+    c.width = tam; c.height = tam;
+    r.setEtiqueta(crearEtiqueta(producto, sabor));
+    r.dibujar({ cx: tam / 2, cy: tam * 0.5, S: (tam * 0.8) / 0.485, giro, inclinacion: 0.14, forma: producto.forma, base: hexARgb(sabor.c1), dpr: 1, pasos: 90 });
+    return c.toDataURL('image/webp', 0.86);
+  };
+  window.listo = !!r;
+</script>
