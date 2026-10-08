@@ -18,6 +18,8 @@ export function iniciarMovimiento() {
   inclinar();
   lectura();
   celebrar();
+  lema();
+  anillos();
   conGsap();
 }
 
@@ -144,4 +146,26 @@ function conGsap() {
   g.registerPlugin(ST);
   pasos.forEach((el) => ST.create({ trigger: el, start: 'top 62%', end: 'bottom 38%', onToggle: (s) => el.classList.toggle('activo', s.isActive) }));
   if (innerWidth > 860) document.querySelectorAll('.carril').forEach((c) => g.fromTo(c, { x: 40 }, { x: -40, ease: 'none', scrollTrigger: { trigger: c, start: 'top bottom', end: 'bottom top', scrub: 0.6 } }));
+}
+
+/* ---------- lema gigante que se desliza con el scroll (cada fila en un sentido) ---------- */
+function lema() {
+  const filas = [...document.querySelectorAll('[data-lema]')]; if (!filas.length) return;
+  const sec = filas[0].parentElement; let visible = false; let pedido = false;
+  new IntersectionObserver(([e]) => { visible = e.isIntersecting; }).observe(sec);
+  const mover = () => {
+    pedido = false; if (!visible) return;
+    const r = sec.getBoundingClientRect(); const p = (innerHeight - r.top) / (innerHeight + r.height);
+    filas.forEach((f) => { f.style.transform = `translateX(${(f.dataset.lema * (p - 0.5) * 30).toFixed(2)}%)`; });
+  };
+  addEventListener('scroll', () => { if (!pedido) { pedido = true; requestAnimationFrame(mover); } }, { passive: true });
+  mover();
+}
+
+/* ---------- anillo de macronutrientes: se dibuja al verlo ---------- */
+function anillos() {
+  const els = [...document.querySelectorAll('[data-anillo]')]; if (!els.length || !('IntersectionObserver' in window)) return;
+  els.forEach((el) => el.classList.add('espera'));
+  const io = new IntersectionObserver((es) => es.forEach((e) => { if (e.isIntersecting) { e.target.classList.remove('espera'); io.unobserve(e.target); } }), { threshold: 0.5 });
+  els.forEach((el) => io.observe(el));
 }

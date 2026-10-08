@@ -883,3 +883,145 @@ summary { transition: color 160ms ease; }
 }
 [data-cuenta-app], [data-admin-app] { min-height: 100svh; }
 .familia { background-color: #0e1013; }
+
+/* ================= Rediseño: portada viva y secciones que destacan ================= */
+html { scroll-behavior: smooth; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+
+/* Grano fino en todo el sitio: quita lo "plano" sin ensuciar (muy baja opacidad). */
+body::after { content: ""; position: fixed; inset: 0; z-index: 35; pointer-events: none; opacity: 0.05; mix-blend-mode: multiply; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); }
+
+/* Portada: el fondo toma el color del sabor elegido. */
+.hero { --hc1: #6b3f2c; --hc2: #2b160e; --mx: 0; --my: 0; isolation: isolate; }
+.hero::before { background: radial-gradient(55% 65% at 72% 48%, color-mix(in srgb, var(--hc1) 26%, transparent), transparent 72%), radial-gradient(40% 50% at 8% 95%, color-mix(in srgb, var(--acc) 9%, transparent), transparent 70%); transition: background 700ms ease; }
+.orbes { position: absolute; inset: 0; z-index: -1; overflow: hidden; pointer-events: none; }
+.orbe { position: absolute; border-radius: 50%; filter: blur(48px); opacity: 0.5; transition: background-color 700ms ease, translate 900ms var(--ease-out); translate: calc(var(--mx) * var(--k) * 1px) calc(var(--my) * var(--k) * 1px); }
+.o1 { --k: 60; width: 34vmax; height: 34vmax; right: -8vmax; top: -10vmax; background: color-mix(in srgb, var(--hc1) 55%, transparent); }
+.o2 { --k: -40; width: 22vmax; height: 22vmax; right: 30%; bottom: -8vmax; background: color-mix(in srgb, var(--acc) 35%, transparent); }
+.o3 { --k: 90; width: 14vmax; height: 14vmax; left: 38%; top: 14%; background: color-mix(in srgb, var(--hc2) 40%, transparent); opacity: 0.35; }
+@media (prefers-reduced-motion: no-preference) {
+  .o1 { animation: deriva 16s ease-in-out infinite; } .o2 { animation: deriva 19s ease-in-out -6s infinite reverse; } .o3 { animation: deriva 13s ease-in-out -3s infinite; }
+  @keyframes deriva { 33% { transform: translate(3vmax, 2vmax) scale(1.06); } 66% { transform: translate(-2vmax, 3vmax) scale(0.96); } }
+}
+/* Titular: las palabras suben en cascada y "relleno." se llena de color. */
+.titular .pal { display: inline-block; }
+.hueca { color: transparent; -webkit-text-stroke: 1.6px var(--fg); background: linear-gradient(90deg, var(--acc) 0 50%, transparent 50% 100%) 100% 0 / 200% 100% no-repeat; -webkit-background-clip: text; background-clip: text; }
+@media (prefers-reduced-motion: no-preference) {
+  .titular .pal { animation: palabra 760ms var(--ease-out) both; animation-delay: calc(var(--w) * 90ms + 60ms); }
+  @keyframes palabra { from { transform: translateY(0.45em) rotate(3deg); } }
+  .titular .pal.hueca { animation: palabra 760ms var(--ease-out) both 330ms, llenar 900ms var(--ease-in-out) 1000ms forwards; }
+  @keyframes llenar { to { background-position: 0 0; } }
+}
+@media (prefers-reduced-motion: reduce) { .hueca { background-position: 0 0; } }
+/* Selector de sabor dentro de la portada. */
+.hero-sabor { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 18px; }
+.hero-prod { display: grid; text-decoration: none; line-height: 1.25; min-height: 44px; align-content: center; }
+.hero-prod strong { font-size: 1rem; }
+.hero-prod span { color: var(--mut); font-size: 0.85rem; font-variant-numeric: tabular-nums; }
+.hero .sabores legend { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+.hero .sabores-op { gap: 6px; }
+.hero .sabor { padding: 0 12px 0 5px; min-height: 40px; font-size: 0.85rem; background: color-mix(in srgb, var(--surface) 70%, transparent); backdrop-filter: blur(6px); }
+.hero .sabor-muestra { width: 26px; height: 26px; }
+@media (max-width: 860px) {
+  .hero-sabor { gap: 6px 10px; justify-content: space-between; }
+  .hero-prod { display: none; }
+  .hero .sabores { width: 100%; }
+  .hero .sabores-op { justify-content: center; }
+  .hero .sabor { min-height: 38px; }
+}
+.cinta { background: var(--acc); color: var(--acc-fg); border: 0; }
+.cinta-in span::after { background: var(--acc-fg); opacity: 0.6; }
+
+/* Lema gigante que se desliza con el scroll. */
+.lema { overflow: hidden; padding-block: clamp(24px, 5vw, 56px); display: grid; gap: 4px; user-select: none; }
+.lema-fila { white-space: nowrap; font-size: clamp(3rem, 9vw, 8.5rem); font-weight: 850; letter-spacing: -0.05em; line-height: 0.95; will-change: transform; display: flex; align-items: center; gap: 0.3em; margin-left: -10%; }
+.lema-fila i { display: inline-block; width: 0.32em; height: 0.32em; border-radius: 50%; background: var(--acc); flex: none; }
+.lema-fila.hueca { -webkit-text-stroke: 1.5px color-mix(in srgb, var(--fg) 45%, transparent); background: none; }
+.lema-fila.hueca i { background: transparent; border: 2px solid var(--acc); }
+
+/* Bento "Por qué Halo": cuadrícula asimétrica. */
+.bento { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); grid-template-rows: auto auto; gap: 14px; margin-top: 22px; }
+.bt { border-radius: calc(var(--r-tarjeta) + 6px); background: var(--surface); border: 1px solid var(--line); padding: clamp(18px, 2.4vw, 28px); display: grid; gap: 10px; align-content: start; position: relative; overflow: hidden; }
+.bt h3 { font-size: 1.15rem; letter-spacing: -0.02em; line-height: 1.2; }
+.bt h3 strong { display: block; font-size: clamp(2.2rem, 4vw, 3.2rem); font-weight: 850; letter-spacing: -0.04em; line-height: 1; font-variant-numeric: tabular-nums; }
+.bt p { color: var(--mut); font-size: 0.95rem; }
+.bt-macro { grid-column: span 2; grid-row: span 2; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: center; gap: 24px; background: radial-gradient(80% 80% at 20% 30%, var(--acc-suave), transparent 70%), var(--surface); }
+.bt-envio { grid-column: span 2; }
+.anillo { position: relative; aspect-ratio: 1; max-width: 260px; width: 100%; justify-self: center; }
+.anillo svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+.anillo circle { fill: none; stroke-width: 12; stroke-linecap: round; }
+.an-fondo { stroke: var(--surface-2); }
+.an-p, .an-c, .an-g { stroke-dasharray: var(--v) 100; stroke-dashoffset: calc(var(--o, 0) * -1); transition: stroke-dasharray 1200ms var(--ease-out); }
+.an-p { stroke: var(--acc); } .an-c { stroke: #e0a100; } .an-g { stroke: #3d7be0; }
+.anillo.espera .an-p, .anillo.espera .an-c, .anillo.espera .an-g { stroke-dasharray: 0 100; }
+.anillo > span { position: absolute; inset: 0; display: grid; place-content: center; text-align: center; color: var(--mut); font-size: 0.85rem; }
+.anillo strong { display: block; font-size: clamp(2rem, 4vw, 2.8rem); color: var(--fg); letter-spacing: -0.04em; font-variant-numeric: tabular-nums; }
+.macros { list-style: none; padding: 0; display: grid; gap: 8px; margin: 10px 0 12px; }
+.macros li { display: flex; align-items: center; gap: 10px; font-size: 0.95rem; }
+.macros strong { margin-left: auto; font-variant-numeric: tabular-nums; }
+.macros i { width: 10px; height: 10px; border-radius: 3px; }
+.m-p { background: var(--acc); } .m-c { background: #e0a100; } .m-g { background: #3d7be0; }
+.ruta { height: 34px; margin-top: 6px; position: relative; background: linear-gradient(90deg, var(--line) 50%, transparent 50%) 0 50% / 14px 2px repeat-x; }
+.camion { position: absolute; left: 0; top: 2px; width: 44px; height: 30px; background: var(--acc); -webkit-mask: var(--m) no-repeat center / contain; mask: var(--m) no-repeat center / contain; --m: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 44 30'%3E%3Cpath d='M2 4h24v16H2zM27 10h8l7 6v4H27z'/%3E%3Ccircle cx='10' cy='24' r='4'/%3E%3Ccircle cx='34' cy='24' r='4'/%3E%3C/svg%3E"); }
+@media (prefers-reduced-motion: no-preference) {
+  .camion { animation: camion 5s var(--ease-in-out) infinite; }
+  @keyframes camion { 0% { left: -12%; } 45%, 55% { left: calc(100% - 44px); } 100% { left: 112%; } }
+}
+.bt-lab { padding: 0; }
+.bt-lab img { width: 100%; height: 100%; min-height: 180px; object-fit: cover; position: absolute; inset: 0; }
+.bt-lab p { position: relative; margin-top: auto; align-self: end; padding: 14px 16px; background: linear-gradient(transparent, rgba(8, 9, 11, 0.85)); color: #fff; font-size: 0.88rem; display: flex; gap: 10px; align-items: center; min-height: 180px; align-items: flex-end; }
+.bt-lab .g-ico { flex: none; background: rgba(255, 255, 255, 0.15); margin: 0; }
+.bt-garantia .g-ico { margin-bottom: 0; }
+@media (hover: hover) and (pointer: fine) { .bt { transition: transform 300ms var(--ease-out), border-color 200ms ease; } .bt:hover { transform: translateY(-3px); border-color: color-mix(in srgb, var(--acc) 40%, var(--line)); } }
+@media (max-width: 860px) {
+  .bento { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .bt-macro { grid-column: 1 / -1; grid-row: auto; grid-template-columns: 1fr; }
+  .anillo { max-width: 200px; }
+  .bt-envio { grid-column: 1 / -1; }
+}
+
+/* Calculadora de proteína. */
+.calc-sec { display: grid; grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr); gap: clamp(24px, 5vw, 72px); align-items: center; }
+.calc-texto { display: grid; gap: 14px; justify-items: start; }
+.calc { display: grid; gap: 22px; padding: clamp(20px, 3vw, 34px); border-radius: calc(var(--r-tarjeta) + 8px); background: var(--surface); border: 1px solid var(--line); box-shadow: var(--sombra); }
+.calc-peso { display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: baseline; }
+.calc-peso label { font-weight: 650; }
+.calc-peso output { font-size: 1.6rem; font-weight: 800; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; }
+.calc-peso input { grid-column: 1 / -1; width: 100%; -webkit-appearance: none; appearance: none; height: 32px; border-radius: 99px; background: linear-gradient(90deg, var(--acc) var(--p, 30%), var(--surface-2) var(--p, 30%)) center / 100% 8px no-repeat; outline-offset: 2px; cursor: pointer; }
+.calc-peso input::-webkit-slider-thumb { -webkit-appearance: none; width: 30px; height: 30px; border-radius: 50%; background: var(--bg); border: 3px solid var(--acc); box-shadow: 0 4px 14px -4px rgba(0, 0, 0, 0.4); cursor: grab; transition: transform 160ms var(--ease-out); }
+.calc-peso input::-moz-range-thumb { width: 26px; height: 26px; border-radius: 50%; background: var(--bg); border: 3px solid var(--acc); cursor: grab; }
+.calc-peso input:active::-webkit-slider-thumb { transform: scale(1.15); cursor: grabbing; }
+.calc-obj { border: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 8px; }
+.calc-obj legend { font-weight: 650; margin-bottom: 10px; }
+.calc-obj label { position: relative; }
+.calc-obj input { position: absolute; opacity: 0; inset: 0; cursor: pointer; }
+.calc-obj span { display: inline-flex; align-items: center; min-height: 44px; padding: 0 18px; border-radius: 999px; border: 1px solid var(--line); font-weight: 600; font-size: 0.92rem; transition: background-color 180ms ease, color 180ms ease, border-color 180ms ease, transform 160ms var(--ease-out); }
+.calc-obj input:checked + span { background: var(--fg); color: var(--bg); border-color: var(--fg); }
+.calc-obj input:focus-visible + span { outline: 2px solid var(--acc); outline-offset: 3px; }
+.calc-obj label:active span { transform: scale(0.96); }
+.calc-res { padding: 18px 20px; border-radius: var(--r-tarjeta); background: var(--acc-suave); }
+.calc-res p:first-child { font-size: 1.05rem; }
+.calc-res strong { font-size: clamp(2.6rem, 5vw, 3.6rem); font-weight: 850; letter-spacing: -0.05em; color: var(--acc); font-variant-numeric: tabular-nums; line-height: 1; margin-right: 4px; }
+@media (max-width: 860px) { .calc-sec { grid-template-columns: 1fr; } .calc .btn { white-space: normal; text-align: center; } }
+
+/* "Así de simple": tarjetas que se apilan al bajar. */
+.pasos { list-style: none; padding: 0; margin-top: 22px; display: grid; gap: 18px; }
+.paso { position: sticky; top: calc(var(--cab) + 20px + var(--i) * 18px); display: grid; grid-template-columns: auto minmax(0, 1fr) 200px; gap: clamp(16px, 3vw, 36px); align-items: center; min-height: 240px; padding: clamp(20px, 3vw, 36px); border-radius: calc(var(--r-tarjeta) + 10px); background: radial-gradient(80% 120% at 100% 50%, color-mix(in srgb, var(--c1) 30%, transparent), transparent 70%), var(--surface); border: 1px solid var(--line); box-shadow: 0 -12px 40px -30px rgba(17, 19, 23, 0.5); }
+.paso-n { font-size: clamp(3rem, 7vw, 5.5rem); font-weight: 850; letter-spacing: -0.06em; color: transparent; -webkit-text-stroke: 1.5px var(--acc); line-height: 1; }
+.paso h3 { font-size: clamp(1.3rem, 2.4vw, 1.8rem); letter-spacing: -0.03em; }
+.paso p { color: var(--mut); margin-top: 8px; max-width: 46ch; }
+.paso-img { width: 200px; height: 200px; object-fit: contain; }
+@media (max-width: 760px) { .paso { grid-template-columns: auto minmax(0, 1fr); min-height: 0; top: calc(var(--cab) + 12px + var(--i) * 12px); } .paso-img { display: none; } }
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .paso { animation: pasoAtras linear both; animation-timeline: view(); animation-range: exit-crossing 0% exit-crossing 100%; }
+    @keyframes pasoAtras { to { transform: scale(0.94); filter: brightness(0.96); } }
+  }
+}
+
+/* Muestras de sabor en las tarjetas. */
+.muestras { display: flex; gap: 6px; position: relative; z-index: 1; margin-top: -2px; }
+.muestra { width: 24px; height: 24px; border-radius: 50%; background: linear-gradient(135deg, var(--c1), var(--c2)); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.3); transition: transform 160ms var(--ease-out), box-shadow 160ms ease; }
+.muestra[aria-pressed="true"] { box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px var(--fg); }
+@media (hover: hover) and (pointer: fine) { .muestra:hover { transform: scale(1.15); } }
+.muestra:active { transform: scale(0.9); }

@@ -4,19 +4,7 @@ import { datos, modoDemo, productosPublico, haySesionGuardada, sesion, pagoSimul
 
 const P = Object.fromEntries(datos.productos.map((p) => [p.slug, p]));
 
-/* ---------- cada página nueva empieza arriba ---------- */
-// Al abrir un producto (o cualquier página) se muestra desde el inicio. Si la tienda se ve dentro de un marco
-// alto (vistas previas, apps), el marco también vuelve arriba. Al usar "atrás" se respeta donde estaba la persona.
-(() => {
-  const nav = performance.getEntriesByType?.('navigation')[0];
-  if (location.hash || nav?.type === 'back_forward' || nav?.type === 'reload') return;
-  scrollTo(0, 0);
-  if (window.top !== window) {
-    const html = document.documentElement; const previo = html.style.scrollPaddingTop; html.style.scrollPaddingTop = '0px';
-    try { html.scrollIntoView({ block: 'start', behavior: 'instant' }); } catch { /* nada */ }
-    html.style.scrollPaddingTop = previo;
-  }
-})();
+
 const reducido = matchMedia('(prefers-reduced-motion: reduce)');
 const num = new Intl.NumberFormat('es-CO', { maximumFractionDigits: 0 });
 const cop = (n) => `$ ${num.format(Math.round(n))}`;
@@ -226,6 +214,10 @@ if (compra) {
     const s = $('input[name="sabor"]:checked', compra)?.value; const q = Math.max(1, Math.min(9, +cant.value || 1));
     agregar([{ p: slug, s, q }], centro($('.ficha-galeria') || compra)); confirmarBoton($('[data-boton-compra]', compra));
   });
+  // Si se llega con ?sabor=… (desde la portada o una tarjeta), ese sabor queda elegido.
+  const pedido = new URLSearchParams(location.search).get('sabor');
+  const radio = pedido && $(`input[name="sabor"][value="${CSS.escape(pedido)}"]`, compra);
+  if (radio && !radio.checked) { radio.checked = true; radio.dispatchEvent(new Event('change')); }
   const barra = $('[data-barra-compra]'); const boton = $('[data-boton-compra]');
   if (barra && boton && 'IntersectionObserver' in window) {
     barra.hidden = false;
@@ -246,6 +238,53 @@ if (config) {
       cambiar(); img.animate([{ transform: 'scale(0.6) rotate(14deg)', opacity: 0.2 }, { transform: 'scale(1.06)', offset: 0.7 }, { transform: 'none' }], { duration: 480, easing: 'cubic-bezier(0.23, 1, 0.32, 1)' });
     });
   });
+}
+
+/* ---------- portada: sabor, color del fondo y manchas que siguen el cursor ---------- */
+const hero = $('[data-hero]');
+if (hero) {
+  const slug = hero.dataset.hero; const img = $('.hero-media > img', hero); const enlace = $('[data-hero-enlace]', hero);
+  vincularSabor('sabor-hero', slug, (s) => {
+    hero.style.setProperty('--hc1', s.c1); hero.style.setProperty('--hc2', s.c2);
+    if (enlace) enlace.href = `${P[slug].url}?sabor=${s.slug}`;
+    if (img && P[slug].con3D) { img.srcset = `${foto(slug, s.slug, 600)} 600w, ${foto(slug, s.slug, 1000)} 1000w`; img.src = foto(slug, s.slug, 1000); }
+  });
+  if (matchMedia('(hover: hover) and (pointer: fine)').matches && !reducido.matches) {
+    let raf = 0; let ev = null;
+    hero.addEventListener('pointermove', (e) => { ev = e; if (!raf) raf = requestAnimationFrame(() => { raf = 0; const r = hero.getBoundingClientRect(); hero.style.setProperty('--mx', ((ev.clientX - r.left) / r.width - 0.5).toFixed(3)); hero.style.setProperty('--my', ((ev.clientY - r.top) / r.height - 0.5).toFixed(3)); }); });
+  }
+}
+
+/* ---------- muestras de sabor en las tarjetas ---------- */
+document.addEventListener('click', (ev) => {
+  const m = ev.target.closest('[data-muestra]'); if (!m) return;
+  const card = m.closest('[data-tarjeta]'); const slug = card.dataset.tarjeta; const s = sabor(slug, m.dataset.muestra);
+  $$('[data-muestra]', card).forEach((b) => b.setAttribute('aria-pressed', String(b === m)));
+  const img = $('.tarjeta-img img', card);
+  if (img && P[slug].con3D) {
+    const nueva = () => { img.srcset = `${foto(slug, s.slug, 600)} 600w, ${foto(slug, s.slug, 1000)} 1000w`; img.src = foto(slug, s.slug, 600); };
+    if (reducido.matches || !img.animate) nueva();
+    else img.animate([{ opacity: 1, transform: 'none' }, { opacity: 0, transform: 'scale(0.94) rotate(-4deg)' }], { duration: 140, easing: 'ease-in' }).finished.then(() => { nueva(); img.animate([{ opacity: 0, transform: 'scale(0.94) rotate(4deg)' }, { opacity: 1, transform: 'none' }], { duration: 260, easing: 'cubic-bezier(0.23, 1, 0.32, 1)' }); });
+  }
+  const btn = $('[data-agregar]', card); if (btn) { btn.dataset.sabor = s.slug; btn.setAttribute('aria-label', `Agregar ${P[slug].nombre} sabor ${s.nombre} al carrito`); }
+  const a = $('h3 a', card); if (a) a.href = `${P[slug].url}?sabor=${s.slug}`;
+});
+
+/* ---------- calculadora de proteína ---------- */
+const calc = $('[data-calc]');
+if (calc) {
+  const kg = $('#calc-kg', calc); const porcion = 25;
+  const pintar = () => {
+    const f = +($('input[name="calc-obj"]:checked', calc)?.value || 1.8); const g = Math.round(kg.value * f);
+    const porciones = Math.min(3, Math.max(1, Math.round((g * 0.25) / porcion)));
+    $('[data-calc-kg]', calc).textContent = `${kg.value} kg`;
+    const out = $('[data-calc-g]', calc); const desde = +out.textContent || g;
+    if (reducido.matches) out.textContent = g;
+    else { const t0 = performance.now(); const paso = (t) => { const u = Math.min(1, (t - t0) / 300); out.textContent = Math.round(desde + (g - desde) * (1 - (1 - u) ** 3)); if (u < 1) requestAnimationFrame(paso); }; requestAnimationFrame(paso); }
+    $('[data-calc-txt]', calc).textContent = `Con ${porciones} ${porciones === 1 ? 'porción' : 'porciones'} de Whey Isolate al día cubres ${porciones * porcion} g; el resto, con tus comidas. Un tarro te dura ${Math.floor(30 / porciones)} días.`;
+    kg.style.setProperty('--p', `${((kg.value - kg.min) / (kg.max - kg.min)) * 100}%`);
+  };
+  calc.addEventListener('input', pintar); pintar();
 }
 
 /* ---------- orden en la tienda ---------- */

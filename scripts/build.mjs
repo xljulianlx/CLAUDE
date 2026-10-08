@@ -4,8 +4,9 @@
 //       node scripts/build.mjs --preview <dir>  -> <dir>   (vista previa: enlaces a index.html explícitos)
 // Entorno opcional: SITE_URL, SUPABASE_URL, SUPABASE_ANON_KEY (pública, va al navegador),
 //                   SUPABASE_SERVICE_ROLE_KEY (solo en el build/servidor, nunca al navegador).
-import { mkdir, writeFile, cp, rm } from 'node:fs/promises';
-import { existsSync } from 'node:fs';
+import { mkdir, writeFile, cp, rm, readdir, readFile } from 'node:fs/promises';
+import { existsSync, readFileSync, readdirSync } from 'node:fs';
+import { createHash } from 'node:crypto';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { sitio, categorias, productos as catalogoBase, resenas, blog } from '../src/data/catalogo.mjs';
@@ -18,6 +19,8 @@ const HOY = new Date().toISOString().slice(0, 10);
 const VALIDO_HASTA = `${new Date().getFullYear() + 1}-12-31`;
 const SB_URL = (process.env.SUPABASE_URL || '').replace(/\/$/, '');
 const SB_ANON = process.env.SUPABASE_ANON_KEY || '';
+// Versión de los archivos CSS y JS (huella de su contenido): cambia en cada cambio y evita que el navegador use uno viejo.
+const VERSION = (() => { const h = createHash('sha1'); for (const d of ['css', 'js']) for (const f of readdirSync(join(raiz, 'src/assets', d)).sort()) h.update(f).update(readFileSync(join(raiz, 'src/assets', d, f))); return h.digest('hex').slice(0, 10); })();
 
 /* ---------- datos ---------- */
 const SABOR_UNICO = { slug: 'unico', nombre: 'Único', c1: '#3b3f47', c2: '#15171b' };
@@ -79,7 +82,7 @@ function contexto(ruta) {
       if (PREVIEW && (destino.endsWith('/') || camino === '')) destino += 'index.html';
       return destino + (ancla ? '#' + ancla : '');
     },
-    a: (p) => base + 'assets/' + p,
+    a: (p) => base + 'assets/' + p + (/\.(css|js)$/.test(p) ? `?v=${VERSION}` : ''),
   };
 }
 
@@ -219,6 +222,23 @@ ${barraMovil(c)}
 ${cajon()}
 <div class="aviso" data-aviso role="status" aria-live="polite"></div>
 <canvas class="frasco-lienzo" id="frasco-lienzo" aria-hidden="true"></canvas>
+<script>
+/* Cada página nueva empieza arriba, también si la tienda se ve dentro de un marco alto (vistas previas, apps).
+   Al volver con "atrás" o al recargar se respeta la posición. Va en línea para no depender de archivos en caché. */
+(function () {
+  var n = performance.getEntriesByType && performance.getEntriesByType('navigation')[0];
+  if (location.hash || (n && (n.type === 'back_forward' || n.type === 'reload'))) return;
+  function arriba() {
+    window.scrollTo(0, 0);
+    if (window.top !== window) {
+      var h = document.documentElement, pr = h.style.scrollPaddingTop; h.style.scrollPaddingTop = '0px';
+      try { h.scrollIntoView({ block: 'start', behavior: 'instant' }); } catch (e) { /* nada */ }
+      h.style.scrollPaddingTop = pr;
+    }
+  }
+  arriba(); addEventListener('load', arriba, { once: true });
+})();
+</script>
 <script type="application/json" id="catalogo">${catalogoJSON(c)}</script>
 </body>
 </html>
@@ -249,6 +269,7 @@ function tarjeta(c, p, i = 0, eager = false) {
   <div class="tarjeta-info">
     <p class="tarjeta-cat">${cat(p.categoria).nombre}</p>
     <h3><a href="${c.h(`/productos/${p.slug}/`)}">${esc(p.nombre)}</a></h3>
+    ${p.sabores.length > 1 && tieneRender(p) && !p.imagenUrl ? `<div class="muestras" role="group" aria-label="Sabores de ${esc(p.nombre)}">${p.sabores.map((x, k) => `<button type="button" class="muestra" style="--c1:${x.c1};--c2:${x.c2}" data-muestra="${x.slug}" aria-pressed="${k === 0}" aria-label="${esc(x.nombre)}" title="${esc(x.nombre)}"></button>`).join('')}</div>` : ''}
     <p class="tarjeta-resumen">${esc(p.resumen)}</p>
     ${valoracion(p.slug, c, null, true)}
     <div class="tarjeta-pie"><p class="precio"><span data-precio-de="${p.slug}">${cop(p.precio)}</span>${pp ? `<small>${cop(pp)} por porción</small>` : `<small>${esc(p.presentacion)}</small>`}</p>
@@ -304,11 +325,12 @@ paginas.push({
   cuerpo: (c) => {
     const w = estrella; const ppw = porPorcion(w);
     return `
-<section class="hero" aria-labelledby="hero-t">
+<section class="hero" aria-labelledby="hero-t" data-hero="${w.slug}" style="--hc1:${w.sabores[0].c1};--hc2:${w.sabores[0].c2}">
+  <div class="orbes" aria-hidden="true"><span class="orbe o1"></span><span class="orbe o2"></span><span class="orbe o3"></span></div>
   <div class="wrap hero-in">
     <div class="hero-copy">
       <p class="hero-chip"><span aria-hidden="true"></span>Envío gratis desde ${cop(sitio.envioGratisDesde)}</p>
-      <h1 id="hero-t" class="h1">Más fuerza, cero relleno.</h1>
+      <h1 id="hero-t" class="h1 titular"><span class="pal" style="--w:0">Más</span> <span class="pal" style="--w:1">fuerza,</span> <span class="pal" style="--w:2">cero</span> <span class="pal hueca" style="--w:3">relleno.</span></h1>
       <p class="hero-sub">Proteína aislada, creatina y pre-entreno con dosis declaradas y análisis de laboratorio por lote.</p>
     </div>
     <figure class="hero-media" data-pose="d:el:.8;m:el:.9" data-frasco-ancla>
@@ -316,8 +338,8 @@ paginas.push({
       <span class="hero-sombra" aria-hidden="true"></span>
     </figure>
     <div class="hero-acciones">
-      <div class="cta"><a class="btn btn-pri btn-grande" href="${c.h(`/productos/${w.slug}/`)}">Comprar ${esc(w.nombre)}</a><a class="btn btn-sec btn-grande" href="#productos">Ver productos</a></div>
-      <ul class="hero-datos"><li><strong>25 g</strong> de proteína por porción</li><li><strong>48 h</strong> despacho</li><li><strong>${sitio.diasDevolucion} días</strong> de garantía</li></ul>
+      <div class="hero-sabor"><a class="hero-prod" href="${c.h(`/productos/${w.slug}/`)}" data-hero-enlace><strong>${esc(w.nombre)}</strong><span>${cop(w.precio)} · ${esc(w.presentacion)}</span></a>${selectorSabor(w, 'sabor-hero')}</div>
+      <div class="cta"><button class="btn btn-pri btn-grande" type="button" data-agregar="${w.slug}" data-sabor-desde="sabor-hero">Agregar al carrito</button><a class="btn btn-sec btn-grande" href="#productos">Ver productos</a></div>
     </div>
     <a class="hero-bajar" href="#productos" aria-label="Bajar a los productos"><span aria-hidden="true"></span></a>
   </div>
@@ -334,20 +356,39 @@ paginas.push({
   <ul class="objetivos-lista">${[['proteinas', 'Ganar músculo', 'Proteína whey y barras para llegar a tu meta diaria.'], ['rendimiento', 'Fuerza y energía', 'Creatina, pre-entreno y BCAA para rendir más.'], ['accesorios', 'Para llevar', 'Shakers que no gotean ni dejan grumos.']].map(([k, t, d]) => `<li data-revelar><a class="objetivo" href="${c.h(`/tienda/${k}/`)}">${escenaImg(c, `cat-${k}`, { sizes: '(min-width: 860px) 31vw, 92vw' })}<span class="objetivo-txt"><span class="objetivo-t">${t}</span><span>${d}</span><span class="objetivo-ir" aria-hidden="true">Ver ${cat(k).nombre.toLowerCase()} →</span></span></a></li>`).join('')}</ul>
 </section>
 
-<section class="configurador wrap" aria-labelledby="sabor-t" data-configurador="${w.slug}" style="--c1:${w.sabores[0].c1};--c2:${w.sabores[0].c2}">
-  <h2 class="h2" id="sabor-t">Elige tu sabor de ${esc(w.nombre)}</h2>
-  <div class="configurador-escena" aria-hidden="true"><img data-config-img src="${c.a(foto(w, w.sabores[0], 600))}" width="600" height="600" alt="" loading="lazy" decoding="async"></div>
-  <div class="configurador-panel">
-    ${selectorSabor(w, 'sabor-inicio')}
-    <p class="precio precio-g"><span>${cop(w.precio)}</span><small>${ppw ? `${cop(ppw)} por porción, ` : ''}${esc(w.presentacion)}</small></p>
-    <button class="btn btn-pri" type="button" data-agregar="${w.slug}" data-sabor-desde="sabor-inicio">Agregar al carrito</button>
+<section class="lema" aria-hidden="true">
+  <p class="lema-fila" data-lema="-1">Fuerza <i></i> Foco <i></i> Recuperación <i></i> Fuerza <i></i> Foco <i></i> Recuperación <i></i></p>
+  <p class="lema-fila hueca" data-lema="1">Cero relleno <i></i> Dosis completas <i></i> Cero relleno <i></i> Dosis completas <i></i></p>
+</section>
+
+<section class="seccion wrap bento-sec" aria-labelledby="bento-t">
+  <h2 class="h2 h2-sec" id="bento-t">Por qué Halo</h2>
+  <div class="bento">
+    <article class="bt bt-macro" data-revelar>
+      <div class="anillo" data-anillo aria-hidden="true"><svg viewBox="0 0 120 120"><circle class="an-fondo" cx="60" cy="60" r="50"/><circle class="an-p" cx="60" cy="60" r="50" pathLength="100" style="--v:83"/><circle class="an-c" cx="60" cy="60" r="50" pathLength="100" style="--v:4;--o:83"/><circle class="an-g" cx="60" cy="60" r="50" pathLength="100" style="--v:2;--o:87"/></svg><span><strong><span data-contar="25">25</span> g</strong>proteína</span></div>
+      <div><h3>Cada porción de 30 g</h3><ul class="macros"><li><i class="m-p"></i>Proteína <strong>25 g</strong></li><li><i class="m-c"></i>Carbohidratos <strong>1,2 g</strong></li><li><i class="m-g"></i>Grasa <strong>0,6 g</strong></li></ul><p>El 83 % de cada medida es proteína. Sin azúcar añadida ni mezclas propietarias.</p></div>
+    </article>
+    <article class="bt bt-envio" data-revelar><h3><strong><span data-contar="48">48</span> h</strong> y está en tu puerta</h3><p>Despacho el mismo día si pides antes de las 2 p. m.</p><div class="ruta" aria-hidden="true"><span class="camion"></span></div></article>
+    <article class="bt bt-garantia" data-revelar><span class="g-ico g-garantia" aria-hidden="true"></span><h3><strong><span data-contar="${sitio.diasDevolucion}">${sitio.diasDevolucion}</span> días</strong></h3><p>para devolverlo, aunque el envase esté abierto.</p></article>
+    <article class="bt bt-lab" data-revelar>${escenaImg(c, 'laboratorio', { sizes: '(min-width: 860px) 25vw, 46vw' })}<p><span class="g-ico g-lab" aria-hidden="true"></span>Cada lote pasa por un laboratorio independiente.</p></article>
   </div>
 </section>
 
-<section class="garantias wrap" aria-label="Por qué comprar en Halo">
-  <div><span class="g-ico g-envio" aria-hidden="true"></span><strong><span data-contar="48">48</span> h</strong><span>Despacho el mismo día y entrega en ciudades principales</span></div>
-  <div><span class="g-ico g-garantia" aria-hidden="true"></span><strong><span data-contar="${sitio.diasDevolucion}">${sitio.diasDevolucion}</span> días</strong><span>Garantía de satisfacción, aunque el envase esté abierto</span></div>
-  <div><span class="g-ico g-lab" aria-hidden="true"></span><strong>Por lote</strong><span>Análisis de laboratorio independiente publicado</span></div>
+<section class="seccion wrap calc-sec" aria-labelledby="calc-t">
+  <div class="calc-texto"><p class="eyebrow">Calculadora</p><h2 class="h2" id="calc-t">¿Cuánta proteína necesitas al día?</h2><p class="lead">Mueve la barra con tu peso y elige tu objetivo. Usamos el rango de 1,4 a 2 g por kilo que recomiendan las guías de nutrición deportiva.</p><a class="enlace" href="${c.h('/blog/cuanta-proteina-necesitas/')}">Lee la guía completa</a></div>
+  <form class="calc" data-calc onsubmit="return false">
+    <div class="calc-peso"><label for="calc-kg">Tu peso</label><output for="calc-kg" data-calc-kg>70 kg</output><input id="calc-kg" type="range" min="40" max="140" step="1" value="70"></div>
+    <fieldset class="calc-obj"><legend>Tu objetivo</legend>${[['mantener', 'Mantenerme', 1.4], ['ganar', 'Ganar músculo', 1.8, true], ['definir', 'Definir', 2]].map(([v, t, f, sel]) => `<label><input type="radio" name="calc-obj" value="${f}"${sel ? ' checked' : ''}><span>${t}</span></label>`).join('')}</fieldset>
+    <div class="calc-res" role="status"><p><strong data-calc-g>126</strong> g de proteína al día</p><p class="nota" data-calc-txt>Con 1 porción de ${esc(w.nombre)} cubres 25 g. Un tarro te dura 30 días.</p></div>
+    <button class="btn btn-pri" type="button" data-agregar="${w.slug}" data-sabor="${w.sabores[0].slug}">Agregar ${esc(w.nombre)} · ${cop(w.precio)}</button>
+  </form>
+</section>
+
+<section class="seccion wrap pasos-sec" aria-labelledby="pasos-t">
+  <h2 class="h2 h2-sec" id="pasos-t">Así de simple</h2>
+  <ol class="pasos">
+    ${[['01', 'Elige tu suplemento', 'Pocas opciones, todas con la dosis completa en la etiqueta. Si dudas, la calculadora y las guías te ayudan.', 'whey-isolate', 0], ['02', 'Recíbelo en 48 horas', `Pagas seguro con Mercado Pago y te enviamos la guía por correo. Envío gratis desde ${cop(sitio.envioGratisDesde)}.`, 'pre-entreno-pulse', 0], ['03', 'Entrena y nota la diferencia', `Si no te convence, tienes ${sitio.diasDevolucion} días para devolverlo, aunque el envase esté abierto.`, 'creatina-monohidratada', 1]].map(([n, t, d, slug, si], i) => { const x = prod(slug) || w; const sb = x.sabores[si] || x.sabores[0]; return `<li class="paso" style="--i:${i};--c1:${sb.c1}"><span class="paso-n">${n}</span><div><h3>${t}</h3><p>${d}</p></div>${imgProducto(c, x, sb, { sizes: '(min-width: 860px) 220px, 120px', extra: ' class="paso-img"' })}</li>`; }).join('')}
+  </ol>
 </section>
 
 <section class="seccion wrap resenas-sec" aria-labelledby="resenas-t">
@@ -639,6 +680,11 @@ paginas.push({
 await rm(salida, { recursive: true, force: true });
 await mkdir(salida, { recursive: true });
 await cp(join(raiz, 'src/assets'), join(salida, 'assets'), { recursive: true });
+// Las importaciones entre módulos también llevan la versión.
+for (const f of await readdir(join(salida, 'assets/js'))) {
+  const ruta = join(salida, 'assets/js', f);
+  await writeFile(ruta, (await readFile(ruta, 'utf8')).replace(/(from\s+|import\()'(\.\/[\w-]+\.js)'/g, `$1'$2?v=${VERSION}'`));
+}
 for (const pg of paginas) {
   const archivo = pg.ruta.endsWith('.html') ? join(salida, pg.ruta) : join(salida, pg.ruta, 'index.html');
   await mkdir(dirname(archivo), { recursive: true });
