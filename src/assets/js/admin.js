@@ -2,6 +2,7 @@
 // Resumen de ventas, productos (foto, precio, stock, visible, eliminar, crear) y pedidos (estado, guía, CSV).
 // La seguridad real está en la base de datos (RLS): este panel solo muestra lo que el servidor permite.
 import { datos, modoDemo, sesion, esAdmin, productos, guardarProducto, eliminarProducto, subirImagen, pedidos, actualizarPedido, publicar } from './datos.js';
+import { COLORES, sparkline, lineaVentas, calendario, barras, embudo, medidor, copCorto } from './graficas.js';
 
 const app = document.querySelector('[data-admin-app]');
 const $ = (s, r = document) => r.querySelector(s);
@@ -19,7 +20,10 @@ const ESTADOS = { pendiente: 'Pago pendiente', pagado: 'Pagado', preparando: 'Pr
 const VENDIDOS = ['pagado', 'preparando', 'enviado', 'entregado'];
 const slugDe = (t) => t.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 60);
 
-const st = { tab: 'resumen', prods: [], peds: [], filtroP: 'todos', qP: '', filtroE: 'despachar', qE: '' };
+const ico = (n) => `<svg class="ico" aria-hidden="true"><use href="#i-${n}"/></svg>`;
+const chip = (n, t) => `<span class="chip-ico t-${t}" aria-hidden="true">${ico(n)}</span>`;
+const ICO_ESTADO = { pendiente: 'reloj', pagado: 'tarjeta', preparando: 'caja', enviado: 'camion', entregado: 'check', cancelado: 'cero' };
+const st = { rango: 30, tab: 'resumen', prods: [], peds: [], filtroP: 'todos', qP: '', filtroE: 'despachar', qE: '' };
 const leerSP = () => { try { return sessionStorage.getItem('halo-sin-publicar') === '1'; } catch { return false; } };
 const marcarCambio = (v = true) => { try { sessionStorage.setItem('halo-sin-publicar', v ? '1' : '0'); } catch { /* nada */ } pintarPublicar(); };
 
@@ -36,13 +40,13 @@ async function arrancar() {
     return;
   }
   app.innerHTML = `<div class="wrap">
-    <div class="admin-cab"><div><p class="eyebrow">Administración</p><h1 class="h1 h1-pag">Panel de Halo</h1></div>
-      <div class="cta" style="margin-top:0"><a class="btn btn-sec btn-sm" href="${datos.tienda}">Ver la tienda</a><button class="btn btn-pri btn-sm" type="button" data-nuevo>Nuevo producto</button></div></div>
+    <div class="admin-cab"><div class="admin-hola"><span class="admin-avatar" aria-hidden="true">${esc((s.nombre || s.email).slice(0, 1).toUpperCase())}</span><div><p class="eyebrow">${saludo()} · ${new Date().toLocaleDateString('es-CO', { weekday: 'long', day: 'numeric', month: 'long' })}</p><h1 class="h1 h1-pag">Panel de Halo</h1></div></div>
+      <div class="cta" style="margin-top:0"><a class="btn btn-sec btn-sm" href="${datos.tienda}">${ico('caja')} Ver la tienda</a><button class="btn btn-pri btn-sm" type="button" data-nuevo>${ico('chispa')} Nuevo producto</button></div></div>
     <div data-publicar></div>
     <div class="admin-tabs" role="tablist" aria-label="Secciones del panel">
-      <button type="button" role="tab" id="t-resumen" aria-controls="panel-admin" data-tab="resumen">Resumen</button>
-      <button type="button" role="tab" id="t-productos" aria-controls="panel-admin" data-tab="productos">Productos</button>
-      <button type="button" role="tab" id="t-pedidos" aria-controls="panel-admin" data-tab="pedidos">Pedidos<span class="n" data-n-pedidos hidden></span></button>
+      <button type="button" role="tab" id="t-resumen" aria-controls="panel-admin" data-tab="resumen">${ico('rayo')} Resumen</button>
+      <button type="button" role="tab" id="t-productos" aria-controls="panel-admin" data-tab="productos">${ico('caja')} Productos</button>
+      <button type="button" role="tab" id="t-pedidos" aria-controls="panel-admin" data-tab="pedidos">${ico('camion')} Pedidos<span class="n" data-n-pedidos hidden></span></button>
     </div>
     <div id="panel-admin" role="tabpanel" tabindex="-1" data-panel></div>
   </div>
@@ -72,32 +76,87 @@ function pintar() {
   ({ resumen: pintarResumen, productos: pintarProductos, pedidos: pintarPedidos })[st.tab]();
 }
 
-/* ---------- resumen ---------- */
+/* ---------- resumen: cifras, gráficas y alertas ---------- */
+function saludo() { const h = new Date().getHours(); return h < 12 ? 'Buenos días' : h < 19 ? 'Buenas tardes' : 'Buenas noches'; }
+const DIA = 864e5;
+const inicioDia = (t) => { const d = new Date(t); d.setHours(0, 0, 0, 0); return d.getTime(); };
+// Totales por día de [desde, desde + n días).
+function porDia(lista, desde, n) {
+  const tot = Array(n).fill(0); const ped = Array(n).fill(0);
+  lista.forEach((p) => { const i = Math.floor((inicioDia(new Date(p.creado)) - desde) / DIA); if (i >= 0 && i < n) { tot[i] += p.total; ped[i]++; } });
+  return { tot, ped };
+}
+const variacion = (a, b) => (b ? ((a - b) / b) * 100 : null);
+const deltaHTML = (v, bueno = true) => {
+  if (v == null || !isFinite(v)) return '<span class="delta">sin datos previos</span>';
+  const sube = v >= 0; const ok = sube === bueno;
+  return `<span class="delta ${ok ? 'sube' : 'baja'}">${sube ? '▲' : '▼'} ${Math.abs(v).toFixed(1).replace('.', ',')} %<span class="sr">${sube ? ' más' : ' menos'}</span></span><span class="delta-c">vs. ${st.rango} días anteriores</span>`;
+};
+let soltarLinea = null;
 function pintarResumen() {
-  const ahora = new Date(); const ini = new Date(ahora.getFullYear(), ahora.getMonth(), 1);
+  soltarLinea?.(); soltarLinea = null;
+  const n = st.rango; const hoy = inicioDia(Date.now()); const desde = hoy - (n - 1) * DIA; const desdeAnt = desde - n * DIA;
   const vendidos = st.peds.filter((p) => VENDIDOS.includes(p.estado));
-  const mes = vendidos.filter((p) => new Date(p.creado) >= ini);
-  const ventasMes = mes.reduce((s, p) => s + p.total, 0);
-  const ticket = vendidos.length ? vendidos.reduce((s, p) => s + p.total, 0) / vendidos.length : 0;
+  const act = porDia(vendidos, desde, n); const ant = porDia(vendidos, desdeAnt, n);
+  const suma = (a) => a.reduce((x, y) => x + y, 0);
+  const ventas = suma(act.tot); const ventasAnt = suma(ant.tot); const pedN = suma(act.ped); const pedAnt = suma(ant.ped);
+  const ticket = pedN ? ventas / pedN : 0; const ticketAnt = pedAnt ? ventasAnt / pedAnt : 0;
   const despachar = st.peds.filter((p) => p.estado === 'pagado' || p.estado === 'preparando');
   const bajos = st.prods.filter((p) => p.stock <= p.stock_minimo).sort((a, b) => a.stock - b.stock);
-  const inventario = st.prods.reduce((s, p) => s + p.precio * Math.max(0, p.stock), 0);
-  const unidades = {}; vendidos.forEach((p) => (p.items || []).forEach((it) => { unidades[it.slug] = (unidades[it.slug] || 0) + it.cantidad; }));
-  const top = Object.entries(unidades).sort((a, b) => b[1] - a[1]).slice(0, 5); const max = top[0]?.[1] || 1;
+  const inventario = st.prods.reduce((x, p) => x + p.precio * Math.max(0, p.stock), 0);
+  const unidadesInv = st.prods.reduce((x, p) => x + Math.max(0, p.stock), 0);
+  // Minigráficas de 12 tramos dentro del periodo.
+  const tramos = (serie) => { const k = Math.max(1, Math.ceil(serie.length / 12)); const r = []; for (let i = 0; i < serie.length; i += k) r.push(suma(serie.slice(i, i + k))); return r; };
+  // Productos y categorías del periodo.
+  const enRango = vendidos.filter((p) => new Date(p.creado).getTime() >= desde);
+  const uni = {}; const cats = {};
+  enRango.forEach((p) => (p.items || []).forEach((it) => { uni[it.slug] = (uni[it.slug] || 0) + it.cantidad; const pr = st.prods.find((x) => x.slug === it.slug) || PC[it.slug]; const k = pr?.categoria || 'otros'; cats[k] = (cats[k] || 0) + it.precio * it.cantidad; }));
   const nombre = (slug) => st.prods.find((p) => p.slug === slug)?.nombre || PC[slug]?.nombre || slug;
+  const top = Object.entries(uni).sort((a, b) => b[1] - a[1]).slice(0, 5).map(([slug, v]) => ({ nombre: esc(nombre(slug)), valor: v, img: esc(imgDe(st.prods.find((p) => p.slug === slug) || { slug })) }));
+  const catFilas = Object.entries(cats).sort((a, b) => b[1] - a[1]).map(([k, v]) => ({ nombre: esc(catNombre(k)), valor: v }));
+  const cuenta = (e) => st.peds.filter((p) => p.estado === e && new Date(p.creado).getTime() >= desde).length;
+  const etapas = [['Pagado', 'pagado'], ['Preparando', 'preparando'], ['Enviado', 'enviado'], ['Entregado', 'entregado']].map(([t, k], i) => ({ nombre: t, valor: cuenta(k), color: COLORES.ordinal[i] }));
+  // Calendario: 13 semanas.
+  const desdeCal = hoy - 90 * DIA; const cal = porDia(vendidos, desdeCal, 91);
+  const diasCal = cal.tot.map((t, i) => ({ fecha: new Date(desdeCal + i * DIA), total: t, pedidos: cal.ped[i] }));
+  const mejorDia = diasCal.reduce((a, d) => (d.total > a.total ? d : a), diasCal[0]);
+  const fechas = act.tot.map((_, i) => new Date(desde + i * DIA));
+
   $('[data-panel]').innerHTML = `
-  <div class="kpis">
-    <div class="kpi"><span>Ventas de este mes</span><strong>${cop(ventasMes)}</strong><span>${mes.length} ${mes.length === 1 ? 'pedido' : 'pedidos'}</span></div>
-    <div class="kpi${despachar.length ? ' alerta' : ''}"><span>Por despachar</span><strong>${despachar.length}</strong><span>pagados sin enviar</span></div>
-    <div class="kpi"><span>Ticket promedio</span><strong>${cop(ticket)}</strong><span>pedidos pagados</span></div>
-    <div class="kpi${bajos.length ? ' alerta' : ''}"><span>Stock bajo o agotado</span><strong>${bajos.length}</strong><span>de ${st.prods.length} productos</span></div>
-    <div class="kpi"><span>Valor del inventario</span><strong>${cop(inventario)}</strong><span>a precio de venta</span></div>
-  </div>
-  <div class="admin-col">
-    <section class="caja" aria-labelledby="r-bajo"><h2 id="r-bajo">Inventario por reponer</h2>${bajos.length ? `<ul class="lista-simple">${bajos.map((p) => `<li><span>${esc(p.nombre)}</span><span class="estado ${p.stock <= 0 ? 'estado-cancelado' : 'estado-pagado'}">${p.stock <= 0 ? 'Agotado' : `Quedan ${p.stock}`}</span></li>`).join('')}</ul><button class="btn btn-sec btn-sm" type="button" data-ir="productos" data-filtro-p="bajo">Actualizar inventario</button>` : '<p class="nota">Todo el inventario está por encima del mínimo.</p>'}</section>
-    <section class="caja" aria-labelledby="r-top"><h2 id="r-top">Más vendidos (unidades)</h2>${top.length ? `<ul class="barras">${top.map(([slug, u]) => `<li><div><span>${esc(nombre(slug))}</span><strong>${u}</strong></div><i style="--p:${(u / max).toFixed(3)}" aria-hidden="true"></i></li>`).join('')}</ul>` : '<p class="nota">Aún no hay ventas.</p>'}</section>
-    <section class="caja" aria-labelledby="r-ult" style="grid-column:1/-1"><h2 id="r-ult">Últimos pedidos</h2>${st.peds.length ? `<div class="filas">${st.peds.slice(0, 5).map(filaPedido).join('')}</div><button class="btn btn-sec btn-sm" type="button" data-ir="pedidos">Ver todos los pedidos</button>` : '<p class="nota">Todavía no hay pedidos.</p>'}</section>
+  <div class="rangos" role="group" aria-label="Periodo">${[7, 30, 90].map((d) => `<button type="button" aria-pressed="${d === n}" data-rango="${d}">${d} días</button>`).join('')}</div>
+  <div class="tablero">
+    <section class="t-hero" aria-labelledby="h-ventas">
+      <div><p class="t-l" id="h-ventas">${chip('rayo', 'naranja')} Ventas de los últimos ${n} días</p><p class="t-hero-v">${cop(ventas)}</p><p>${deltaHTML(variacion(ventas, ventasAnt))}</p></div>
+      ${sparkline(tramos(act.tot), { w: 180, h: 54 })}
+    </section>
+    <div class="kpi t-azul">${chip('caja', 'azul')}<span class="t-l">Pedidos</span><strong>${pedN}</strong>${deltaHTML(variacion(pedN, pedAnt))}${sparkline(tramos(act.ped))}</div>
+    <div class="kpi t-violeta">${chip('tarjeta', 'violeta')}<span class="t-l">Ticket promedio</span><strong>${copCorto(ticket)}</strong>${deltaHTML(variacion(ticket, ticketAnt))}</div>
+    <button type="button" class="kpi kpi-btn t-ambar${despachar.length ? ' alerta' : ''}" data-ir="pedidos">${chip('camion', 'ambar')}<span class="t-l">Por despachar</span><strong>${despachar.length}</strong><span class="delta-c">${despachar.length ? 'Toca para verlos →' : 'Todo al día'}</span></button>
+    <div class="kpi t-verde">${chip('pesa', 'verde')}<span class="t-l">Inventario</span><strong>${copCorto(inventario)}</strong><span class="delta-c">${unidadesInv} unidades a precio de venta</span></div>
+
+    <section class="caja g-ventas" aria-labelledby="g-ventas-t">
+      <div class="caja-cab"><h2 id="g-ventas-t">${ico('rayo')} Ventas por día</h2><ul class="g-leyenda"><li><i style="background:${COLORES.actual}"></i>Últimos ${n} días</li><li><i style="background:${COLORES.anterior}"></i>${n} días anteriores</li></ul></div>
+      <div class="g-lienzo" data-linea></div>
+      <details class="g-tabla"><summary>Ver como tabla</summary><div class="tabla-env"><table><thead><tr><th scope="col">Día</th><th scope="col">Ventas</th><th scope="col">Periodo anterior</th></tr></thead><tbody>${fechas.map((f, i) => `<tr><th scope="row">${f.toLocaleDateString('es-CO', { day: 'numeric', month: 'short' })}</th><td>${cop(act.tot[i])}</td><td>${cop(ant.tot[i])}</td></tr>`).join('')}</tbody></table></div></details>
+    </section>
+
+    <section class="caja g-estados" aria-labelledby="g-est-t"><h2 id="g-est-t">${ico('camion')} Recorrido de los pedidos</h2>${embudo(etapas)}
+      <p class="nota">${cuenta('pendiente')} con pago pendiente · ${cuenta('cancelado')} cancelados en el periodo</p></section>
+
+    <section class="caja g-top" aria-labelledby="g-top-t"><h2 id="g-top-t">${ico('chispa')} Más vendidos</h2>${top.length ? barras(top, { formato: (v) => `${v} u.` }) : '<p class="nota">Aún no hay ventas en este periodo.</p>'}</section>
+
+    <section class="caja g-cat" aria-labelledby="g-cat-t"><h2 id="g-cat-t">${ico('tabla')} Ingresos por categoría</h2>${catFilas.length ? barras(catFilas, { colores: COLORES.cat, formato: copCorto }) : '<p class="nota">Sin ventas.</p>'}</section>
+
+    <section class="caja g-cal" aria-labelledby="g-cal-t"><div class="caja-cab"><h2 id="g-cal-t">${ico('reloj')} Calendario de ventas</h2><p class="nota">Mejor día: <strong>${mejorDia.fecha.toLocaleDateString('es-CO', { weekday: 'long', day: 'numeric', month: 'short' })}</strong>, ${cop(mejorDia.total)}</p></div>${calendario(diasCal)}</section>
+
+    <section class="caja g-inv" aria-labelledby="g-inv-t"><div class="caja-cab"><h2 id="g-inv-t">${ico('caja')} Salud del inventario</h2><button class="btn btn-sec btn-sm" type="button" data-ir="productos" data-filtro-p="bajo">Reponer</button></div>
+      <ul class="inv-lista">${[...st.prods].sort((a, b) => a.stock / Math.max(1, a.stock_minimo) - b.stock / Math.max(1, b.stock_minimo)).slice(0, 6).map((p) => { const m = medidor(p.stock, p.stock_minimo); return `<li><img src="${esc(imgDe(p))}" width="36" height="36" alt="" loading="lazy"><span class="inv-n">${esc(p.nombre)}<small>${p.stock} u. · mínimo ${p.stock_minimo}</small></span>${m.html}</li>`; }).join('')}</ul>
+      ${bajos.length ? `<p class="nota">${bajos.length} ${bajos.length === 1 ? 'producto necesita' : 'productos necesitan'} reposición.</p>` : ''}</section>
+
+    <section class="caja g-act" aria-labelledby="g-act-t"><div class="caja-cab"><h2 id="g-act-t">${ico('chat')} Actividad reciente</h2><button class="btn btn-sec btn-sm" type="button" data-ir="pedidos">Ver pedidos</button></div>
+      <ol class="actividad">${st.peds.slice(0, 6).map((p) => `<li><span class="act-ico est-${p.estado}" aria-hidden="true">${ico(ICO_ESTADO[p.estado] || 'info')}</span><div><p><strong>${esc(p.cliente_nombre || p.cliente_email || 'Cliente')}</strong> · ${ESTADOS[p.estado] || esc(p.estado)}</p><p class="nota">${fechaHora(p.creado)} · ${cop(p.total)}</p></div></li>`).join('')}</ol></section>
   </div>`;
+  soltarLinea = lineaVentas($('[data-linea]'), { actual: act.tot, anterior: ant.tot, fechas });
 }
 
 /* ---------- productos ---------- */
@@ -191,7 +250,7 @@ function abrirProducto(p) {
 /* ---------- pedidos ---------- */
 function filaPedido(p) {
   const n = (p.items || []).reduce((s, it) => s + it.cantidad, 0);
-  return `<button class="fila-ped" type="button" data-pedido="${esc(p.id)}"><span><strong>${esc(p.cliente_nombre || p.cliente_email || 'Cliente')}</strong><span class="pedido-ref">${esc(p.referencia)}</span></span><span class="f-fecha nota">${fecha(p.creado)} · ${n} ${n === 1 ? 'unidad' : 'unidades'}</span><strong>${cop(p.total)}</strong><span class="estado estado-${p.estado}">${ESTADOS[p.estado] || esc(p.estado)}</span></button>`;
+  return `<button class="fila-ped" type="button" data-pedido="${esc(p.id)}"><span><strong>${esc(p.cliente_nombre || p.cliente_email || 'Cliente')}</strong><span class="pedido-ref">${esc(p.referencia)}</span></span><span class="f-fecha nota">${fecha(p.creado)} · ${n} ${n === 1 ? 'unidad' : 'unidades'}</span><strong>${cop(p.total)}</strong><span class="estado estado-${p.estado}">${ico(ICO_ESTADO[p.estado] || 'info')}${ESTADOS[p.estado] || esc(p.estado)}</span></button>`;
 }
 const filtroPedido = (p) => (st.filtroE === 'todos' || (st.filtroE === 'despachar' ? (p.estado === 'pagado' || p.estado === 'preparando') : p.estado === st.filtroE));
 function pedidosFiltrados() {
@@ -249,6 +308,7 @@ function exportarCSV() {
 app.addEventListener('click', async (e) => {
   const t = e.target.closest('button'); if (!t) return;
   if (t.matches('[data-cerrar-dlg]')) { t.closest('dialog').close(); return; }
+  if (t.dataset.rango) { st.rango = +t.dataset.rango; pintarResumen(); return; }
   if (t.dataset.tab) { st.tab = t.dataset.tab; history.replaceState(null, '', `#${st.tab}`); pintar(); return; }
   if (t.dataset.ir) { st.tab = t.dataset.ir; if (t.dataset.filtroP) st.filtroP = t.dataset.filtroP; history.replaceState(null, '', `#${st.tab}`); pintar(); $('[data-panel]').focus(); return; }
   if (t.matches('[data-nuevo]')) { abrirProducto(null); return; }

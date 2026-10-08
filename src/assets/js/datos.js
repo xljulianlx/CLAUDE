@@ -154,17 +154,30 @@ export async function esAdmin() {
 }
 
 /* ---------- pedidos ---------- */
-const DEMO_PED = 'halo-demo-pedidos';
+const DEMO_PED = 'halo-demo-pedidos-v2';
+// Historial de ejemplo (unos 90 días) para que el panel tenga gráficas con sentido. Siempre igual (semilla fija).
 function pedidosEjemplo() {
   const P = datos.productos; const ahora = Date.now(); const dia = 864e5;
-  const nombres = [['Camila Restrepo', 'camila@correo.example'], ['Andrés Moreno', 'andres@correo.example'], ['Laura Peñaloza', 'laura@correo.example'], ['Julián Ospina', 'julian@correo.example'], ['Valentina Rojas', 'valentina@correo.example'], ['Mateo Castaño', 'mateo@correo.example']];
-  const estados = ['pagado', 'pagado', 'preparando', 'enviado', 'entregado', 'entregado'];
-  return nombres.map(([n, e], i) => {
-    const items = [{ slug: P[i % P.length].slug, sabor: P[i % P.length].sabores[0].slug, cantidad: 1 + (i % 2), precio: P[i % P.length].precio }];
-    if (i % 3 === 0) items.push({ slug: P[(i + 1) % P.length].slug, sabor: P[(i + 1) % P.length].sabores[0].slug, cantidad: 1, precio: P[(i + 1) % P.length].precio });
-    const subtotal = items.reduce((s, it) => s + it.precio * it.cantidad, 0); const envio = subtotal >= datos.gratisDesde ? 0 : datos.envio;
-    return { id: `demo-${i}`, referencia: `halo-ejemplo-${1040 + i}`, creado: new Date(ahora - i * dia * 1.7).toISOString(), estado: estados[i], cliente_nombre: n, cliente_email: e, items, subtotal, envio, total: subtotal + envio, guia: estados[i] === 'enviado' || estados[i] === 'entregado' ? `INT${88123400 + i}` : '', ejemplo: true };
-  });
+  let semilla = 42; const azar = () => ((semilla = (semilla * 16807) % 2147483647) / 2147483647);
+  const nombres = ['Camila Restrepo', 'Andrés Moreno', 'Laura Peñaloza', 'Julián Ospina', 'Valentina Rojas', 'Mateo Castaño', 'Daniela Vélez', 'Santiago Gil', 'Mariana Duque', 'Felipe Cárdenas', 'Sara Montoya', 'Tomás Arango', 'Isabella Cruz', 'Samuel Pardo', 'Luciana Mejía', 'Nicolás Ríos'];
+  const peso = [9, 6, 5, 3, 4, 2]; // whey y creatina se venden más
+  const elegir = () => { let r = azar() * peso.reduce((a, b) => a + b, 0); for (let i = 0; i < P.length; i++) { r -= peso[i] || 1; if (r <= 0) return P[i]; } return P[0]; };
+  const lista = []; let n = 0;
+  for (let d = 89; d >= 0; d--) {
+    const finde = new Date(ahora - d * dia).getDay() % 6 === 0;
+    const cuantos = Math.floor(azar() * (finde ? 3 : 2.2) + (d < 30 ? 0.6 : 0.2));
+    for (let k = 0; k < cuantos; k++) {
+      const nombre = nombres[Math.floor(azar() * nombres.length)];
+      const items = []; const lineas = 1 + (azar() < 0.35 ? 1 : 0);
+      for (let l = 0; l < lineas; l++) { const p = elegir(); if (items.some((x) => x.slug === p.slug)) continue; items.push({ slug: p.slug, sabor: p.sabores[Math.floor(azar() * p.sabores.length)].slug, cantidad: 1 + (azar() < 0.2 ? 1 : 0), precio: p.precio }); }
+      const subtotal = items.reduce((s, it) => s + it.precio * it.cantidad, 0); const envio = subtotal >= datos.gratisDesde ? 0 : datos.envio;
+      const estado = d > 6 ? (azar() < 0.05 ? 'cancelado' : 'entregado') : d > 3 ? (azar() < 0.5 ? 'enviado' : 'entregado') : d > 1 ? (azar() < 0.6 ? 'preparando' : 'enviado') : (azar() < 0.15 ? 'pendiente' : 'pagado');
+      const creado = new Date(ahora - d * dia - Math.floor(azar() * 10) * 36e5).toISOString();
+      lista.push({ id: `demo-${n}`, referencia: `halo-ejemplo-${1040 + n}`, creado, estado, cliente_nombre: nombre, cliente_email: `${nombre.split(' ')[0].toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')}@correo.example`, items, subtotal, envio, total: subtotal + envio, guia: ['enviado', 'entregado'].includes(estado) ? `INT${88123400 + n}` : '', ejemplo: true });
+      n++;
+    }
+  }
+  return lista.reverse();
 }
 export async function pedidos({ propios = false } = {}) {
   if (modoDemo) {
