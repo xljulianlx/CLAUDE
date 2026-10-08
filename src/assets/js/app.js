@@ -260,8 +260,27 @@ addEventListener('storage', (e) => { if (e.key === CLAVE) refrescar(); });
 import('./movimiento.js').then((m) => m.iniciarMovimiento()).catch(() => {});
 const ahorro = navigator.connection?.saveData;
 const conGL = (() => { try { return !!document.createElement('canvas').getContext('webgl'); } catch { return false; } })();
-if (document.body.dataset.frasco && conGL && !ahorro && !reducido.matches) {
+const quiere3D = () => { try { return localStorage.getItem('halo-3d') === 'si'; } catch { return false; } };
+let escenaIniciada = false;
+function iniciar3D() {
+  if (escenaIniciada) return; escenaIniciada = true;
   const iniciar = () => import('./escena.js').then((m) => m.iniciarEscena(datos)).catch(() => {});
   if (document.readyState === 'complete') (window.requestIdleCallback || setTimeout)(iniciar);
   else addEventListener('load', () => (window.requestIdleCallback || setTimeout)(iniciar), { once: true });
+}
+// El 3D respeta "reducir movimiento" y el ahorro de datos. Si está apagado por eso, se explica y se ofrece activarlo.
+function avisar3D(texto, conBoton) {
+  try { if (sessionStorage.getItem('halo-3d-aviso') === 'cerrado') return; } catch { /* nada */ }
+  const el = document.createElement('div'); el.className = 'aviso-3d'; el.setAttribute('role', 'region'); el.setAttribute('aria-label', 'Animación 3D');
+  el.innerHTML = `<p>${texto}</p>${conBoton ? '<button class="btn btn-sec btn-sm" type="button" data-activar-3d>Activar 3D</button>' : ''}<button class="btn-icono" type="button" data-cerrar-3d aria-label="Cerrar aviso">×</button>`;
+  document.body.appendChild(el);
+  el.addEventListener('click', (e) => {
+    if (e.target.closest('[data-activar-3d]')) { try { localStorage.setItem('halo-3d', 'si'); } catch { /* nada */ } el.remove(); iniciar3D(); }
+    if (e.target.closest('[data-cerrar-3d]')) { try { sessionStorage.setItem('halo-3d-aviso', 'cerrado'); } catch { /* nada */ } el.remove(); }
+  });
+}
+if (document.body.dataset.frasco) {
+  if (!conGL) avisar3D('El frasco 3D necesita WebGL. Activa la aceleración por hardware en tu navegador para verlo.', false);
+  else if ((reducido.matches || ahorro) && !quiere3D()) avisar3D(reducido.matches ? 'El frasco 3D está en pausa porque tu sistema pide reducir el movimiento.' : 'El frasco 3D está en pausa porque tienes activado el ahorro de datos.', true);
+  else iniciar3D();
 }

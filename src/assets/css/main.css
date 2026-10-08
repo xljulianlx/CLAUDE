@@ -367,6 +367,11 @@ select { min-height: 44px; padding: 0 14px; border-radius: var(--r-campo); borde
 .aviso { position: fixed; left: 50%; bottom: calc(20px + env(safe-area-inset-bottom, 0px)); z-index: 160; transform: translate(-50%, 16px); opacity: 0; pointer-events: none; background: var(--fg); color: var(--bg); padding: 12px 20px; border-radius: 999px; font-size: 0.92rem; font-weight: 550; transition: opacity 200ms ease, transform 260ms var(--ease-out); max-width: calc(100% - 32px); }
 .aviso.visible { opacity: 1; transform: translate(-50%, 0); }
 
+.aviso-3d { position: fixed; left: 16px; bottom: calc(16px + env(safe-area-inset-bottom, 0px)); z-index: 70; display: flex; align-items: center; gap: 10px; max-width: min(460px, calc(100% - 32px)); padding: 10px 8px 10px 16px; border-radius: 18px; background: var(--vidrio); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1px solid var(--line); box-shadow: var(--sombra); font-size: 0.88rem; }
+.aviso-3d p { flex: 1; }
+.aviso-3d .btn-icono { width: 36px; height: 36px; font-size: 1.3rem; flex: none; }
+.aviso-3d .btn { flex: none; }
+
 /* ---------- pie ---------- */
 .pie { position: relative; z-index: 2; border-top: 1px solid var(--line); margin-top: 48px; background: var(--bg); }
 .pie-in { max-width: 1320px; margin-inline: auto; padding: 48px clamp(16px, 4vw, 48px) 24px; display: grid; grid-template-columns: minmax(0, 2fr) repeat(3, minmax(0, 1fr)); gap: 32px; }
