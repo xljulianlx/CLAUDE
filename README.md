@@ -6,7 +6,7 @@ Tienda de suplementos deportivos (demostración) con un frasco 3D que vive en la
 
 ```
 src/data/catalogo.mjs       Catálogo base (productos, sabores, reseñas, blog, envíos). Se usa si no hay Supabase.
-src/assets/css/main.css     Sistema de diseño (claro/oscuro automático).
+src/assets/css/main.css     Sistema de diseño (tema claro).
 src/assets/js/datos.js      Capa de datos: Supabase o, sin configurar, "modo demostración" en el navegador.
 src/assets/js/app.js        Carrito, buscador, datos en vivo (precio, stock, visibilidad), fichas, pago.
 src/assets/js/cuenta.js     /cuenta/: entrar, crear cuenta, Google, Facebook, recuperar clave, mis pedidos.

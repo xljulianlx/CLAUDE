@@ -3,6 +3,20 @@
 import { datos, modoDemo, productosPublico, haySesionGuardada, sesion, pagoSimulado } from './datos.js';
 
 const P = Object.fromEntries(datos.productos.map((p) => [p.slug, p]));
+
+/* ---------- cada página nueva empieza arriba ---------- */
+// Al abrir un producto (o cualquier página) se muestra desde el inicio. Si la tienda se ve dentro de un marco
+// alto (vistas previas, apps), el marco también vuelve arriba. Al usar "atrás" se respeta donde estaba la persona.
+(() => {
+  const nav = performance.getEntriesByType?.('navigation')[0];
+  if (location.hash || nav?.type === 'back_forward' || nav?.type === 'reload') return;
+  scrollTo(0, 0);
+  if (window.top !== window) {
+    const html = document.documentElement; const previo = html.style.scrollPaddingTop; html.style.scrollPaddingTop = '0px';
+    try { html.scrollIntoView({ block: 'start', behavior: 'instant' }); } catch { /* nada */ }
+    html.style.scrollPaddingTop = previo;
+  }
+})();
 const reducido = matchMedia('(prefers-reduced-motion: reduce)');
 const num = new Intl.NumberFormat('es-CO', { maximumFractionDigits: 0 });
 const cop = (n) => `$ ${num.format(Math.round(n))}`;

@@ -1,8 +1,8 @@
 /* Halo Nutrition. Dirección: "Cold Luxury" grafito + un solo acento naranja señal.
    Tipografía: Geist (display y texto) + Geist Mono (cifras). Radios: botones y chips en píldora,
-   tarjetas 18px, campos 12px. Tema automático según prefers-color-scheme. */
+   tarjetas 18px, campos 12px. Tema claro siempre (fondo claro aunque el sistema esté en modo oscuro). */
 :root {
-  color-scheme: light dark;
+  color-scheme: light;
   --bg: #f3f4f6;
   --surface: #fbfbfc;
   --surface-2: #e9ebee;
@@ -22,22 +22,6 @@
   --r-tarjeta: 18px;
   --r-campo: 12px;
   --cab: 64px;
-}
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg: #0e1013;
-    --surface: #15181c;
-    --surface-2: #1c2026;
-    --line: #2a3038;
-    --fg: #eef0f3;
-    --mut: #a3aab4;
-    --acc: #ef6a2f;
-    --acc-fg: #111317;
-    --acc-suave: rgba(239, 106, 47, 0.12);
-    --sombra: 0 24px 60px -28px rgba(0, 0, 0, 0.7);
-    --tile: radial-gradient(circle at 50% 40%, #252a31 0%, #111317 74%);
-    --vidrio: rgba(14, 16, 19, 0.74);
-  }
 }
 
 /* ---------- base ---------- */
@@ -351,7 +335,6 @@ select { min-height: 44px; padding: 0 14px; border-radius: var(--r-campo); borde
 .fila-total { display: flex; justify-content: space-between; gap: 12px; font-variant-numeric: tabular-nums; }
 .fila-total.total { font-size: 1.25rem; font-weight: 600; border-top: 1px solid var(--line); padding-top: 12px; }
 .campo-error { color: #c4302b; font-size: 0.9rem; min-height: 1.2em; }
-@media (prefers-color-scheme: dark) { .campo-error { color: #ff8a80; } }
 [data-resumen-cifras] { min-height: 112px; }
 .carrito-items:empty { min-height: 120px; }
 @media (max-width: 860px) { .carrito-rejilla { grid-template-columns: 1fr; } .resumen { position: static; order: -1; } }
@@ -543,7 +526,6 @@ body.buscando { overflow: hidden; }
 .campo-clave input { padding-right: 84px; }
 .campo-clave button { position: absolute; right: 6px; top: 50%; transform: translateY(-50%); min-height: 36px; padding-inline: 10px; font-size: 0.85rem; font-weight: 600; color: var(--mut); border-radius: 8px; }
 .ok-msg { color: #1f8a4c; font-size: 0.9rem; min-height: 1.2em; }
-@media (prefers-color-scheme: dark) { .ok-msg { color: #6fd39b; } }
 
 /* ---------- cuenta ---------- */
 .cuenta-pag { padding-block: 24px 64px; }
@@ -634,10 +616,8 @@ body.buscando { overflow: hidden; }
 .interruptor[aria-pressed="true"] .sw::after { transform: translateX(12px); }
 .btn-mini { min-height: 40px; padding: 0 12px; border-radius: 999px; border: 1px solid var(--line); font-size: 0.82rem; font-weight: 600; }
 .btn-peligro { color: #c4302b; }
-@media (prefers-color-scheme: dark) { .btn-peligro { color: #ff8a80; } }
 .btn-peligro.confirmar { background: #c4302b; color: #fff; border-color: #c4302b; }
 .guardado { font-size: 0.75rem; color: #1f8a4c; min-height: 1em; }
-@media (prefers-color-scheme: dark) { .guardado { color: #6fd39b; } }
 @media (max-width: 860px) {
   .fila-prod { grid-template-columns: 56px minmax(0, 1fr) minmax(0, 1fr); grid-template-areas: "img info info" "precio precio stock" "acc acc acc"; gap: 10px; }
   .fila-prod > .fila-img { grid-area: img; width: 56px; height: 56px; }
@@ -902,3 +882,4 @@ summary { transition: color 160ms ease; }
   .familia-img, .ciencia-img img, .articulo-portada img, .historia-con-img img, .nosotros-img { animation: none; }
 }
 [data-cuenta-app], [data-admin-app] { min-height: 100svh; }
+.familia { background-color: #0e1013; }
