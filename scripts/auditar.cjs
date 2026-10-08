@@ -7,7 +7,7 @@ const BASE = process.argv[2] || 'http://127.0.0.1:8090';
   const nav = await chromium.launch({ executablePath: process.env.CHROMIUM_PATH || undefined, args: ['--no-sandbox', '--use-gl=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'] });
   const sitemap = await (await fetch(`${BASE}/sitemap.xml`)).text();
   const rutas = [...sitemap.matchAll(/<loc>[^<]*?(\/[^<]*)<\/loc>/g)].map((m) => new URL(m[1], 'http://x').pathname);
-  const extra = ['/carrito/', '/pago/exito/', '/404.html'];
+  const extra = ['/carrito/', '/pago/exito/', '/404.html', '/buscar/', '/buscar/?q=proteina', '/cuenta/', '/admin/'];
   const problemas = []; const titulos = new Map(); const descs = new Map(); const enlaces = new Set();
   const anotar = (ruta, tipo, msg) => problemas.push({ ruta, tipo, msg });
 
