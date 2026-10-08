@@ -70,6 +70,46 @@ const resumenResenas = (slug) => {
 const estrellas = (n) => '★★★★★'.slice(0, Math.round(n)) + '☆☆☆☆☆'.slice(0, 5 - Math.round(n));
 const fechaLarga = (f) => new Date(f + 'T12:00:00').toLocaleDateString('es-CO', { day: 'numeric', month: 'long', year: 'numeric' });
 
+/* ---------- íconos (un solo sprite SVG por página, trazo de 2 px) ---------- */
+const ICONOS = {
+  camion: '<path d="M2 6h12v10H2zM14 10h4l4 3v3h-8z"/><circle cx="6" cy="18" r="2"/><circle cx="17" cy="18" r="2"/>',
+  escudo: '<path d="M12 2 4 5v6c0 5 3.4 9.3 8 11 4.6-1.7 8-6 8-11V5z"/><path d="m8.5 12 2.5 2.5 4.5-5"/>',
+  candado: '<rect x="4" y="10" width="16" height="11" rx="2.5"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/><path d="M12 14.5v2.5"/>',
+  matraz: '<path d="M9 2h6M10 2v7L4 20a1 1 0 0 0 1 2h14a1 1 0 0 0 1-2l-6-11V2"/><path d="M7 15h10"/>',
+  rayo: '<path d="M13 2 4 14h7l-1 8 9-12h-7z"/>',
+  balanza: '<path d="M12 3v18M6 21h12M5 7h14"/><path d="m5 7-3 7a3.5 3.5 0 0 0 6 0zM19 7l-3 7a3.5 3.5 0 0 0 6 0z"/>',
+  hoja: '<path d="M5 19c0-9 5-14 15-14 0 10-5 15-14 15"/><path d="M5 19 13 11"/>',
+  reloj: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+  caja: '<path d="m3 7 9-4 9 4v10l-9 4-9-4z"/><path d="m3 7 9 4 9-4M12 11v10"/>',
+  vuelta: '<path d="M3 12a9 9 0 0 1 15.5-6.3L21 8M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-15.5 6.3L3 16M3 21v-5h5"/>',
+  sobre: '<rect x="3" y="5" width="18" height="14" rx="2.5"/><path d="m4 7 8 6 8-6"/>',
+  chat: '<path d="M4 5h16v11H9l-5 4z"/><path d="M8 9.5h8M8 12.5h5"/>',
+  check: '<path d="m5 12.5 4.5 4.5L19 7.5"/>',
+  info: '<circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.5"/>',
+  pregunta: '<circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.7.3-1 1-1 1.7v.5M12 17v.5"/>',
+  cuchara: '<ellipse cx="8" cy="8" rx="5" ry="4" transform="rotate(-35 8 8)"/><path d="m11.5 11 9 9"/>',
+  tabla: '<rect x="3" y="4" width="18" height="16" rx="2.5"/><path d="M3 10h18M9 10v10"/>',
+  tarjeta: '<rect x="2.5" y="5" width="19" height="14" rx="2.5"/><path d="M2.5 10h19M6 15h4"/>',
+  mapa: '<path d="M12 21s7-6.2 7-12a7 7 0 0 0-14 0c0 5.8 7 12 7 12z"/><circle cx="12" cy="9" r="2.5"/>',
+  corazon: '<path d="M12 20s-8-4.8-8-10.5A4.5 4.5 0 0 1 12 7a4.5 4.5 0 0 1 8 2.5C20 15.2 12 20 12 20z"/>',
+  chispa: '<path d="M12 3v4M12 17v4M3 12h4M17 12h4M5.6 5.6l2.8 2.8M15.6 15.6l2.8 2.8M5.6 18.4l2.8-2.8M15.6 8.4l2.8-2.8"/>',
+  pesa: '<path d="M6 7v10M3 9v6M18 7v10M21 9v6M6 12h12"/>',
+  gota: '<path d="M12 3s6 6.6 6 11a6 6 0 0 1-12 0c0-4.4 6-11 6-11z"/>',
+  cero: '<circle cx="12" cy="12" r="8"/><path d="M6.5 17.5 17.5 6.5"/>',
+};
+const sprite = () => `<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>${Object.entries(ICONOS).map(([k, v]) => `<symbol id="i-${k}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${v}</symbol>`).join('')}</defs></svg>`;
+const ico = (n, cls = '') => `<svg class="ico${cls ? ' ' + cls : ''}" aria-hidden="true" focusable="false"><use href="#i-${n}"/></svg>`;
+// Ícono en círculo de color. Colores: naranja, verde, azul, ámbar, violeta, rosa.
+const TONOS = ['naranja', 'verde', 'azul', 'ambar', 'violeta', 'rosa'];
+const chip = (n, t = 'naranja') => `<span class="chip-ico t-${t}" aria-hidden="true">${ico(n)}</span>`;
+const GOOGLE_G = '<svg class="g-logo" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path fill="#4285F4" d="M23.5 12.3c0-.8-.1-1.6-.2-2.3H12v4.4h6.5a5.6 5.6 0 0 1-2.4 3.6v3h3.9c2.3-2.1 3.5-5.2 3.5-8.7z"/><path fill="#34A853" d="M12 24c3.2 0 6-1.1 7.9-2.9l-3.9-3c-1.1.7-2.4 1.2-4 1.2-3.1 0-5.7-2.1-6.7-4.9h-4v3.1A12 12 0 0 0 12 24z"/><path fill="#FBBC05" d="M5.3 14.4a7.2 7.2 0 0 1 0-4.7V6.6h-4a12 12 0 0 0 0 10.8z"/><path fill="#EA4335" d="M12 4.8c1.8 0 3.3.6 4.6 1.8l3.4-3.4A12 12 0 0 0 1.3 6.6l4 3.1C6.3 6.9 8.9 4.8 12 4.8z"/></svg>';
+// Encabezado de reseñas con el sello de Google. Mientras sean de ejemplo, se dice claramente.
+function cabeceraGoogle(lista) {
+  if (!lista.length) return '';
+  const media = (lista.reduce((a, r) => a + r.rating, 0) / lista.length).toFixed(1).replace('.', ',');
+  return `<div class="google-cab">${GOOGLE_G}<div><p class="google-t"><strong>${media}</strong><span class="estrellas" aria-hidden="true">${estrellas(+media.replace(',', '.'))}</span><span class="sr">${media} de 5</span></p><p class="google-d">${sitio.resenasDeEjemplo ? `Reseñas de ejemplo con el formato de Google. Al conectar el Perfil de Empresa de Google se muestran las reales.` : `${lista.length} reseñas en Google`}</p></div></div>`;
+}
+
 /* ---------- plantilla ---------- */
 function contexto(ruta) {
   const prof = ruta.split('/').filter(Boolean).length;
@@ -122,6 +162,12 @@ function barraMovil(c) {
 
 function pie(c) {
   return `<footer class="pie">
+  <ul class="pie-confianza">
+    <li>${chip('camion', 'verde')}<span><strong>Envío a toda Colombia</strong>Gratis desde ${cop(sitio.envioGratisDesde)}</span></li>
+    <li>${chip('candado', 'violeta')}<span><strong>Pago seguro</strong>Con Mercado Pago</span></li>
+    <li>${chip('vuelta', 'azul')}<span><strong>${sitio.diasDevolucion} días de garantía</strong>Aunque esté abierto</span></li>
+    <li>${chip('matraz', 'naranja')}<span><strong>Análisis por lote</strong>Laboratorio independiente</span></li>
+  </ul>
   <div class="pie-in">
     <div class="pie-marca">
       <a class="logo" href="${c.h('/')}"><span class="logo-aro" aria-hidden="true"></span>HALO</a>
@@ -136,7 +182,7 @@ function pie(c) {
     <nav aria-label="Ayuda"><h2>Ayuda</h2><ul><li><a href="${c.h('/envios-y-devoluciones/')}">Envíos y devoluciones</a></li><li><a href="${c.h('/nosotros/#preguntas')}">Preguntas frecuentes</a></li><li><a href="${c.h('/nosotros/#contacto')}">Contacto</a></li><li><a href="${c.h('/cuenta/')}">Mi cuenta</a></li></ul></nav>
     <nav aria-label="Guías"><h2>Guías</h2><ul>${blog.map((b) => `<li><a href="${c.h(`/blog/${b.slug}/`)}">${esc(b.titulo.split(':')[0])}</a></li>`).join('')}</ul></nav>
   </div>
-  <div class="pie-legal"><p>Pagos procesados por Mercado Pago. Los suplementos no reemplazan una alimentación variada.</p><p>Sitio de demostración con marca, precios y contenido de ejemplo.</p></div>
+  <div class="pie-legal"><ul class="medios" aria-label="Medios de pago disponibles en Mercado Pago"><li>${ico('tarjeta')}Tarjeta crédito y débito</li><li>${ico('candado')}PSE</li><li>${ico('caja')}Efectivo</li></ul><p>Pagos procesados por Mercado Pago. Los suplementos no reemplazan una alimentación variada.</p><p>Sitio de demostración con marca, precios y contenido de ejemplo.</p></div>
 </footer>`;
 }
 
@@ -201,17 +247,17 @@ ${pg.canonical === false ? '' : `<link rel="canonical" href="${abs(pg.ruta)}">
 <link rel="icon" href="${c.a('img/favicon.svg')}" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400..800&family=Geist+Mono:wght@500;600&display=swap">
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Geist:wght@400..800&family=Geist+Mono:wght@500;600&display=swap" onload="this.onload=null;this.rel='stylesheet'">
+<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400..800&family=Geist+Mono:wght@500;600&display=swap"></noscript>
 <link rel="stylesheet" href="${c.a('css/main.css')}">
 ${preload}
 ${ld.map((o) => `<script type="application/ld+json">${JSON.stringify(o).replace(/</g, '\\u003c')}</script>`).join('\n')}
-${pg.sinGsap ? '' : `<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js" defer></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js" defer></script>`}
 <script type="module" src="${c.a('js/app.js')}"></script>
 ${pg.modulo ? `<script type="module" src="${c.a(`js/${pg.modulo}`)}"></script>` : ''}
 </head>
 <body data-pagina="${pg.tipo}"${pg.frasco ? ` data-frasco="${pg.frasco.p}" data-sabor="${pg.frasco.s}"` : ''}>
 <a class="saltar" href="#contenido">Saltar al contenido</a>
+${sprite()}
 ${cabecera(c)}
 ${migasHTML(c, pg.migas)}
 <main id="contenido" tabindex="-1">
@@ -229,7 +275,7 @@ ${cajon()}
   var n = performance.getEntriesByType && performance.getEntriesByType('navigation')[0];
   if (location.hash || (n && (n.type === 'back_forward' || n.type === 'reload'))) return;
   function arriba() {
-    window.scrollTo(0, 0);
+    try { window.scrollTo({ top: 0, left: 0, behavior: 'instant' }); } catch (e) { window.scrollTo(0, 0); }
     if (window.top !== window) {
       var h = document.documentElement, pr = h.style.scrollPaddingTop; h.style.scrollPaddingTop = '0px';
       try { h.scrollIntoView({ block: 'start', behavior: 'instant' }); } catch (e) { /* nada */ }
@@ -283,12 +329,13 @@ function selectorSabor(p, nombre, sel = 0) {
 }
 
 function preguntasHTML(lista, id = 'preguntas', titulo = 'Preguntas frecuentes') {
-  return `<section class="seccion wrap preguntas" id="${id}" aria-labelledby="${id}-t"><h2 class="h2 h2-sec" id="${id}-t">${titulo}</h2><div class="acordeon">${lista.map(([q, a]) => `<details><summary>${esc(q)}</summary><p>${esc(a)}</p></details>`).join('')}</div></section>`;
+  const icoDe = (q) => (/envío|tarda|llega/i.test(q) ? 'camion' : /cuesta|precio|cuánto/i.test(q) ? 'tarjeta' : /pago|pagar/i.test(q) ? 'candado' : /gusta|devol|garant/i.test(q) ? 'vuelta' : 'pregunta');
+  return `<section class="seccion wrap preguntas" id="${id}" aria-labelledby="${id}-t"><div class="preguntas-lado"><h2 class="h2 h2-sec" id="${id}-t">${titulo}</h2><div class="ayuda-card">${chip('chat', 'azul')}<div><strong>¿Otra duda?</strong><p>Escríbenos a <a href="mailto:${sitio.email}">${sitio.email}</a>. Respondemos el mismo día hábil.</p></div></div></div><div class="acordeon">${lista.map(([q, a], i) => `<details><summary>${chip(icoDe(q), TONOS[i % TONOS.length])}<span>${esc(q)}</span></summary><p>${esc(a)}</p></details>`).join('')}</div></section>`;
 }
 
 // Bloque de texto para buscadores: contenido real e indexable, plegado para que el cliente vea primero los productos.
 function bloqueSEO(titulo, parrafos, enlaces = '') {
-  return `<section class="wrap seo-bloque" aria-label="${esc(titulo)}"><details><summary><span>${esc(titulo)}</span></summary><div class="seo-texto">${parrafos.map((t) => `<p>${t}</p>`).join('')}${enlaces}</div></details></section>`;
+  return `<section class="wrap seo-bloque" aria-label="${esc(titulo)}"><details><summary>${chip('info', 'azul')}<span>${esc(titulo)}</span></summary><div class="seo-texto">${parrafos.map((t) => `<p>${t}</p>`).join('')}${enlaces}</div></details></section>`;
 }
 
 function guiasTarjetas(c, lista, conFecha = false, eager = 0) {
@@ -393,8 +440,8 @@ paginas.push({
 
 <section class="seccion wrap resenas-sec" aria-labelledby="resenas-t">
   <h2 class="h2" id="resenas-t">Lo que dicen quienes ya entrenan con Halo</h2>
-  ${sitio.resenasDeEjemplo ? '<p class="nota">Reseñas de ejemplo para esta demostración.</p>' : ''}
-  <div class="resenas-muro">${Object.entries(resenas).filter(([slug]) => prod(slug)).flatMap(([slug, l]) => l.slice(0, 1).map((r) => ({ ...r, slug }))).slice(0, 4).map((r) => `<figure class="resena" data-revelar><span class="estrellas" aria-label="${r.rating} de 5 estrellas">${estrellas(r.rating)}</span><blockquote>“${esc(r.texto)}”</blockquote><figcaption><span class="avatar" style="--h:${tono(r.autor)}" aria-hidden="true">${esc(iniciales(r.autor))}</span><span><strong>${esc(r.autor)}</strong>, ${esc(r.ciudad)}<br>Compró <a href="${c.h(`/productos/${r.slug}/`)}">${esc(prod(r.slug).nombre)}</a></span><img class="resena-prod" src="${prod(r.slug).imagenUrl || c.a(foto(prod(r.slug), prod(r.slug).sabores[0], 160))}" width="160" height="160" alt="" loading="lazy" decoding="async"></figcaption></figure>`).join('')}</div>
+  ${cabeceraGoogle(Object.values(resenas).flat())}
+  <div class="resenas-muro">${Object.entries(resenas).filter(([slug]) => prod(slug)).flatMap(([slug, l]) => l.slice(0, 1).map((r) => ({ ...r, slug }))).slice(0, 4).map((r) => `<figure class="resena" data-revelar><span class="resena-g">${GOOGLE_G}</span><span class="estrellas" aria-label="${r.rating} de 5 estrellas">${estrellas(r.rating)}</span><blockquote>“${esc(r.texto)}”</blockquote><figcaption><span class="avatar" style="--h:${tono(r.autor)}" aria-hidden="true">${esc(iniciales(r.autor))}</span><span><strong>${esc(r.autor)}</strong>, ${esc(r.ciudad)}<br>Compró <a href="${c.h(`/productos/${r.slug}/`)}">${esc(prod(r.slug).nombre)}</a></span><img class="resena-prod" src="${prod(r.slug).imagenUrl || c.a(foto(prod(r.slug), prod(r.slug).sabores[0], 160))}" width="160" height="160" alt="" loading="lazy" decoding="async"></figcaption></figure>`).join('')}</div>
 </section>
 
 ${creatina ? `<section class="seccion wrap combo" aria-labelledby="combo-t" data-revelar>
@@ -414,9 +461,9 @@ ${creatina ? `<section class="seccion wrap combo" aria-labelledby="combo-t" data
       <span class="flota f1" aria-hidden="true">25 g proteína</span><span class="flota f2" aria-hidden="true">Lote analizado</span><span class="flota f3" aria-hidden="true">0 rellenos</span></figure>
   </div>
   <ol class="ciencia-lista">
-    <li data-paso><strong>25 g</strong><p>de proteína por porción en Whey Isolate. Medido, no redondeado hacia arriba.</p></li>
-    <li data-paso><strong>0</strong><p>mezclas propietarias. Cada ingrediente aparece con su dosis exacta.</p></li>
-    <li data-paso><strong>1 lote, 1 análisis</strong><p>Un laboratorio independiente revisa cada lote antes de venderlo.</p></li>
+    <li data-paso>${chip('balanza', 'naranja')}<strong>25 g</strong><p>de proteína por porción en Whey Isolate. Medido, no redondeado hacia arriba.</p></li>
+    <li data-paso>${chip('cero', 'violeta')}<strong>0</strong><p>mezclas propietarias. Cada ingrediente aparece con su dosis exacta.</p></li>
+    <li data-paso>${chip('matraz', 'verde')}<strong>1 lote, 1 análisis</strong><p>Un laboratorio independiente revisa cada lote antes de venderlo.</p></li>
   </ol>
 </section>
 
@@ -459,7 +506,7 @@ function paginaTienda(categoria) {
     descripcion: `${textos[1]} Envío a toda Colombia, gratis desde ${cop(sitio.envioGratisDesde)}. Pago seguro y ${sitio.diasDevolucion} días de garantía.`,
     jsonld: [{ '@context': 'https://schema.org', '@type': 'CollectionPage', name: textos[0], url: abs(ruta), inLanguage: sitio.idioma, mainEntity: { '@type': 'ItemList', numberOfItems: lista.length, itemListElement: lista.map((p, i) => ({ '@type': 'ListItem', position: i + 1, url: abs(`/productos/${p.slug}/`), name: p.nombre })) } }],
     cuerpo: (c) => `
-<section class="wrap tienda-cab"><div><h1 class="h1 h1-pag">${textos[0]}</h1><p class="lead">${textos[1]}</p></div>${escenaImg(c, categoria ? `cat-${categoria.slug}` : 'familia', { sizes: '(min-width: 760px) 360px, 92vw', lazy: false, clase: 'tienda-banner' })}</section>
+<section class="wrap tienda-cab"><div><h1 class="h1 h1-pag">${textos[0]}</h1><p class="lead">${textos[1]}</p></div>${escenaImg(c, categoria ? `cat-${categoria.slug}` : 'familia', { sizes: '(min-width: 760px) 300px, 108px', lazy: false, clase: 'tienda-banner' })}</section>
 <div class="wrap tienda-barra">
   ${filtrosHTML(c, categoria?.slug)}
   <div class="orden"><label for="orden">Ordenar por</label><select id="orden" data-orden><option value="destacados">Más vendidos</option><option value="precio-asc">Precio: menor a mayor</option><option value="precio-desc">Precio: mayor a menor</option></select></div>
@@ -525,24 +572,24 @@ productos.forEach((p) => {
       </div>
     </form>
     <ul class="confianza">
-      <li><strong>Llega en 2 a 5 días hábiles.</strong> Envío gratis desde ${cop(sitio.envioGratisDesde)}.</li>
-      <li><strong>${sitio.diasDevolucion} días de garantía.</strong> Si no te gusta, te devolvemos el dinero.</li>
-      <li><strong>Pago seguro con Mercado Pago.</strong> No guardamos datos de tu tarjeta.</li>
+      <li>${chip('camion', 'verde')}<span><strong>Llega en 2 a 5 días hábiles.</strong> Envío gratis desde ${cop(sitio.envioGratisDesde)}.</span></li>
+      <li>${chip('vuelta', 'azul')}<span><strong>${sitio.diasDevolucion} días de garantía.</strong> Si no te gusta, te devolvemos el dinero.</span></li>
+      <li>${chip('candado', 'violeta')}<span><strong>Pago seguro con Mercado Pago.</strong> No guardamos datos de tu tarjeta.</span></li>
     </ul>
-    <ul class="beneficios">${p.beneficios.map((b) => `<li>${esc(b)}</li>`).join('')}</ul>
+    <ul class="beneficios">${p.beneficios.map((b) => `<li>${ico('check')}<span>${esc(b)}</span></li>`).join('')}</ul>
   </div>
 </article>
-${p.datos.length ? `<section class="wrap seccion" aria-labelledby="datos-t"><h2 class="h2 h2-sec" id="datos-t">Datos clave</h2><div class="datos">${p.datos.map((d) => `<div class="dato" data-revelar><strong>${esc(d.v)}</strong><span class="dato-k">${esc(d.k)}</span><span class="dato-p">${esc(d.por)}</span></div>`).join('')}</div></section>` : ''}
-${rr.length ? `<section class="wrap seccion" id="resenas" aria-labelledby="resenas-t"><h2 class="h2 h2-sec" id="resenas-t">Reseñas</h2>${valoracion(p.slug, c)}${sitio.resenasDeEjemplo ? '<p class="nota">Reseñas de ejemplo para esta demostración.</p>' : ''}<div class="resenas-muro">${rr.map((r) => `<figure class="resena"><blockquote>“${esc(r.texto)}”</blockquote><figcaption><span class="estrellas" aria-label="${r.rating} de 5 estrellas">${estrellas(r.rating)}</span> ${esc(r.autor)}, ${esc(r.ciudad)}. <time datetime="${r.fecha}">${fechaLarga(r.fecha)}</time></figcaption></figure>`).join('')}</div></section>` : ''}
+${p.datos.length ? `<section class="wrap seccion" aria-labelledby="datos-t"><h2 class="h2 h2-sec" id="datos-t">Datos clave</h2><div class="datos">${p.datos.map((d, i) => `<div class="dato t-${TONOS[i % TONOS.length]}" data-revelar>${chip(['rayo', 'balanza', 'matraz', 'hoja', 'gota', 'pesa'][i % 6], TONOS[i % TONOS.length])}<strong>${esc(d.v)}</strong><span class="dato-k">${esc(d.k)}</span><span class="dato-p">${esc(d.por)}</span></div>`).join('')}</div></section>` : ''}
+${rr.length ? `<section class="wrap seccion" id="resenas" aria-labelledby="resenas-t"><h2 class="h2 h2-sec" id="resenas-t">Reseñas</h2>${cabeceraGoogle(rr)}<div class="resenas-muro">${rr.map((r) => `<figure class="resena"><span class="resena-g">${GOOGLE_G}</span><span class="estrellas" aria-hidden="true">${estrellas(r.rating)}</span><blockquote>“${esc(r.texto)}”</blockquote><figcaption><span class="avatar" style="--h:${tono(r.autor)}" aria-hidden="true">${esc(iniciales(r.autor))}</span><span><strong>${esc(r.autor)}</strong>, ${esc(r.ciudad)}<br><time datetime="${r.fecha}">${fechaLarga(r.fecha)}</time><span class="sr">. ${r.rating} de 5 estrellas</span></span></figcaption></figure>`).join('')}</div></section>` : ''}
 <section class="seccion carril-sec" aria-labelledby="rel-t"><div class="wrap carril-cab"><h2 class="h2 h2-sec" id="rel-t">Combina con</h2></div><div class="carril" tabindex="0" aria-label="Productos relacionados, desplázate horizontalmente">${relacionados.map((x, i) => tarjeta(c, x, i)).join('')}</div></section>
 <section class="wrap seccion detalles" aria-labelledby="detalles-t">
   <h2 class="h2 h2-sec" id="detalles-t">Detalles de ${esc(p.nombre)}</h2>
   <div class="acordeon">
-    <details><summary>Descripción</summary><p>${esc(p.descripcion)}</p>${guia ? `<p>Lee la guía: <a href="${c.h(`/blog/${guia.slug}/`)}">${esc(guia.titulo)}</a>.</p>` : ''}</details>
-    ${p.uso ? `<details><summary>Cómo se usa</summary><p>${esc(p.uso)}</p></details>` : ''}
-    ${p.nutricion ? `<details><summary>Información nutricional</summary><div class="tabla-env"><table class="nutricion"><caption class="sr">Información nutricional de ${esc(p.nombre)}</caption><tbody>${p.nutricion.map(([a, b]) => `<tr><th scope="row">${esc(a)}</th><td>${esc(b)}</td></tr>`).join('')}</tbody></table></div></details>` : ''}
-    ${p.faq.map(([q, a]) => `<details><summary>${esc(q)}</summary><p>${esc(a)}</p></details>`).join('')}
-    <details><summary>Envío, devoluciones y pago</summary><p>Enviamos a toda Colombia en 2 a 5 días hábiles por ${cop(sitio.envio)}, gratis desde ${cop(sitio.envioGratisDesde)}. Tienes ${sitio.diasDevolucion} días para pedir cambio o reembolso. El pago se hace en Mercado Pago.</p></details>
+    <details><summary>${chip('info', 'azul')}<span>Descripción</span></summary><p>${esc(p.descripcion)}</p>${guia ? `<p>Lee la guía: <a href="${c.h(`/blog/${guia.slug}/`)}">${esc(guia.titulo)}</a>.</p>` : ''}</details>
+    ${p.uso ? `<details><summary>${chip('cuchara', 'verde')}<span>Cómo se usa</span></summary><p>${esc(p.uso)}</p></details>` : ''}
+    ${p.nutricion ? `<details open><summary>${chip('tabla', 'naranja')}<span>Información nutricional</span></summary><div class="tabla-env"><table class="nutricion"><caption class="sr">Información nutricional de ${esc(p.nombre)}</caption><tbody>${(() => { const porc = parseFloat(String((p.nutricion.find(([a]) => /porci/i.test(a)) || [])[1] || '').replace(',', '.')); return p.nutricion.map(([a, b]) => { const g = /\d\s*g$/.test(b) && !/porci/i.test(a) ? parseFloat(b.replace(',', '.')) : NaN; const pct = porc > 0 && g >= 0 ? Math.min(100, (g / porc) * 100) : null; return `<tr><th scope="row">${esc(a)}</th><td>${pct != null ? `<span class="barra-n" style="--p:${pct.toFixed(1)}%" aria-hidden="true"></span>` : ''}${esc(b)}</td></tr>`; }).join(''); })()}</tbody></table></div></details>` : ''}
+    ${p.faq.map(([q, a], i) => `<details><summary>${chip('pregunta', ['violeta', 'ambar', 'rosa'][i % 3])}<span>${esc(q)}</span></summary><p>${esc(a)}</p></details>`).join('')}
+    <details><summary>${chip('camion', 'verde')}<span>Envío, devoluciones y pago</span></summary><p>Enviamos a toda Colombia en 2 a 5 días hábiles por ${cop(sitio.envio)}, gratis desde ${cop(sitio.envioGratisDesde)}. Tienes ${sitio.diasDevolucion} días para pedir cambio o reembolso. El pago se hace en Mercado Pago.</p></details>
   </div>
 </section>
 <div class="barra-compra" data-barra-compra hidden><div><strong>${esc(p.nombre)}</strong><span data-precio-de="${p.slug}">${cop(p.precio)}</span></div><button class="btn btn-pri" type="button" data-barra-agregar${agotado ? ' disabled' : ''}>Agregar al carrito</button></div>`,
@@ -564,8 +611,9 @@ paginas.push({
   <p>Cada fórmula se diseña con nutricionistas deportivos y se fabrica en plantas con buenas prácticas de manufactura. Antes de vender un lote, un laboratorio independiente confirma que tiene lo que dice la etiqueta.</p>
   <p>Publicamos ese análisis para que cualquiera lo pueda revisar. Si algo no cuadra, preferimos no venderlo.</p>
 </div></section>
+<section class="wrap seccion" aria-labelledby="valores-t"><h2 class="h2 h2-sec" id="valores-t">En qué creemos</h2><ul class="valores">${[['pesa', 'naranja', 'Dosis completas', 'Cada porción trae la cantidad que funciona según los estudios, no la mínima para poder nombrarla.'], ['matraz', 'verde', 'Análisis por lote', 'Un laboratorio independiente revisa cada lote antes de que salga a la venta.'], ['cero', 'violeta', 'Cero rellenos', 'Sin mezclas propietarias ni ingredientes para hacer bulto.'], ['corazon', 'rosa', 'Personas reales', 'Te responde alguien del equipo, el mismo día hábil.']].map(([n, t, h, d]) => `<li class="valor t-${t}" data-revelar>${chip(n, t)}<h3>${h}</h3><p>${d}</p></li>`).join('')}</ul></section>
 ${preguntasHTML(preguntasGenerales)}
-<section class="wrap seccion contacto" id="contacto" aria-labelledby="contacto-t"><h2 class="h2" id="contacto-t">Contacto</h2><p class="lead">Escríbenos y te respondemos el mismo día hábil.</p><p class="contacto-dato"><span data-copiable>${sitio.email}</span> <button class="btn btn-sec btn-sm" type="button" data-copiar="${sitio.email}">Copiar correo</button></p><p class="nota">${sitio.horario}</p></section>`,
+<section class="wrap seccion contacto" id="contacto" aria-labelledby="contacto-t"><div class="contacto-card">${chip('sobre', 'naranja')}<div><h2 class="h2" id="contacto-t">Contacto</h2><p class="lead">Escríbenos y te respondemos el mismo día hábil.</p></div></div><p class="contacto-dato"><span data-copiable>${sitio.email}</span> <button class="btn btn-sec btn-sm" type="button" data-copiar="${sitio.email}">Copiar correo</button></p><p class="nota">${sitio.horario}</p></section>`,
 });
 
 // Envíos y devoluciones
@@ -574,15 +622,27 @@ paginas.push({
   titulo: 'Envíos y devoluciones | Halo Nutrition',
   descripcion: `Envío a toda Colombia por ${cop(sitio.envio)}, gratis desde ${cop(sitio.envioGratisDesde)}. ${sitio.diasDevolucion} días para cambios o reembolso, incluso con el envase abierto.`,
   cuerpo: () => `
-<article class="wrap texto-largo">
+<article class="wrap envios-pag">
   <h1 class="h1 h1-pag">Envíos y devoluciones</h1>
-  <h2>Envíos</h2>
-  <p>Enviamos a toda Colombia. El costo es ${cop(sitio.envio)} y es gratis en pedidos desde ${cop(sitio.envioGratisDesde)}. Los pedidos confirmados antes de las 2 p. m. de lunes a viernes salen el mismo día.</p>
-  <p>La entrega tarda entre 2 y 5 días hábiles según la ciudad. Te enviamos el número de guía por correo para que sigas tu pedido.</p>
-  <h2>Garantía de ${sitio.diasDevolucion} días</h2>
-  <p>Si un producto no te convence, escríbenos dentro de los ${sitio.diasDevolucion} días siguientes a la entrega. Te devolvemos el dinero o te lo cambiamos, aunque el envase esté abierto.</p>
-  <h2>Productos con defecto</h2>
-  <p>Si algo llega dañado, envíanos una foto a ${sitio.email} y lo reponemos sin costo.</p>
+  <p class="lead">Todo lo que pasa entre que pagas y abres tu pedido, sin letra pequeña.</p>
+  <ul class="cifras">
+    <li class="t-verde">${chip('camion', 'verde')}<strong>${cop(sitio.envio)}</strong><span>a toda Colombia. Gratis desde ${cop(sitio.envioGratisDesde)}.</span></li>
+    <li class="t-azul">${chip('reloj', 'azul')}<strong>2 a 5 días</strong><span>hábiles según la ciudad.</span></li>
+    <li class="t-naranja">${chip('vuelta', 'naranja')}<strong>${sitio.diasDevolucion} días</strong><span>para cambio o reembolso, aunque esté abierto.</span></li>
+  </ul>
+  <h2 class="h2 h2-sec">Así viaja tu pedido</h2>
+  <ol class="linea-tiempo">
+    <li>${chip('tarjeta', 'violeta')}<div><h3>Pagas</h3><p>Con Mercado Pago. Recibes la confirmación por correo.</p></div></li>
+    <li>${chip('caja', 'ambar')}<div><h3>Lo preparamos</h3><p>Los pedidos confirmados antes de las 2 p. m. de lunes a viernes salen el mismo día.</p></div></li>
+    <li>${chip('mapa', 'azul')}<div><h3>Va en camino</h3><p>Te enviamos el número de guía para que lo sigas.</p></div></li>
+    <li>${chip('check', 'verde')}<div><h3>Llega a tu puerta</h3><p>Entre 2 y 5 días hábiles según la ciudad.</p></div></li>
+  </ol>
+  <div class="texto-largo">
+    <h2>${ico('vuelta')} Garantía de ${sitio.diasDevolucion} días</h2>
+    <p>Si un producto no te convence, escríbenos dentro de los ${sitio.diasDevolucion} días siguientes a la entrega. Te devolvemos el dinero o te lo cambiamos, aunque el envase esté abierto.</p>
+    <h2>${ico('escudo')} Productos con defecto</h2>
+    <p>Si algo llega dañado, envíanos una foto a ${sitio.email} y lo reponemos sin costo.</p>
+  </div>
 </article>`,
 });
 
@@ -663,6 +723,7 @@ blog.forEach((b) => {
 <article class="wrap texto-largo articulo">
   <header><h1 class="h1 h1-pag">${esc(b.titulo)}</h1><p class="nota">Por ${b.autor}. <time datetime="${b.fecha}">${fechaLarga(b.fecha)}</time></p></header>
   ${portadaGuia(b) ? `<figure class="articulo-portada"><img src="${c.a(`img/escenas/${portadaGuia(b)}-1200.webp`)}" srcset="${c.a(`img/escenas/${portadaGuia(b)}-600.webp`)} 600w, ${c.a(`img/escenas/${portadaGuia(b)}-1200.webp`)} 1200w" sizes="(min-width: 800px) 760px, 92vw" width="1200" height="630" alt="${esc(`${p.nombre} de Halo: ${b.titulo.split(':')[0].toLowerCase()}`)}" decoding="async"></figure>` : ''}
+  <aside class="resumen-guia">${chip('chispa', 'ambar')}<div><strong>En pocas palabras</strong><p>${esc(b.descripcion)}</p></div></aside>
   ${b.cuerpo.map(([t, v]) => (t === 'ul' ? `<ul>${v.map((x) => `<li>${esc(x)}</li>`).join('')}</ul>` : `<${t}>${esc(v)}</${t}>`)).join('\n  ')}
   <aside class="articulo-cta" aria-labelledby="cta-t"><div><h2 id="cta-t">${esc(p.nombre)}</h2><p>${esc(p.resumen)}</p><a class="btn btn-pri" href="${c.h(`/productos/${p.slug}/`)}">Ver ${esc(p.nombre)}</a></div><div class="articulo-cta-img" aria-hidden="true"${con3D(p) ? ' data-pose="d:el:.9" data-frasco-ancla' : ''}>${imgProducto(c, p, p.sabores[0], { sizes: '200px' })}</div></aside>
   <nav class="otras-guias" aria-labelledby="otras-t"><h2 id="otras-t">Otras guías</h2><ul>${otras.map((o) => `<li><a href="${c.h(`/blog/${o.slug}/`)}">${esc(o.titulo)}</a></li>`).join('')}</ul></nav>

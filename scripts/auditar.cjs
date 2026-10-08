@@ -30,7 +30,7 @@ const BASE = process.argv[2] || 'http://127.0.0.1:8090';
         const q = (s) => [...document.querySelectorAll(s)];
         const vis = (el) => { const r = el.getBoundingClientRect(); const cs = getComputedStyle(el); return r.width > 0 && r.height > 0 && cs.visibility !== 'hidden' && cs.display !== 'none' && !el.closest('[hidden],[inert]'); };
         const nombre = (el) => (el.getAttribute('aria-label') || (el.getAttribute('aria-labelledby') && document.getElementById(el.getAttribute('aria-labelledby'))?.textContent) || el.textContent || el.querySelector('img')?.alt || el.title || '').trim();
-        const lum = (c) => { const m = c.match(/[\d.]+/g).map(Number); const f = (v) => { v /= 255; return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; }; return 0.2126 * f(m[0]) + 0.7152 * f(m[1]) + 0.0722 * f(m[2]); };
+        const lum = (c) => { let m = c.match(/[\d.]+/g).map(Number); if (c.startsWith('color(')) m = m.map((v, i) => (i < 3 ? v * 255 : v)); const f = (v) => { v /= 255; return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; }; return 0.2126 * f(m[0]) + 0.7152 * f(m[1]) + 0.0722 * f(m[2]); };
         const fondo = (el) => { for (let e = el; e; e = e.parentElement) { const cs = getComputedStyle(e); if (cs.backgroundImage !== 'none' && e !== document.body && e !== document.documentElement) return null; const b = cs.backgroundColor; const a = (b.match(/[\d.]+/g) || [])[3]; if (b !== 'transparent' && !(a !== undefined && +a < 0.9)) return b; } return getComputedStyle(document.body).backgroundColor; };
         const contraste = [];
         q('main *, header *, footer *').filter((el) => vis(el) && [...el.childNodes].some((n) => n.nodeType === 3 && n.textContent.trim())).forEach((el) => {

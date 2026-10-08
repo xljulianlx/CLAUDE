@@ -219,9 +219,13 @@ if (compra) {
   const radio = pedido && $(`input[name="sabor"][value="${CSS.escape(pedido)}"]`, compra);
   if (radio && !radio.checked) { radio.checked = true; radio.dispatchEvent(new Event('change')); }
   const barra = $('[data-barra-compra]'); const boton = $('[data-boton-compra]');
-  if (barra && boton && 'IntersectionObserver' in window) {
+  if (barra && boton) {
     barra.hidden = false;
-    new IntersectionObserver(([e]) => barra.classList.toggle('visible', !e.isIntersecting && e.boundingClientRect.top < 0)).observe(boton);
+    // Se mide en cada scroll (no con IntersectionObserver): un deslizón rápido puede saltarse el botón sin "cruzarlo".
+    let pedido = false;
+    const medir = () => { pedido = false; barra.classList.toggle('visible', boton.getBoundingClientRect().bottom < 0); };
+    addEventListener('scroll', () => { if (!pedido) { pedido = true; requestAnimationFrame(medir); } }, { passive: true });
+    medir();
     $('[data-barra-agregar]', barra).addEventListener('click', () => compra.requestSubmit());
   }
 }
@@ -519,7 +523,10 @@ pintarContador();
 addEventListener('storage', (e) => { if (e.key === CLAVE) refrescar(); });
 import('./movimiento.js').then((m) => m.iniciarMovimiento()).catch(() => {});
 const ahorro = navigator.connection?.saveData;
-const conGL = (() => { try { return !!document.createElement('canvas').getContext('webgl'); } catch { return false; } })();
+// Sin crear un contexto WebGL de prueba (eso solo cuesta tiempo al cargar): basta con saber si existe.
+const conGL = !!window.WebGLRenderingContext;
+// Celulares de gama baja: el frasco "vive" con la foto animada en CSS (misma imagen, sin cálculo 3D por cuadro).
+const gamaBaja = matchMedia('(pointer: coarse)').matches && ((navigator.deviceMemory && navigator.deviceMemory <= 3) || (navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 4));
 const quiere3D = () => { try { return localStorage.getItem('halo-3d') === 'si'; } catch { return false; } };
 let escenaIniciada = false;
 function iniciar3D() {
@@ -540,7 +547,7 @@ function avisar3D(texto, conBoton) {
   });
 }
 if (document.body.dataset.frasco) {
-  if (!conGL) avisar3D('El frasco 3D necesita WebGL. Activa la aceleración por hardware en tu navegador para verlo.', false);
+  if ((!conGL || gamaBaja) && !reducido.matches) document.documentElement.classList.add('frasco-css');
   else if ((reducido.matches || ahorro) && !quiere3D()) avisar3D(reducido.matches ? 'El frasco 3D está en pausa porque tu sistema pide reducir el movimiento.' : 'El frasco 3D está en pausa porque tienes activado el ahorro de datos.', true);
-  else iniciar3D();
+  else if (conGL) iniciar3D();
 }

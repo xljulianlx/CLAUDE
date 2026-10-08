@@ -3,7 +3,6 @@
 // - Cabecera que se esconde al bajar y vuelve al subir (más espacio para el contenido).
 // - Inclinación leve de tarjetas y portadas al pasar el cursor (solo con mouse).
 // - Cifras que cuentan, barra de lectura en las guías y celebración al pagar.
-// GSAP + ScrollTrigger (cdnjs) solo agregan el paso activo de "Fórmulas claras" y el deslizamiento de carriles.
 // Con prefers-reduced-motion todo queda quieto y el contenido se ve desde el inicio.
 
 const reducido = matchMedia('(prefers-reduced-motion: reduce)');
@@ -26,7 +25,7 @@ export function iniciarMovimiento() {
 /* ---------- revelar al entrar en pantalla ---------- */
 // Páginas funcionales (cuenta, panel, carrito, pago) no se revelan: se usan a diario y el contenido debe estar ya.
 const SELECTOR = [
-  'main .h2', 'main .lead', '.tarjeta', '.resena', '.guia-card', '.objetivo', '.dato', '.garantias > div', '.combo', '.familia',
+  'main .h2', 'main .lead', '.rejilla .tarjeta', '.resena', '.guia-card', '.objetivo', '.dato', '.garantias > div', '.combo', '.familia',
   '.ciencia-img', '.configurador-escena', '.configurador-panel', '.acordeon details', '.seo-bloque',
   '.texto-largo > p', '.texto-largo > h2', '.texto-largo > ul', '.articulo-cta', '.otras-guias', '.historia p', '.historia-con-img figure',
   '.contacto-dato', '.pie-in > *',
@@ -36,7 +35,9 @@ function revelar() {
   if (['cuenta', 'admin', 'carrito', 'pago'].includes(tipo) || !('IntersectionObserver' in window)) return;
   const alto = innerHeight;
   // Solo lo que todavía no se ve: lo que ya está en pantalla al cargar no parpadea.
-  const els = [...document.querySelectorAll(SELECTOR)].filter((el) => el.getBoundingClientRect().top > alto * 0.92);
+  // Las secciones lejanas no se dibujan todavía (content-visibility): se mide la sección, que sí tiene tamaño.
+  const arriba = (el) => (el.closest('main > section, main > article, footer') || el).getBoundingClientRect().top;
+  const els = [...document.querySelectorAll(SELECTOR)].filter((el) => Math.max(el.getBoundingClientRect().top, arriba(el)) > alto * 0.92);
   els.forEach((el) => el.classList.add('rv'));
   let lote = []; let pendiente = false;
   const io = new IntersectionObserver((es) => {
@@ -83,7 +84,7 @@ function contadores() {
     const paso = (t) => { const u = Math.min(1, (t - t0) / 1100); el.textContent = Math.round(fin * (1 - (1 - u) ** 3)); if (u < 1) requestAnimationFrame(paso); };
     requestAnimationFrame(paso);
   }), { threshold: 0.6 });
-  els.forEach((el) => { if (el.getBoundingClientRect().top > innerHeight) { el.textContent = '0'; io.observe(el); } });
+  els.forEach((el) => { const sec = el.closest('main > section') || el; if (Math.max(el.getBoundingClientRect().top, sec.getBoundingClientRect().top) > innerHeight) { el.textContent = '0'; io.observe(el); } });
 }
 
 /* ---------- inclinación leve con el cursor ---------- */
@@ -133,21 +134,13 @@ function celebrar() {
   }
 }
 
-/* ---------- GSAP: paso activo y carriles ---------- */
+/* ---------- paso activo de "Fórmulas claras" ---------- */
 function conGsap() {
   const pasos = [...document.querySelectorAll('[data-paso]')];
-  const g = window.gsap; const ST = window.ScrollTrigger;
-  if (!g || !ST) {
-    if (!pasos.length || !('IntersectionObserver' in window)) return;
-    const io = new IntersectionObserver((es) => es.forEach((e) => e.target.classList.toggle('activo', e.isIntersecting)), { rootMargin: '-38% 0px -38% 0px' });
-    pasos.forEach((p) => io.observe(p));
-    return;
-  }
-  g.registerPlugin(ST);
-  pasos.forEach((el) => ST.create({ trigger: el, start: 'top 62%', end: 'bottom 38%', onToggle: (s) => el.classList.toggle('activo', s.isActive) }));
-  if (innerWidth > 860) document.querySelectorAll('.carril').forEach((c) => g.fromTo(c, { x: 40 }, { x: -40, ease: 'none', scrollTrigger: { trigger: c, start: 'top bottom', end: 'bottom top', scrub: 0.6 } }));
+  if (!pasos.length || !('IntersectionObserver' in window)) return;
+  const io = new IntersectionObserver((es) => es.forEach((e) => e.target.classList.toggle('activo', e.isIntersecting)), { rootMargin: '-38% 0px -38% 0px' });
+  pasos.forEach((p) => io.observe(p));
 }
-
 /* ---------- lema gigante que se desliza con el scroll (cada fila en un sentido) ---------- */
 function lema() {
   const filas = [...document.querySelectorAll('[data-lema]')]; if (!filas.length) return;

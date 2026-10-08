@@ -889,16 +889,16 @@ html { scroll-behavior: smooth; }
 @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
 
 /* Grano fino en todo el sitio: quita lo "plano" sin ensuciar (muy baja opacidad). */
-body::after { content: ""; position: fixed; inset: 0; z-index: 35; pointer-events: none; opacity: 0.05; mix-blend-mode: multiply; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); }
+/* Grano fino: va en el fondo del body (se pinta una vez, sin capa encima de la página ni mezcla de colores). */
 
 /* Portada: el fondo toma el color del sabor elegido. */
 .hero { --hc1: #6b3f2c; --hc2: #2b160e; --mx: 0; --my: 0; isolation: isolate; }
 .hero::before { background: radial-gradient(55% 65% at 72% 48%, color-mix(in srgb, var(--hc1) 26%, transparent), transparent 72%), radial-gradient(40% 50% at 8% 95%, color-mix(in srgb, var(--acc) 9%, transparent), transparent 70%); transition: background 700ms ease; }
 .orbes { position: absolute; inset: 0; z-index: -1; overflow: hidden; pointer-events: none; }
-.orbe { position: absolute; border-radius: 50%; filter: blur(48px); opacity: 0.5; transition: background-color 700ms ease, translate 900ms var(--ease-out); translate: calc(var(--mx) * var(--k) * 1px) calc(var(--my) * var(--k) * 1px); }
-.o1 { --k: 60; width: 34vmax; height: 34vmax; right: -8vmax; top: -10vmax; background: color-mix(in srgb, var(--hc1) 55%, transparent); }
-.o2 { --k: -40; width: 22vmax; height: 22vmax; right: 30%; bottom: -8vmax; background: color-mix(in srgb, var(--acc) 35%, transparent); }
-.o3 { --k: 90; width: 14vmax; height: 14vmax; left: 38%; top: 14%; background: color-mix(in srgb, var(--hc2) 40%, transparent); opacity: 0.35; }
+.orbe { position: absolute; border-radius: 50%; opacity: 0.55; will-change: transform; transition: background-color 700ms ease, translate 900ms var(--ease-out); translate: calc(var(--mx) * var(--k) * 1px) calc(var(--my) * var(--k) * 1px); }
+.o1 { --k: 60; width: 34vmax; height: 34vmax; right: -8vmax; top: -10vmax; background: radial-gradient(closest-side, color-mix(in srgb, var(--hc1) 55%, transparent), transparent); }
+.o2 { --k: -40; width: 22vmax; height: 22vmax; right: 30%; bottom: -8vmax; background: radial-gradient(closest-side, color-mix(in srgb, var(--acc) 35%, transparent), transparent); }
+.o3 { --k: 90; width: 14vmax; height: 14vmax; left: 38%; top: 14%; background: radial-gradient(closest-side, color-mix(in srgb, var(--hc2) 40%, transparent), transparent); opacity: 0.35; }
 @media (prefers-reduced-motion: no-preference) {
   .o1 { animation: deriva 16s ease-in-out infinite; } .o2 { animation: deriva 19s ease-in-out -6s infinite reverse; } .o3 { animation: deriva 13s ease-in-out -3s infinite; }
   @keyframes deriva { 33% { transform: translate(3vmax, 2vmax) scale(1.06); } 66% { transform: translate(-2vmax, 3vmax) scale(0.96); } }
@@ -1025,3 +1025,164 @@ body::after { content: ""; position: fixed; inset: 0; z-index: 35; pointer-event
 .muestra[aria-pressed="true"] { box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px var(--fg); }
 @media (hover: hover) and (pointer: fine) { .muestra:hover { transform: scale(1.15); } }
 .muestra:active { transform: scale(0.9); }
+
+/* ================= Rendimiento en celular ================= */
+body { background: var(--bg) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect opacity='.07' width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); background-size: 160px 160px; }
+/* En pantallas táctiles: sin desenfoque de fondo en barras fijas (es lo que más cuesta al hacer scroll), sin paralaje,
+   y las manchas de color de la portada quedan quietas. Se ve igual, se mueve más fluido. */
+@media (pointer: coarse) {
+  .cabecera, .tabbar, .barra-compra, .tienda-barra, .objetivo-txt, .hero .sabor, .aviso-3d { -webkit-backdrop-filter: none; backdrop-filter: none; }
+  .cabecera { background: color-mix(in srgb, var(--bg) 96%, transparent); }
+  .tabbar, .barra-compra { background: color-mix(in srgb, var(--bg) 97%, transparent); }
+  .tienda-barra { background: var(--bg); }
+  .orbe { animation: none !important; transition: background-color 700ms ease; }
+  .familia-img, .ciencia-img img, .articulo-portada img, .historia-con-img img, .nosotros-img, .paso { animation: none !important; }
+}
+/* Frasco animado con CSS (celulares de gama baja o sin WebGL): la misma foto flota y se balancea. */
+@media (prefers-reduced-motion: no-preference) {
+  .frasco-css .hero-media > img, .frasco-css .ficha-galeria > img { animation: vivo 5.4s ease-in-out infinite; transform-origin: 50% 85%; }
+  @keyframes vivo { 0%, 100% { transform: translateY(0) rotate(-1.5deg); } 50% { transform: translateY(-2.2%) rotate(1.5deg); } }
+}
+
+/* ================= Color e íconos en las secciones de información ================= */
+:root { --naranja: #d4561e; --verde: #1f8f50; --azul: #2f6fd6; --ambar: #a67100; --violeta: #7349c2; --rosa: #cf3f62; }
+.ico { width: 1.15em; height: 1.15em; flex: none; vertical-align: -0.18em; }
+.chip-ico { --c: var(--naranja); width: 42px; height: 42px; flex: none; border-radius: 13px; display: inline-grid; place-items: center; color: var(--c); background: color-mix(in srgb, var(--c) 13%, var(--surface)); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--c) 22%, transparent); }
+.chip-ico .ico { width: 22px; height: 22px; }
+.t-naranja { --c: var(--naranja); } .t-verde { --c: var(--verde); } .t-azul { --c: var(--azul); } .t-ambar { --c: var(--ambar); } .t-violeta { --c: var(--violeta); } .t-rosa { --c: var(--rosa); }
+
+/* Preguntas frecuentes: dos columnas, cada pregunta con su ícono de color. */
+.preguntas { display: grid; grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr); gap: clamp(20px, 5vw, 64px); align-items: start; }
+.preguntas-lado { position: sticky; top: calc(var(--cab) + 24px); display: grid; gap: 20px; }
+.preguntas .acordeon { margin-top: 0; max-width: none; }
+.ayuda-card { display: flex; gap: 14px; align-items: flex-start; padding: 18px; border-radius: var(--r-tarjeta); background: color-mix(in srgb, var(--azul) 7%, var(--surface)); border: 1px solid color-mix(in srgb, var(--azul) 18%, var(--line)); }
+.ayuda-card p { color: var(--mut); font-size: 0.92rem; margin-top: 2px; }
+.ayuda-card a { color: #1d52ad; font-weight: 600; word-break: break-word; }
+.acordeon summary { align-items: center; justify-content: flex-start; gap: 14px; }
+.acordeon summary > span:not(.chip-ico) { flex: 1; }
+.acordeon summary .chip-ico { width: 36px; height: 36px; border-radius: 11px; }
+.acordeon summary .chip-ico .ico { width: 19px; height: 19px; }
+.acordeon details p, .acordeon details .tabla-env { padding-left: 50px; }
+details[open] > summary .chip-ico { background: var(--c); color: #fff; }
+.acordeon details { transition: background-color 200ms ease; border-radius: 12px; }
+@media (max-width: 860px) { .preguntas { grid-template-columns: 1fr; } .preguntas-lado { position: static; } .acordeon details p, .acordeon details .tabla-env { padding-left: 0; } }
+
+/* Fórmulas claras con íconos. */
+.ciencia-lista li { grid-template-columns: auto minmax(0, 1fr); column-gap: 18px; }
+.ciencia-lista li .chip-ico { grid-row: span 2; align-self: start; margin-top: 6px; }
+
+/* Ficha: confianza en tarjetas de color, beneficios con check. */
+.confianza { gap: 10px; }
+.confianza li { display: flex; gap: 12px; align-items: center; padding: 10px 12px; border-radius: 14px; background: var(--surface); border: 1px solid var(--line); }
+.confianza .chip-ico { width: 38px; height: 38px; border-radius: 12px; }
+.beneficios { list-style: none; padding: 0; display: grid; gap: 8px; }
+.beneficios li { display: flex; gap: 10px; align-items: flex-start; }
+.beneficios .ico { color: #fff; background: var(--verde); border-radius: 50%; padding: 3px; width: 20px; height: 20px; margin-top: 2px; }
+.dato { --c: var(--naranja); position: relative; overflow: hidden; background: color-mix(in srgb, var(--c) 6%, var(--surface)); border-color: color-mix(in srgb, var(--c) 20%, var(--line)); }
+.dato:first-child { background: color-mix(in srgb, var(--c) 10%, var(--surface)); }
+.dato strong { color: var(--c); }
+.dato .chip-ico { margin-bottom: 6px; }
+.barra-n { display: inline-block; width: 64px; height: 6px; border-radius: 99px; margin-right: 10px; vertical-align: middle; background: linear-gradient(90deg, var(--acc) var(--p), var(--surface-2) var(--p)); }
+
+/* Reseñas con el sello de Google. */
+.google-cab { display: inline-flex; gap: 14px; align-items: center; margin-top: 14px; padding: 12px 18px 12px 14px; border-radius: var(--r-tarjeta); background: var(--surface); border: 1px solid var(--line); max-width: 640px; }
+.g-logo { width: 34px; height: 34px; flex: none; }
+.google-t { display: flex; align-items: center; gap: 10px; }
+.google-t strong { font-size: 1.6rem; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; }
+.google-t .estrellas { color: #9a6200; font-size: 1.1rem; }
+.google-d { font-size: 0.85rem; color: var(--mut); }
+.resena { position: relative; }
+.resena-g { position: absolute; top: 18px; right: 18px; }
+.resena-g .g-logo { width: 20px; height: 20px; }
+.resena .estrellas { color: #9a6200; }
+
+/* Nosotros: valores. */
+.valores { list-style: none; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 230px), 1fr)); gap: 14px; margin-top: 20px; }
+.valor { padding: 22px; border-radius: calc(var(--r-tarjeta) + 4px); background: color-mix(in srgb, var(--c) 6%, var(--surface)); border: 1px solid color-mix(in srgb, var(--c) 18%, var(--line)); display: grid; gap: 8px; align-content: start; }
+.valor h3 { font-size: 1.1rem; margin-top: 6px; }
+.valor p { color: var(--mut); font-size: 0.93rem; }
+.contacto-card { display: flex; gap: 16px; align-items: center; }
+
+/* Envíos y devoluciones. */
+.envios-pag { padding-block: 16px 56px; display: grid; gap: 22px; }
+.cifras { list-style: none; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+.cifras li { padding: 22px; border-radius: calc(var(--r-tarjeta) + 4px); background: color-mix(in srgb, var(--c) 8%, var(--surface)); border: 1px solid color-mix(in srgb, var(--c) 22%, var(--line)); display: grid; gap: 6px; align-content: start; }
+.cifras strong { font-size: clamp(1.6rem, 3vw, 2.2rem); letter-spacing: -0.03em; color: var(--c); margin-top: 6px; }
+.cifras span:not(.chip-ico) { color: var(--mut); font-size: 0.95rem; }
+.linea-tiempo { list-style: none; padding: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; position: relative; }
+.linea-tiempo::before { content: ""; position: absolute; left: 21px; right: 21px; top: 21px; height: 2px; background: repeating-linear-gradient(90deg, var(--line) 0 8px, transparent 8px 14px); z-index: 0; }
+.linea-tiempo li { position: relative; z-index: 1; display: grid; gap: 10px; align-content: start; }
+.linea-tiempo .chip-ico { background: color-mix(in srgb, var(--c) 13%, var(--bg)); }
+.linea-tiempo h3 { font-size: 1.05rem; }
+.linea-tiempo p { color: var(--mut); font-size: 0.92rem; }
+.envios-pag .texto-largo { padding-block: 8px 0; }
+.texto-largo h2 .ico { color: var(--acc); }
+@media (max-width: 760px) {
+  .cifras { grid-template-columns: 1fr; }
+  .linea-tiempo { grid-template-columns: 1fr; gap: 18px; }
+  .linea-tiempo::before { left: 20px; right: auto; top: 20px; bottom: 20px; width: 2px; height: auto; background: repeating-linear-gradient(180deg, var(--line) 0 8px, transparent 8px 14px); }
+  .linea-tiempo li { grid-template-columns: auto minmax(0, 1fr); gap: 14px; }
+}
+
+/* Guías: resumen destacado. */
+.resumen-guia { display: flex; gap: 14px; align-items: flex-start; margin-top: 20px; padding: 18px 20px; border-radius: var(--r-tarjeta); background: color-mix(in srgb, var(--ambar) 9%, var(--surface)); border: 1px solid color-mix(in srgb, var(--ambar) 25%, var(--line)); }
+.resumen-guia p { margin-top: 4px !important; font-size: 1rem !important; color: var(--mut) !important; }
+.texto-largo h2 { display: flex; align-items: center; gap: 10px; }
+.articulo > h2::before { content: ""; width: 10px; height: 10px; border-radius: 3px; background: var(--acc); flex: none; transform: rotate(45deg); }
+
+/* Pie: barra de confianza y medios de pago. */
+.pie-confianza { list-style: none; max-width: 1320px; margin-inline: auto; padding: 28px clamp(16px, 4vw, 48px); display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; border-bottom: 1px solid var(--line); }
+.pie-confianza li { display: flex; gap: 12px; align-items: center; }
+.pie-confianza span:not(.chip-ico) { display: grid; font-size: 0.85rem; color: var(--mut); line-height: 1.35; }
+.pie-confianza strong { color: var(--fg); font-size: 0.95rem; }
+.pie { background: linear-gradient(180deg, var(--bg), color-mix(in srgb, var(--acc) 4%, var(--bg))); }
+.pie::before { content: ""; display: block; height: 3px; background: linear-gradient(90deg, var(--naranja), var(--ambar), var(--verde), var(--azul), var(--violeta), var(--rosa)); }
+.medios { list-style: none; padding: 0; display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 8px; }
+.medios li { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 999px; background: var(--surface); border: 1px solid var(--line); font-size: 0.8rem; color: var(--fg); }
+@media (max-width: 860px) { .pie-confianza { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 420px) { .pie-confianza { grid-template-columns: 1fr; } }
+.seo-bloque summary { align-items: center; justify-content: flex-start; gap: 12px; }
+.seo-bloque summary .chip-ico { width: 32px; height: 32px; border-radius: 10px; }
+.seo-bloque summary .chip-ico .ico { width: 17px; height: 17px; }
+.seo-bloque summary > span:not(.chip-ico) { flex: 1; }
+
+/* ================= Ajustes de la prueba en celular (peor caso) ================= */
+/* Palabras largas y precios grandes nunca se salen de su caja; los títulos se parten con guion si hace falta. */
+h1, h2, h3, p, li, a, td, th, summary, blockquote, figcaption, label { overflow-wrap: break-word; }
+h1, h2, h3 { hyphens: auto; -webkit-hyphens: auto; }
+/* Los botones pueden ocupar dos líneas en pantallas angostas o con la letra agrandada. */
+.btn { white-space: normal; text-align: center; line-height: 1.2; padding-block: 8px; max-width: 100%; }
+/* Ningún texto por debajo de 11,5 px. */
+.tabbar > a, .tabbar > button { font-size: 0.74rem; }
+.tab-carrito .cuenta { min-width: 20px; height: 20px; font-size: 0.72rem; right: -14px; }
+@media (max-width: 640px) { .rejilla.compacta .tarjeta-cat { font-size: 0.72rem; letter-spacing: 0.06em; } }
+.avatar { width: 2.6em; height: 2.6em; font-size: 0.85rem; }
+.resena figcaption { grid-template-columns: auto minmax(0, 1fr) 48px; }
+@media (max-width: 360px) {
+  .h1-pag, .tienda-cab .h1-pag { font-size: clamp(1.7rem, 9vw, 2.2rem); }
+  .ficha-t { font-size: 2rem; }
+  .productos-cab .h2, .h2 { font-size: 1.6rem; }
+}
+/* Portada: una pantalla cuando cabe; si no cabe (pantalla pequeña o letra grande) crece en vez de cortar los botones. */
+.hero { height: auto; min-height: calc(100svh - var(--cab) - env(safe-area-inset-top, 0px)); max-height: none; }
+@media (max-width: 860px) {
+  .hero { min-height: calc(100svh - var(--cab) - 62px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)); }
+  .hero-in { grid-template-rows: auto minmax(170px, 1fr) auto; }
+  .hero-media { width: 100%; max-width: 100%; aspect-ratio: auto; }
+  .hero-media > img { position: absolute; inset: 0; margin: auto; width: auto; max-width: 100%; height: 100%; aspect-ratio: 1; }
+  .hero .sabores-op { flex-wrap: nowrap; }
+  .hero .sabor { padding: 0 10px 0 4px; gap: 6px; }
+}
+@media (max-width: 360px) { .hero .sabor { font-size: 0.78rem; } .hero .sabor-muestra { width: 22px; height: 22px; } .hero-chip { font-size: 0.72rem; } }
+/* Celular en horizontal: dos columnas y titular más bajo para que todo quepa. */
+@media (max-width: 960px) and (max-height: 500px) and (orientation: landscape) {
+  .hero-in { grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr); grid-template-areas: "copy media" "acc media"; grid-template-rows: auto auto; align-content: center; row-gap: 12px; }
+  .hero .h1 { font-size: clamp(1.8rem, 5vw, 2.4rem); }
+  .hero-sub, .hero-chip { display: none; }
+  .hero-media { height: min(70svh, 300px); aspect-ratio: 1; width: auto; }
+  .hero-media > img { position: static; }
+  .tabbar > a, .tabbar > button { min-height: 46px; gap: 1px; }
+  body { padding-bottom: calc(50px + env(safe-area-inset-bottom, 0px)); }
+}
+@media (max-width: 640px) { .articulo-cta { grid-template-columns: 1fr; } .articulo-cta-img { max-width: 160px; } }
+.fila-total { flex-wrap: wrap; }

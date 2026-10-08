@@ -13,7 +13,9 @@ export function iniciarEscena(datos) {
   const P = Object.fromEntries(datos.productos.map((p) => [p.slug, p]));
   const movil = matchMedia('(max-width: 860px)').matches;
   const finoPuntero = matchMedia('(hover: hover) and (pointer: fine)').matches;
-  const dprMax = movil ? 1 : 1.5; const pasos = movil ? 64 : 90;
+  const dprMax = movil ? 1 : 1.5; const pasos = movil ? 56 : 90;
+  // En el celular el movimiento propio va a 30 cuadros por segundo (se ve igual de suave y gasta la mitad).
+  const intervalo = movil ? 1000 / 30 : 0; let ultimoCuadro = 0;
   let dpr = 1;
   const etiquetas = new Map();
   const etiqueta = (p, s) => { const k = `${p}|${s}`; if (!etiquetas.has(k)) etiquetas.set(k, crearEtiqueta(P[p], P[p].sabores.find((x) => x.slug === s) || P[p].sabores[0])); return etiquetas.get(k); };
@@ -68,6 +70,8 @@ export function iniciarEscena(datos) {
   function cuadro(ts) {
     vivo = false;
     if (!visible || document.hidden) { r.dibujar({ S: 0 }); return; }
+    if (intervalo && ts - ultimoCuadro < intervalo - 2) { despertar(); return; }
+    ultimoCuadro = ts;
     const t = (ts - t0) / 1000;
     const tp = objetivo();
     if (primero) { cur.x = tp.x; cur.y = tp.y; cur.h = 0; primero = false; llegada = ts; }
