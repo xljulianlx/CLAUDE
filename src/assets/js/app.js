@@ -195,6 +195,7 @@ const compra = $('[data-compra]');
 if (compra) {
   const slug = compra.dataset.compra; const img = $('[data-ficha-img]'); const cant = $('#cantidad');
   vincularSabor('sabor', slug, (s) => {
+    $('.ficha-galeria')?.style.setProperty('--c1', s.c1);
     if (!img || !P[slug].con3D) return;
     img.src = foto(slug, s.slug, 1000); img.srcset = `${foto(slug, s.slug, 600)} 600w, ${foto(slug, s.slug, 1000)} 1000w`;
     img.alt = `${P[slug].nombre} de Halo, sabor ${s.nombre}, ${P[slug].presentacion}`;
@@ -215,7 +216,16 @@ if (compra) {
 const config = $('[data-configurador]');
 if (config) {
   const slug = config.dataset.configurador; const img = $('[data-config-img]', config);
-  vincularSabor('sabor-inicio', slug, (s) => { if (img) img.src = foto(slug, s.slug, 600); });
+  // Al elegir sabor, el fondo toma el color del sabor y el envase "salta" con un giro corto.
+  vincularSabor('sabor-inicio', slug, (s) => {
+    config.style.setProperty('--c1', s.c1); config.style.setProperty('--c2', s.c2);
+    if (!img) return;
+    const cambiar = () => { img.src = foto(slug, s.slug, 600); };
+    if (reducido.matches || !img.animate) { cambiar(); return; }
+    img.animate([{ transform: 'none' }, { transform: 'scale(0.6) rotate(-14deg)', opacity: 0.2 }], { duration: 200, easing: 'ease-in' }).finished.then(() => {
+      cambiar(); img.animate([{ transform: 'scale(0.6) rotate(14deg)', opacity: 0.2 }, { transform: 'scale(1.06)', offset: 0.7 }, { transform: 'none' }], { duration: 480, easing: 'cubic-bezier(0.23, 1, 0.32, 1)' });
+    });
+  });
 }
 
 /* ---------- orden en la tienda ---------- */

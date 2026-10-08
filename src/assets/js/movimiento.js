@@ -3,6 +3,7 @@
 // Cada animación tiene un motivo: revelar en orden (narrativa), marcar el paso activo (jerarquía).
 
 export function iniciarMovimiento() {
+  contadores();
   const g = window.gsap; const ST = window.ScrollTrigger;
   const pasos = [...document.querySelectorAll('[data-paso]')];
   if (!g || !ST) { alternativa(pasos); return; }
@@ -51,4 +52,17 @@ function alternativa(pasos) {
     if (e.isIntersecting) document.dispatchEvent(new CustomEvent('frasco:giro'));
   }), { rootMargin: '-38% 0px -38% 0px' });
   pasos.forEach((p) => io.observe(p));
+}
+
+// Cifras que cuentan desde cero cuando entran en pantalla (48 h, 30 días…).
+function contadores() {
+  const els = [...document.querySelectorAll('[data-contar]')];
+  if (!els.length || matchMedia('(prefers-reduced-motion: reduce)').matches || !('IntersectionObserver' in window)) return;
+  const io = new IntersectionObserver((es) => es.forEach((e) => {
+    if (!e.isIntersecting) return; io.unobserve(e.target);
+    const el = e.target; const fin = +el.dataset.contar; const t0 = performance.now();
+    const paso = (t) => { const u = Math.min(1, (t - t0) / 1100); el.textContent = Math.round(fin * (1 - (1 - u) ** 3)); if (u < 1) requestAnimationFrame(paso); };
+    requestAnimationFrame(paso);
+  }), { threshold: 0.6 });
+  els.forEach((el) => { if (el.getBoundingClientRect().top > innerHeight) { el.textContent = '0'; io.observe(el); } });
 }

@@ -48,6 +48,16 @@ const tieneRender = (p) => existsSync(join(raiz, 'src/assets', foto(p, p.sabores
 const con3D = (p) => !p.imagenUrl && tieneRender(p);
 const fotoAbs = (p, s) => (p.imagenUrl ? p.imagenUrl : tieneRender(p) ? abs('/assets/' + foto(p, s, 1000)) : abs('/assets/img/og-halo.jpg'));
 const disponible = (p) => p.stock == null || p.stock > 0;
+// Imágenes de ambiente generadas con scripts/render-escenas.mjs (ancho grande y mitad).
+const ESCENAS = { familia: [1600, 800, 900], 'cat-proteinas': [1200, 600, 900], 'cat-rendimiento': [1200, 600, 900], 'cat-accesorios': [1200, 600, 900], laboratorio: [1000, 600, 1000] };
+const escenaImg = (c, nombre, { alt = '', sizes = '100vw', lazy = true, clase = '' } = {}) => {
+  const [g, m, alto] = ESCENAS[nombre] || [1200, 600, 630];
+  if (!existsSync(join(raiz, `src/assets/img/escenas/${nombre}-${m}.webp`))) return '';
+  return `<img${clase ? ` class="${clase}"` : ''} src="${c.a(`img/escenas/${nombre}-${m}.webp`)}" srcset="${c.a(`img/escenas/${nombre}-${m}.webp`)} ${m}w, ${c.a(`img/escenas/${nombre}-${g}.webp`)} ${g}w" sizes="${sizes}" width="${g}" height="${alto}" alt="${esc(alt)}"${lazy ? ' loading="lazy"' : ''} decoding="async">`;
+};
+const portadaGuia = (b) => (existsSync(join(raiz, `src/assets/img/escenas/guia-${b.slug}-600.webp`)) ? `guia-${b.slug}` : null);
+const iniciales = (n) => n.split(/\s+/).map((x) => x[0]).slice(0, 2).join('').toUpperCase();
+const tono = (n) => [...n].reduce((a, ch) => (a * 31 + ch.charCodeAt(0)) % 360, 7);
 const resumenResenas = (slug) => {
   const r = resenas[slug] || [];
   if (!r.length) return null;
@@ -261,6 +271,10 @@ function bloqueSEO(titulo, parrafos, enlaces = '') {
   return `<section class="wrap seo-bloque" aria-label="${esc(titulo)}"><details><summary><span>${esc(titulo)}</span></summary><div class="seo-texto">${parrafos.map((t) => `<p>${t}</p>`).join('')}${enlaces}</div></details></section>`;
 }
 
+function guiasTarjetas(c, lista, conFecha = false, eager = 0) {
+  return `<ul class="guias-tarjetas">${lista.map((b, i) => { const img = portadaGuia(b); return `<li data-revelar><a class="guia-card" href="${c.h(`/blog/${b.slug}/`)}">${img ? `<img src="${c.a(`img/escenas/${img}-600.webp`)}" width="600" height="315" alt=""${i < eager ? '' : ' loading="lazy"'} decoding="async">` : ''}<span class="guia-card-txt">${conFecha ? `<time datetime="${b.fecha}">${fechaLarga(b.fecha)}</time>` : ''}<span class="guia-t">${esc(b.titulo)}</span><span class="guia-d">${esc(b.descripcion)}</span></span></a></li>`; }).join('')}</ul>`;
+}
+
 const preguntasGenerales = [
   ['¿Cuánto tarda el envío?', 'Entre 2 y 5 días hábiles según la ciudad. Los pedidos confirmados antes de las 2 p. m. salen el mismo día.'],
   ['¿Cuánto cuesta el envío?', `${cop(sitio.envio)} a todo el país. Es gratis en pedidos desde ${cop(sitio.envioGratisDesde)}.`],
@@ -291,25 +305,39 @@ paginas.push({
   cuerpo: (c) => {
     const w = estrella; const ppw = porPorcion(w);
     return `
-<section class="hero wrap" aria-labelledby="hero-t">
-  <div class="hero-copy">
-    <h1 id="hero-t" class="h1">Más fuerza, cero relleno.</h1>
-    <p class="hero-sub">Proteína aislada, creatina y pre-entreno con dosis declaradas y análisis de laboratorio por lote. Envío en 48 horas.</p>
-    <div class="cta"><a class="btn btn-pri" href="${c.h(`/productos/${w.slug}/`)}">Comprar ${esc(w.nombre)}</a><a class="btn btn-sec" href="#productos">Ver productos</a></div>
+<section class="hero" aria-labelledby="hero-t">
+  <div class="wrap hero-in">
+    <div class="hero-copy">
+      <p class="hero-chip"><span aria-hidden="true"></span>Envío gratis desde ${cop(sitio.envioGratisDesde)}</p>
+      <h1 id="hero-t" class="h1">Más fuerza, cero relleno.</h1>
+      <p class="hero-sub">Proteína aislada, creatina y pre-entreno con dosis declaradas y análisis de laboratorio por lote.</p>
+    </div>
+    <figure class="hero-media" data-pose="d:el:.8;m:el:.9" data-frasco-ancla>
+      ${imgProducto(c, w, w.sabores[0], { tam: '1000', sizes: '(min-width: 1024px) 46vw, 80vw', alt: `Envase de ${w.nombre} de Halo, sabor ${w.sabores[0].nombre}`, lazy: false })}
+      <span class="hero-sombra" aria-hidden="true"></span>
+    </figure>
+    <div class="hero-acciones">
+      <div class="cta"><a class="btn btn-pri btn-grande" href="${c.h(`/productos/${w.slug}/`)}">Comprar ${esc(w.nombre)}</a><a class="btn btn-sec btn-grande" href="#productos">Ver productos</a></div>
+      <ul class="hero-datos"><li><strong>25 g</strong> de proteína por porción</li><li><strong>48 h</strong> despacho</li><li><strong>${sitio.diasDevolucion} días</strong> de garantía</li></ul>
+    </div>
+    <a class="hero-bajar" href="#productos" aria-label="Bajar a los productos"><span aria-hidden="true"></span></a>
   </div>
-  <figure class="hero-media" data-pose="d:el:.9;m:el:.9" data-frasco-ancla>
-    ${imgProducto(c, w, w.sabores[0], { tam: '1000', sizes: '(min-width: 1024px) 46vw, 90vw', alt: `Envase de ${w.nombre} de Halo, sabor ${w.sabores[0].nombre}`, lazy: false })}
-  </figure>
+  <div class="cinta" aria-hidden="true"><div class="cinta-in">${Array(2).fill(['Análisis de laboratorio por lote', 'Envío a toda Colombia', `${sitio.diasDevolucion} días de garantía`, '0 mezclas propietarias', 'Pago seguro con Mercado Pago', 'Despacho en 48 h'].map((t) => `<span>${t}</span>`).join('')).join('')}</div></div>
 </section>
 
-<section class="seccion wrap productos-sec" id="productos" aria-labelledby="productos-t" data-pose="d:off;m:off">
+<section class="seccion wrap productos-sec" id="productos" aria-labelledby="productos-t">
   <div class="productos-cab"><h2 class="h2" id="productos-t">Nuestros productos</h2>${filtrosHTML(c, null)}</div>
   <div class="rejilla compacta" data-rejilla>${productos.map((p, i) => tarjeta(c, p, i, i < 6)).join('')}</div>
 </section>
 
-<section class="configurador wrap" aria-labelledby="sabor-t" data-configurador="${w.slug}">
+<section class="seccion wrap objetivos" aria-labelledby="obj-t">
+  <h2 class="h2 h2-sec" id="obj-t">Compra por objetivo</h2>
+  <ul class="objetivos-lista">${[['proteinas', 'Ganar músculo', 'Proteína whey y barras para llegar a tu meta diaria.'], ['rendimiento', 'Fuerza y energía', 'Creatina, pre-entreno y BCAA para rendir más.'], ['accesorios', 'Para llevar', 'Shakers que no gotean ni dejan grumos.']].map(([k, t, d]) => `<li data-revelar><a class="objetivo" href="${c.h(`/tienda/${k}/`)}">${escenaImg(c, `cat-${k}`, { sizes: '(min-width: 860px) 31vw, 92vw' })}<span class="objetivo-txt"><span class="objetivo-t">${t}</span><span>${d}</span><span class="objetivo-ir" aria-hidden="true">Ver ${cat(k).nombre.toLowerCase()} →</span></span></a></li>`).join('')}</ul>
+</section>
+
+<section class="configurador wrap" aria-labelledby="sabor-t" data-configurador="${w.slug}" style="--c1:${w.sabores[0].c1};--c2:${w.sabores[0].c2}">
   <h2 class="h2" id="sabor-t">Elige tu sabor de ${esc(w.nombre)}</h2>
-  <div class="configurador-escena" data-pose="d:el:.9;m:el:.9" data-pose-final aria-hidden="true"><img data-config-img src="${c.a(foto(w, w.sabores[0], 600))}" width="600" height="600" alt="" loading="lazy" decoding="async"></div>
+  <div class="configurador-escena" aria-hidden="true"><img data-config-img src="${c.a(foto(w, w.sabores[0], 600))}" width="600" height="600" alt="" loading="lazy" decoding="async"></div>
   <div class="configurador-panel">
     ${selectorSabor(w, 'sabor-inicio')}
     <p class="precio precio-g"><span>${cop(w.precio)}</span><small>${ppw ? `${cop(ppw)} por porción, ` : ''}${esc(w.presentacion)}</small></p>
@@ -318,15 +346,15 @@ paginas.push({
 </section>
 
 <section class="garantias wrap" aria-label="Por qué comprar en Halo">
-  <div><strong>48 h</strong><span>Despacho el mismo día y entrega en ciudades principales</span></div>
-  <div><strong>${sitio.diasDevolucion} días</strong><span>Garantía de satisfacción, aunque el envase esté abierto</span></div>
-  <div><strong>Por lote</strong><span>Análisis de laboratorio independiente publicado</span></div>
+  <div><span class="g-ico g-envio" aria-hidden="true"></span><strong><span data-contar="48">48</span> h</strong><span>Despacho el mismo día y entrega en ciudades principales</span></div>
+  <div><span class="g-ico g-garantia" aria-hidden="true"></span><strong><span data-contar="${sitio.diasDevolucion}">${sitio.diasDevolucion}</span> días</strong><span>Garantía de satisfacción, aunque el envase esté abierto</span></div>
+  <div><span class="g-ico g-lab" aria-hidden="true"></span><strong>Por lote</strong><span>Análisis de laboratorio independiente publicado</span></div>
 </section>
 
 <section class="seccion wrap resenas-sec" aria-labelledby="resenas-t">
   <h2 class="h2" id="resenas-t">Lo que dicen quienes ya entrenan con Halo</h2>
   ${sitio.resenasDeEjemplo ? '<p class="nota">Reseñas de ejemplo para esta demostración.</p>' : ''}
-  <div class="resenas-muro">${Object.entries(resenas).filter(([slug]) => prod(slug)).flatMap(([slug, l]) => l.slice(0, 1).map((r) => ({ ...r, slug }))).slice(0, 4).map((r) => `<figure class="resena" data-revelar><blockquote>“${esc(r.texto)}”</blockquote><figcaption><span class="estrellas" aria-label="${r.rating} de 5 estrellas">${estrellas(r.rating)}</span> ${esc(r.autor)}, ${esc(r.ciudad)}. Compró <a href="${c.h(`/productos/${r.slug}/`)}">${esc(prod(r.slug).nombre)}</a></figcaption></figure>`).join('')}</div>
+  <div class="resenas-muro">${Object.entries(resenas).filter(([slug]) => prod(slug)).flatMap(([slug, l]) => l.slice(0, 1).map((r) => ({ ...r, slug }))).slice(0, 4).map((r) => `<figure class="resena" data-revelar><span class="estrellas" aria-label="${r.rating} de 5 estrellas">${estrellas(r.rating)}</span><blockquote>“${esc(r.texto)}”</blockquote><figcaption><span class="avatar" style="--h:${tono(r.autor)}" aria-hidden="true">${esc(iniciales(r.autor))}</span><span><strong>${esc(r.autor)}</strong>, ${esc(r.ciudad)}<br>Compró <a href="${c.h(`/productos/${r.slug}/`)}">${esc(prod(r.slug).nombre)}</a></span><img class="resena-prod" src="${prod(r.slug).imagenUrl || c.a(foto(prod(r.slug), prod(r.slug).sabores[0], 160))}" width="160" height="160" alt="" loading="lazy" decoding="async"></figcaption></figure>`).join('')}</div>
 </section>
 
 ${creatina ? `<section class="seccion wrap combo" aria-labelledby="combo-t" data-revelar>
@@ -342,6 +370,8 @@ ${creatina ? `<section class="seccion wrap combo" aria-labelledby="combo-t" data
   <div class="ciencia-texto">
     <p class="eyebrow">Fórmulas claras</p>
     <h2 class="h2" id="ciencia-t">Lo que dice la etiqueta es lo que hay en el tarro.</h2>
+    <figure class="ciencia-img">${escenaImg(c, 'laboratorio', { alt: `${w.nombre} de Halo en el laboratorio`, sizes: '(min-width: 860px) 44vw, 92vw' })}
+      <span class="flota f1" aria-hidden="true">25 g proteína</span><span class="flota f2" aria-hidden="true">Lote analizado</span><span class="flota f3" aria-hidden="true">0 rellenos</span></figure>
   </div>
   <ol class="ciencia-lista">
     <li data-paso><strong>25 g</strong><p>de proteína por porción en Whey Isolate. Medido, no redondeado hacia arriba.</p></li>
@@ -350,9 +380,14 @@ ${creatina ? `<section class="seccion wrap combo" aria-labelledby="combo-t" data
   </ol>
 </section>
 
+<section class="seccion wrap familia" aria-labelledby="familia-t" data-revelar>
+  ${escenaImg(c, 'familia', { alt: 'Toda la línea de suplementos Halo', sizes: '(min-width: 1320px) 1240px, 100vw', clase: 'familia-img' })}
+  <div class="familia-txt"><h2 class="h2" id="familia-t">Pocos productos. Todos con dosis completas.</h2><p>Seis productos que se combinan entre sí, para que armes tu rutina sin pagar por rellenos.</p><a class="btn btn-pri" href="${c.h('/tienda/')}">Ver toda la tienda</a></div>
+</section>
+
 <section class="seccion wrap guias-sec" aria-labelledby="guias-t">
-  <h2 class="h2" id="guias-t">Guías para elegir bien</h2>
-  <ul class="guias-lista">${blog.map((b) => `<li><a href="${c.h(`/blog/${b.slug}/`)}"><span class="guia-t">${esc(b.titulo)}</span><span class="guia-d">${esc(b.descripcion)}</span></a></li>`).join('')}</ul>
+  <h2 class="h2 h2-sec" id="guias-t">Guías para elegir bien</h2>
+  ${guiasTarjetas(c, blog)}
 </section>
 
 ${preguntasHTML(preguntasGenerales)}
@@ -384,7 +419,7 @@ function paginaTienda(categoria) {
     descripcion: `${textos[1]} Envío a toda Colombia, gratis desde ${cop(sitio.envioGratisDesde)}. Pago seguro y ${sitio.diasDevolucion} días de garantía.`,
     jsonld: [{ '@context': 'https://schema.org', '@type': 'CollectionPage', name: textos[0], url: abs(ruta), inLanguage: sitio.idioma, mainEntity: { '@type': 'ItemList', numberOfItems: lista.length, itemListElement: lista.map((p, i) => ({ '@type': 'ListItem', position: i + 1, url: abs(`/productos/${p.slug}/`), name: p.nombre })) } }],
     cuerpo: (c) => `
-<section class="wrap tienda-cab"><h1 class="h1 h1-pag">${textos[0]}</h1><p class="lead">${textos[1]}</p></section>
+<section class="wrap tienda-cab"><div><h1 class="h1 h1-pag">${textos[0]}</h1><p class="lead">${textos[1]}</p></div>${escenaImg(c, categoria ? `cat-${categoria.slug}` : 'familia', { sizes: '(min-width: 760px) 360px, 92vw', lazy: false, clase: 'tienda-banner' })}</section>
 <div class="wrap tienda-barra">
   ${filtrosHTML(c, categoria?.slug)}
   <div class="orden"><label for="orden">Ordenar por</label><select id="orden" data-orden><option value="destacados">Más vendidos</option><option value="precio-asc">Precio: menor a mayor</option><option value="precio-desc">Precio: mayor a menor</option></select></div>
@@ -432,7 +467,7 @@ productos.forEach((p) => {
     jsonld: [productoLD],
     cuerpo: (c) => `
 <article class="wrap ficha" data-producto="${p.slug}">
-  <figure class="ficha-galeria"${con3D(p) ? ' data-pose="d:el:.92;m:el:.92" data-frasco-ancla' : ''}>
+  <figure class="ficha-galeria" style="--c1:${s0.c1}"${con3D(p) ? ' data-pose="d:el:.92;m:el:.92" data-frasco-ancla' : ''}>
     ${imgProducto(c, p, s0, { tam: '1000', sizes: '(min-width: 1024px) 50vw, 92vw', alt: `${p.nombre} de Halo, sabor ${s0.nombre}, ${p.presentacion}`, lazy: false, extra: ' data-ficha-img' })}
   </figure>
   <div class="ficha-info">
@@ -479,17 +514,16 @@ paginas.push({
   ruta: '/nosotros/', tipo: 'nosotros', migas: [['Inicio', '/'], ['Nosotros', '/nosotros/']],
   titulo: 'Nosotros | Halo Nutrition, suplementos con dosis declaradas',
   descripcion: 'Halo nació para que entiendas lo que tomas: pocas fórmulas, dosis completas y análisis de laboratorio por lote. Conoce cómo trabajamos.',
-  frasco: con3D(estrella) ? { p: estrella.slug, s: (estrella.sabores[1] || estrella.sabores[0]).slug } : null,
   jsonld: [{ ...orgLD, '@type': 'Organization' }],
   cuerpo: (c) => `
 <section class="wrap nosotros-cab">
   <div><h1 class="h1 h1-pag">Suplementos que se entienden.</h1><p class="lead">Halo empezó con dos nutricionistas cansadas de etiquetas confusas. Hoy hacemos pocos productos y los hacemos bien.</p></div>
-  <div class="nosotros-escena" data-pose="d:el:.95;m:off" aria-hidden="true"></div>
+  ${escenaImg(c, 'familia', { alt: 'Línea de productos Halo', sizes: '(min-width: 760px) 40vw, 92vw', lazy: false, clase: 'nosotros-img' })}
 </section>
-<section class="wrap seccion historia">
+<section class="wrap seccion historia-con-img"><figure>${escenaImg(c, 'laboratorio', { alt: 'Envase de Halo en el laboratorio', sizes: '(min-width: 760px) 40vw, 92vw', lazy: false })}</figure><div class="historia">
   <p>Cada fórmula se diseña con nutricionistas deportivos y se fabrica en plantas con buenas prácticas de manufactura. Antes de vender un lote, un laboratorio independiente confirma que tiene lo que dice la etiqueta.</p>
   <p>Publicamos ese análisis para que cualquiera lo pueda revisar. Si algo no cuadra, preferimos no venderlo.</p>
-</section>
+</div></section>
 ${preguntasHTML(preguntasGenerales)}
 <section class="wrap seccion contacto" id="contacto" aria-labelledby="contacto-t"><h2 class="h2" id="contacto-t">Contacto</h2><p class="lead">Escríbenos y te respondemos el mismo día hábil.</p><p class="contacto-dato"><span data-copiable>${sitio.email}</span> <button class="btn btn-sec btn-sm" type="button" data-copiar="${sitio.email}">Copiar correo</button></p><p class="nota">${sitio.horario}</p></section>`,
 });
@@ -575,7 +609,7 @@ paginas.push({
   jsonld: [{ '@context': 'https://schema.org', '@type': 'Blog', name: 'Guías Halo', url: abs('/blog/'), inLanguage: sitio.idioma, blogPost: blog.map((b) => ({ '@type': 'BlogPosting', headline: b.titulo, url: abs(`/blog/${b.slug}/`), datePublished: b.fecha })) }],
   cuerpo: (c) => `
 <section class="wrap blog-cab"><h1 class="h1 h1-pag">Guías para entrenar mejor</h1><p class="lead">Respuestas cortas a las dudas que más nos llegan.</p></section>
-<section class="wrap seccion"><ul class="guias-lista grande">${[...blog].sort((a, b) => b.fecha.localeCompare(a.fecha)).map((b) => `<li data-revelar><a href="${c.h(`/blog/${b.slug}/`)}"><time datetime="${b.fecha}">${fechaLarga(b.fecha)}</time><span class="guia-t">${esc(b.titulo)}</span><span class="guia-d">${esc(b.descripcion)}</span></a></li>`).join('')}</ul></section>`,
+<section class="wrap seccion">${guiasTarjetas(c, [...blog].sort((a, b) => b.fecha.localeCompare(a.fecha)), true, 4)}</section>`,
 });
 blog.forEach((b) => {
   const ruta = `/blog/${b.slug}/`; const p = prod(b.producto) || estrella;
@@ -584,10 +618,11 @@ blog.forEach((b) => {
     ruta, tipo: 'articulo', migas: [['Inicio', '/'], ['Guías', '/blog/'], [b.titulo, ruta]], tipoOg: 'article',
     titulo: `${b.tituloSeo || b.titulo.split(":")[0]} | Guías Halo`, descripcion: b.descripcion,
     frasco: con3D(p) ? { p: p.slug, s: p.sabores[0].slug } : null,
-    jsonld: [{ '@context': 'https://schema.org', '@type': 'BlogPosting', headline: b.titulo, description: b.descripcion, datePublished: b.fecha, dateModified: b.fecha, inLanguage: sitio.idioma, author: { '@type': 'Organization', name: sitio.nombre }, publisher: { '@type': 'Organization', name: sitio.nombre, logo: { '@type': 'ImageObject', url: abs('/assets/img/favicon.svg') } }, mainEntityOfPage: abs(ruta), image: abs('/assets/img/og-halo.jpg'), keywords: b.palabrasClave.join(', ') }],
+    jsonld: [{ '@context': 'https://schema.org', '@type': 'BlogPosting', headline: b.titulo, description: b.descripcion, datePublished: b.fecha, dateModified: b.fecha, inLanguage: sitio.idioma, author: { '@type': 'Organization', name: sitio.nombre }, publisher: { '@type': 'Organization', name: sitio.nombre, logo: { '@type': 'ImageObject', url: abs('/assets/img/favicon.svg') } }, mainEntityOfPage: abs(ruta), image: portadaGuia(b) ? abs(`/assets/img/escenas/${portadaGuia(b)}-1200.webp`) : abs('/assets/img/og-halo.jpg'), keywords: b.palabrasClave.join(', ') }],
     cuerpo: (c) => `
 <article class="wrap texto-largo articulo">
   <header><h1 class="h1 h1-pag">${esc(b.titulo)}</h1><p class="nota">Por ${b.autor}. <time datetime="${b.fecha}">${fechaLarga(b.fecha)}</time></p></header>
+  ${portadaGuia(b) ? `<figure class="articulo-portada"><img src="${c.a(`img/escenas/${portadaGuia(b)}-1200.webp`)}" srcset="${c.a(`img/escenas/${portadaGuia(b)}-600.webp`)} 600w, ${c.a(`img/escenas/${portadaGuia(b)}-1200.webp`)} 1200w" sizes="(min-width: 800px) 760px, 92vw" width="1200" height="630" alt="" decoding="async"></figure>` : ''}
   ${b.cuerpo.map(([t, v]) => (t === 'ul' ? `<ul>${v.map((x) => `<li>${esc(x)}</li>`).join('')}</ul>` : `<${t}>${esc(v)}</${t}>`)).join('\n  ')}
   <aside class="articulo-cta" aria-labelledby="cta-t"><div><h2 id="cta-t">${esc(p.nombre)}</h2><p>${esc(p.resumen)}</p><a class="btn btn-pri" href="${c.h(`/productos/${p.slug}/`)}">Ver ${esc(p.nombre)}</a></div><div class="articulo-cta-img" aria-hidden="true"${con3D(p) ? ' data-pose="d:el:.9" data-frasco-ancla' : ''}>${imgProducto(c, p, p.sabores[0], { sizes: '200px' })}</div></aside>
   <nav class="otras-guias" aria-labelledby="otras-t"><h2 id="otras-t">Otras guías</h2><ul>${otras.map((o) => `<li><a href="${c.h(`/blog/${o.slug}/`)}">${esc(o.titulo)}</a></li>`).join('')}</ul></nav>

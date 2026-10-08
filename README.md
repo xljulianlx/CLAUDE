@@ -1,6 +1,6 @@
 # Halo Nutrition
 
-Tienda de suplementos deportivos (demostración) con un frasco 3D que gira con el scroll y viaja entre páginas, buscador de productos, cuentas de cliente (correo, Google y Facebook), panel de administración y pago con Mercado Pago Checkout Pro. Marca, precios, reseñas y textos son de ejemplo.
+Tienda de suplementos deportivos (demostración) con un frasco 3D que vive en la portada (flota, se balancea, sigue el puntero y salta al tocarlo), buscador de productos, cuentas de cliente (correo, Google y Facebook), panel de administración y pago con Mercado Pago Checkout Pro. Marca, precios, reseñas y textos son de ejemplo.
 
 ## Estructura
 
@@ -17,6 +17,7 @@ src/assets/js/movimiento.js Animaciones con GSAP + ScrollTrigger (con alternativ
 scripts/build.mjs           Genera public/: páginas, sitemap.xml con imágenes, robots.txt, JSON-LD.
 scripts/semilla-sql.mjs     Genera supabase/semilla.sql con los productos del catálogo.
 scripts/render-fotos.mjs    Renderiza las fotos WebP de cada producto y sabor.
+scripts/render-escenas.mjs  Compone las imágenes de ambiente (categorías, guías, familia, laboratorio).
 scripts/auditar.cjs         Auditoría de SEO, accesibilidad, rendimiento y enlaces.
 supabase/esquema.sql        Tablas, seguridad por filas (RLS), inventario y almacenamiento de fotos.
 api/crear-preferencia.js    Valida el carrito (precio, visibilidad y stock), registra el pedido y crea la preferencia.

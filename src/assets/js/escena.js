@@ -1,15 +1,18 @@
-// Escena 3D persistente: un frasco que gira con el scroll, se ubica en los "anclajes" [data-pose] de cada
-// página y, al navegar, retoma su posición en la página siguiente (sessionStorage) para que el recorrido sea continuo.
-// Solo se carga si hay WebGL, sin ahorro de datos y sin movimiento reducido. En móvil baja resolución y pasos.
+// Escena 3D: el frasco vive en su lugar (la portada, la ficha del producto o una guía) y no viaja con el scroll.
+// "Cobra vida": flota, respira, se balancea mostrando la etiqueta, sigue el puntero, da saltitos con una vuelta
+// de vez en cuando y gira al tocarlo. Al cambiar de página llega volando desde donde estaba (sessionStorage).
+// Solo se carga si hay WebGL, sin ahorro de datos y sin movimiento reducido (salvo que la persona lo active).
 import { crearRender, crearEtiqueta, hexARgb } from './frasco-gl.js';
 
 const CLAVE = 'halo-frasco';
 
 export function iniciarEscena(datos) {
   const lienzo = document.getElementById('frasco-lienzo'); if (!lienzo) return;
+  const ancla = document.querySelector('main [data-frasco-ancla][data-pose]'); if (!ancla) return;
   const r = crearRender(lienzo); if (!r) return;
   const P = Object.fromEntries(datos.productos.map((p) => [p.slug, p]));
   const movil = matchMedia('(max-width: 860px)').matches;
+  const finoPuntero = matchMedia('(hover: hover) and (pointer: fine)').matches;
   const dprMax = movil ? 1 : 1.5; const pasos = movil ? 64 : 90;
   let dpr = 1;
   const etiquetas = new Map();
@@ -18,29 +21,17 @@ export function iniciarEscena(datos) {
   let modelo = { p: document.body.dataset.frasco, s: document.body.dataset.sabor };
   let firma = '';
   const cur = { x: 0, y: 0, h: 0 };
-  let giro = 0; let impulso = 0; let extra = 0; let cambio = null; let pulso = 0; let primero = true; let vivo = false; let pintado = false;
+  const FRENTE = 0.3; const TAU = Math.PI * 2;
+  let giro = FRENTE; let extra = 0; let cambio = null; let pulso = 0; let primero = true; let pintado = false;
+  const t0 = performance.now(); let llegada = t0;
 
   try {
     const previo = JSON.parse(sessionStorage.getItem(CLAVE) || 'null');
     if (previo && Date.now() - previo.t < 5000) { Object.assign(cur, { x: previo.x, y: previo.y, h: previo.h }); giro = previo.giro; primero = false; }
   } catch { /* sin sessionStorage */ }
+  // Gira hacia adelante (menos de una vuelta) hasta mostrar la etiqueta de frente.
+  extra = TAU * Math.ceil((giro - FRENTE) / TAU);
 
-  // La etiqueta mira al frente cuando el giro vale FRENTE (mod 2π). Al llegar a una página, el frasco sigue
-  // girando hacia adelante desde donde venía hasta mostrar la etiqueta.
-  const FRENTE = 0.3; const K = 0.0042; const TAU = Math.PI * 2;
-  const alFrente = giro + ((((FRENTE - giro) % TAU) + TAU) % TAU);
-  impulso = alFrente - scrollY * K;
-  // Si la página marca una parada final [data-pose-final], el giro se reparte entre el inicio y esa parada:
-  // VUELTAS vueltas completas que terminan con la etiqueta de frente justo cuando el frasco llega.
-  const VUELTAS = 2;
-  const giroMeta = () => {
-    const fin = document.querySelector('main [data-pose-final]');
-    if (!fin) return scrollY * K + impulso + extra;
-    const r = fin.getBoundingClientRect();
-    const llegada = Math.max(1, r.top + scrollY + r.height / 2 - (64 + innerHeight) / 2);
-    const p = Math.min(1, Math.max(0, scrollY / llegada));
-    return alFrente + TAU * VUELTAS * p + extra;
-  };
   const guardar = () => { try { sessionStorage.setItem(CLAVE, JSON.stringify({ ...cur, giro, t: Date.now() })); } catch { /* nada */ } };
   addEventListener('pagehide', guardar);
   document.addEventListener('click', (e) => { const a = e.target.closest('a[href]'); if (a && a.origin === location.origin) guardar(); });
@@ -50,75 +41,79 @@ export function iniciarEscena(datos) {
     const w = Math.round(innerWidth * dpr); const h = Math.round(innerHeight * dpr);
     if (lienzo.width !== w || lienzo.height !== h) { lienzo.width = w; lienzo.height = h; }
   }
-
-  function pose(el) {
-    let s = el._pose;
-    if (!s) { s = {}; el.dataset.pose.split(';').forEach((seg) => { const i = seg.indexOf(':'); s[seg.slice(0, i)] = seg.slice(i + 1); }); el._pose = s; }
-    const v = innerWidth < 860 && s.m ? s.m : s.d; const rc = el.getBoundingClientRect();
-    let o;
-    if (v === 'off') { o = { x: innerWidth / 2, y: rc.top + rc.height / 2, h: 0 }; }
-    else if (v.startsWith('el')) { const f = parseFloat(v.split(':')[1] || '0.9'); o = { x: rc.left + rc.width / 2, y: rc.top + rc.height / 2, h: Math.min(rc.height, rc.width * 1.15) * f }; }
-    else { const a = v.split(',').map(Number); o = { x: a[0] * innerWidth, y: a[1] * innerHeight, h: a[2] * innerHeight }; }
-    o.c = rc.top + rc.height / 2; o.ok = rc.height > 0 || rc.width > 0;
-    return o;
-  }
+  const factorDe = () => { const seg = ancla.dataset.pose.split(';').find((x) => x.startsWith(innerWidth < 860 ? 'm:' : 'd:')) || ancla.dataset.pose; return parseFloat((seg.match(/el:([\d.]+)/) || [])[1] || '0.9'); };
   function objetivo() {
-    const l = [...document.querySelectorAll('main [data-pose]')].map(pose).filter((o) => o.ok).sort((a, b) => a.c - b.c);
-    if (!l.length) return null;
-    const vc = (64 + innerHeight) / 2;
-    if (l.length === 1 || vc <= l[0].c) return l[0];
-    if (vc >= l[l.length - 1].c) return l[l.length - 1];
-    for (let i = 0; i < l.length - 1; i++) {
-      if (vc < l[i + 1].c) {
-        let t = (vc - l[i].c) / (l[i + 1].c - l[i].c); t = t * t * (3 - 2 * t);
-        // En pantallas angostas no hay columnas libres: el frasco se encoge al viajar para no tapar texto.
-        const viaje = innerWidth < 860 ? 1 - Math.sin(Math.PI * t) : 1;
-        return { x: l[i].x + (l[i + 1].x - l[i].x) * t, y: l[i].y + (l[i + 1].y - l[i].y) * t, h: (l[i].h + (l[i + 1].h - l[i].h) * t) * viaje };
-      }
-    }
-    return l[0];
+    const rc = ancla.getBoundingClientRect();
+    return { x: rc.left + rc.width / 2, y: rc.top + rc.height / 2, h: Math.min(rc.height, rc.width * 1.15) * factorDe() };
   }
 
+  // Puntero: el frasco mira un poco hacia donde está el cursor.
+  const punt = { x: 0, y: 0, tx: 0, ty: 0 };
+  if (finoPuntero) {
+    addEventListener('pointermove', (e) => {
+      punt.tx = Math.max(-1, Math.min(1, (e.clientX - cur.x) / (innerWidth * 0.45)));
+      punt.ty = Math.max(-1, Math.min(1, (e.clientY - cur.y) / (innerHeight * 0.6)));
+    }, { passive: true });
+    document.documentElement.addEventListener('pointerleave', () => { punt.tx = 0; punt.ty = 0; });
+  }
+  // Saltito con una vuelta: cada pocos segundos y al tocar el frasco.
+  let salto = null; let proximoSalto = t0 + 2600;
+  const saltar = (ts) => { if (salto) return; salto = { t0: ts }; extra += TAU; };
+  ancla.addEventListener('click', () => { saltar(performance.now()); pulso = 1; });
+
+  let visible = true;
+  new IntersectionObserver(([e]) => { visible = e.isIntersecting; if (visible) despertar(); }).observe(ancla);
+
+  let vivo = false;
   function cuadro(ts) {
     vivo = false;
-    const tp = objetivo(); let mueve = false;
-    if (tp) {
-      if (primero) { cur.x = tp.x; cur.y = tp.y; cur.h = 0; primero = false; }
-      const dx = tp.x - cur.x; const dy = tp.y - cur.y; const dh = tp.h - cur.h;
-      if (Math.abs(dx) + Math.abs(dy) + Math.abs(dh) > 0.3) { cur.x += dx * 0.14; cur.y += dy * 0.14; cur.h += dh * 0.14; mueve = true; }
+    if (!visible || document.hidden) { r.dibujar({ S: 0 }); return; }
+    const t = (ts - t0) / 1000;
+    const tp = objetivo();
+    if (primero) { cur.x = tp.x; cur.y = tp.y; cur.h = 0; primero = false; llegada = ts; }
+    const k = ts - llegada < 1100 ? 0.12 : 0.4; // llega volando y después sigue a su lugar sin retraso
+    cur.x += (tp.x - cur.x) * k; cur.y += (tp.y - cur.y) * k; cur.h += (tp.h - cur.h) * (k * 0.8);
+
+    punt.x += (punt.tx - punt.x) * 0.06; punt.y += (punt.ty - punt.y) * 0.06;
+    if (ts > proximoSalto) { saltar(ts); proximoSalto = ts + 7000 + Math.random() * 4000; }
+    let dy = Math.sin(t * 1.15) * cur.h * 0.022;
+    let escala = 1 + Math.sin(t * 2.3) * 0.008;
+    if (salto) {
+      const u = (ts - salto.t0) / 950;
+      if (u >= 1) salto = null;
+      else {
+        dy -= Math.sin(Math.PI * Math.min(1, u * 1.1)) * cur.h * 0.09;
+        if (u > 0.82) escala *= 1 - Math.sin(((u - 0.82) / 0.18) * Math.PI) * 0.035; // pequeño rebote al caer
+      }
     }
-    const meta = giroMeta(); const dg = meta - giro;
-    if (Math.abs(dg) > 0.0005) { giro += dg * 0.12; mueve = true; }
-    let escala = 1;
-    if (pulso > 0) { pulso = Math.max(0, pulso - 1 / 30); escala *= 1 + Math.sin(pulso * Math.PI) * 0.1; mueve = true; }
+    const meta = FRENTE + extra + Math.sin(t * 0.45) * 0.26 + punt.x * 0.45;
+    giro += (meta - giro) * (salto ? 0.07 : 0.09);
+    if (pulso > 0) { pulso = Math.max(0, pulso - 1 / 30); escala *= 1 + Math.sin(pulso * Math.PI) * 0.1; }
     if (cambio) {
       const u = (ts - cambio.t0) / 520;
       if (u >= 0.5 && !cambio.hecho) { modelo = cambio.a; cambio.hecho = true; }
       escala *= 1 - 0.55 * Math.sin(Math.PI * Math.min(1, Math.max(0, u)));
-      if (u >= 1) cambio = null; mueve = true;
+      if (u >= 1) cambio = null;
     }
     const p = P[modelo.p];
-    if (p && (mueve || !pintado)) {
+    if (p) {
       const f = `${modelo.p}|${modelo.s}`;
       if (f !== firma) { r.setEtiqueta(etiqueta(modelo.p, modelo.s)); firma = f; }
       const sab = p.sabores.find((x) => x.slug === modelo.s) || p.sabores[0];
-      r.dibujar({ cx: cur.x, cy: cur.y, S: (cur.h * escala) / 0.485, giro, inclinacion: 0.16 + Math.sin(giro * 0.5) * 0.05, forma: p.forma, base: hexARgb(sab.c1), dpr, recorte: true, pasos });
+      const incl = 0.14 + Math.sin(t * 0.9) * 0.035 + punt.y * 0.14;
+      r.dibujar({ cx: cur.x, cy: cur.y + dy, S: (cur.h * escala) / 0.485, giro, inclinacion: incl, forma: p.forma, base: hexARgb(sab.c1), dpr, recorte: true, pasos });
       if (!pintado && cur.h > 4) { pintado = true; document.documentElement.classList.add('frasco-activo'); }
     }
-    if (mueve) despertar();
+    despertar();
   }
   function despertar() { if (!vivo && !document.hidden) { vivo = true; requestAnimationFrame(cuadro); } }
 
-  // Despertadores: scroll (ScrollTrigger si está, si no un listener pasivo), tamaño, eventos de la tienda.
-  if (window.ScrollTrigger) window.ScrollTrigger.create({ start: 0, end: 'max', onUpdate: despertar });
-  else addEventListener('scroll', despertar, { passive: true });
   addEventListener('resize', () => { medir(); despertar(); });
   document.addEventListener('visibilitychange', despertar);
   document.addEventListener('frasco:sabor', (e) => {
     const a = e.detail; if (a.p === modelo.p && a.s === modelo.s) return;
     cambio = { t0: performance.now(), a, hecho: false }; extra += TAU; despertar();
   });
-  document.addEventListener('frasco:giro', () => { if (!document.querySelector('main [data-pose-final]')) { extra += TAU; despertar(); } });
   document.addEventListener('carrito:agregado', () => { extra += TAU; pulso = 1; despertar(); });
 
   medir(); despertar();
