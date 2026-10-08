@@ -249,7 +249,7 @@ paginas.push({
 
 <section class="configurador wrap" aria-labelledby="sabor-t" data-configurador="${w.slug}">
   <h2 class="h2" id="sabor-t">Elige tu sabor de Whey Isolate</h2>
-  <div class="configurador-escena" data-pose="d:el:.9;m:el:.9" aria-hidden="true"><img data-config-img src="${c.a(foto(w, w.sabores[0], 600))}" width="600" height="600" alt="" loading="lazy" decoding="async"></div>
+  <div class="configurador-escena" data-pose="d:el:.9;m:el:.9" data-pose-final aria-hidden="true"><img data-config-img src="${c.a(foto(w, w.sabores[0], 600))}" width="600" height="600" alt="" loading="lazy" decoding="async"></div>
   <div class="configurador-panel">
     ${selectorSabor(w, 'sabor-inicio')}
     <p class="precio precio-g"><span>${cop(w.precio)}</span><small>${cop(ppw)} por porción, ${esc(w.presentacion)}</small></p>
@@ -262,7 +262,7 @@ paginas.push({
   <div class="carril" tabindex="0" aria-label="Productos más vendidos, desplázate horizontalmente">${productos.map((p, i) => tarjeta(c, p, i)).join('')}</div>
 </section>
 
-<section class="seccion wrap resenas-sec" aria-labelledby="resenas-t" data-pose="d:.9,.14,.14;m:off">
+<section class="seccion wrap resenas-sec" aria-labelledby="resenas-t">
   <h2 class="h2" id="resenas-t">Lo que dicen quienes ya entrenan con Halo</h2>
   ${sitio.resenasDeEjemplo ? '<p class="nota">Reseñas de ejemplo para esta demostración.</p>' : ''}
   <div class="resenas-muro">${Object.entries(resenas).flatMap(([slug, l]) => l.slice(0, 1).map((r) => ({ ...r, slug }))).slice(0, 5).map((r) => `<figure class="resena" data-revelar><blockquote>“${esc(r.texto)}”</blockquote><figcaption><span class="estrellas" aria-label="${r.rating} de 5 estrellas">${estrellas(r.rating)}</span> ${esc(r.autor)}, ${esc(r.ciudad)}. Compró <a href="${c.h(`/productos/${r.slug}/`)}">${esc(prod(r.slug).nombre)}</a></figcaption></figure>`).join('')}</div>

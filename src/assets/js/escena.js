@@ -18,7 +18,7 @@ export function iniciarEscena(datos) {
   let modelo = { p: document.body.dataset.frasco, s: document.body.dataset.sabor };
   let firma = '';
   const cur = { x: 0, y: 0, h: 0 };
-  let giro = 0; let impulso = 0; let cambio = null; let pulso = 0; let primero = true; let vivo = false; let pintado = false;
+  let giro = 0; let impulso = 0; let extra = 0; let cambio = null; let pulso = 0; let primero = true; let vivo = false; let pintado = false;
 
   try {
     const previo = JSON.parse(sessionStorage.getItem(CLAVE) || 'null');
@@ -28,7 +28,19 @@ export function iniciarEscena(datos) {
   // La etiqueta mira al frente cuando el giro vale FRENTE (mod 2π). Al llegar a una página, el frasco sigue
   // girando hacia adelante desde donde venía hasta mostrar la etiqueta.
   const FRENTE = 0.3; const K = 0.0042; const TAU = Math.PI * 2;
-  impulso = giro + ((((FRENTE - giro) % TAU) + TAU) % TAU) - scrollY * K;
+  const alFrente = giro + ((((FRENTE - giro) % TAU) + TAU) % TAU);
+  impulso = alFrente - scrollY * K;
+  // Si la página marca una parada final [data-pose-final], el giro se reparte entre el inicio y esa parada:
+  // VUELTAS vueltas completas que terminan con la etiqueta de frente justo cuando el frasco llega.
+  const VUELTAS = 2;
+  const giroMeta = () => {
+    const fin = document.querySelector('main [data-pose-final]');
+    if (!fin) return scrollY * K + impulso + extra;
+    const r = fin.getBoundingClientRect();
+    const llegada = Math.max(1, r.top + scrollY + r.height / 2 - (64 + innerHeight) / 2);
+    const p = Math.min(1, Math.max(0, scrollY / llegada));
+    return alFrente + TAU * VUELTAS * p + extra;
+  };
   const guardar = () => { try { sessionStorage.setItem(CLAVE, JSON.stringify({ ...cur, giro, t: Date.now() })); } catch { /* nada */ } };
   addEventListener('pagehide', guardar);
   document.addEventListener('click', (e) => { const a = e.target.closest('a[href]'); if (a && a.origin === location.origin) guardar(); });
@@ -75,7 +87,7 @@ export function iniciarEscena(datos) {
       const dx = tp.x - cur.x; const dy = tp.y - cur.y; const dh = tp.h - cur.h;
       if (Math.abs(dx) + Math.abs(dy) + Math.abs(dh) > 0.3) { cur.x += dx * 0.14; cur.y += dy * 0.14; cur.h += dh * 0.14; mueve = true; }
     }
-    const meta = scrollY * K + impulso; const dg = meta - giro;
+    const meta = giroMeta(); const dg = meta - giro;
     if (Math.abs(dg) > 0.0005) { giro += dg * 0.12; mueve = true; }
     let escala = 1;
     if (pulso > 0) { pulso = Math.max(0, pulso - 1 / 30); escala *= 1 + Math.sin(pulso * Math.PI) * 0.1; mueve = true; }
@@ -104,10 +116,10 @@ export function iniciarEscena(datos) {
   document.addEventListener('visibilitychange', despertar);
   document.addEventListener('frasco:sabor', (e) => {
     const a = e.detail; if (a.p === modelo.p && a.s === modelo.s) return;
-    cambio = { t0: performance.now(), a, hecho: false }; impulso += TAU; despertar();
+    cambio = { t0: performance.now(), a, hecho: false }; extra += TAU; despertar();
   });
-  document.addEventListener('frasco:giro', () => { impulso += Math.PI * 0.5; despertar(); });
-  document.addEventListener('carrito:agregado', () => { impulso += Math.PI * 2; pulso = 1; despertar(); });
+  document.addEventListener('frasco:giro', () => { if (!document.querySelector('main [data-pose-final]')) { extra += TAU; despertar(); } });
+  document.addEventListener('carrito:agregado', () => { extra += TAU; pulso = 1; despertar(); });
 
   medir(); despertar();
 }
