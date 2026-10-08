@@ -105,6 +105,7 @@ app.addEventListener('submit', async (e) => {
   const malo = [f.elements.nombre, email, clave].find((i) => i && !i.checkValidity());
   if (malo) {
     malo.setAttribute('aria-invalid', 'true'); malo.focus();
+    if (!matchMedia('(prefers-reduced-motion: reduce)').matches) malo.animate?.([{ translate: '0' }, { translate: '-6px' }, { translate: '5px' }, { translate: '-3px' }, { translate: '0' }], { duration: 320, easing: 'ease-out' });
     err.textContent = malo === email ? 'Escribe un correo válido, por ejemplo nombre@correo.com.' : malo === clave ? 'La contraseña debe tener al menos 8 caracteres.' : 'Escribe tu nombre.';
     return;
   }

@@ -597,7 +597,7 @@ paginas.push({
   ['error', 'El pago no se completó', 'No se hizo ningún cobro. Puedes intentarlo de nuevo con otro medio de pago.', false]].forEach(([slug, t, d, vaciar]) => {
   paginas.push({
     ruta: `/pago/${slug}/`, tipo: 'pago', indexar: false, titulo: `${t} | Halo Nutrition`, descripcion: d, sinGsap: true,
-    cuerpo: (c) => `<section class="wrap estado-pago"${vaciar ? ' data-vaciar-carrito' : ''}><h1 class="h1 h1-pag">${t}</h1><p class="lead">${d}</p><div class="cta">${slug === 'error' ? `<a class="btn btn-pri" href="${c.h('/carrito/')}">Volver al carrito</a>` : `<a class="btn btn-pri" href="${c.h('/tienda/')}">Seguir comprando</a><a class="btn btn-sec" href="${c.h('/cuenta/')}">Ver mis pedidos</a>`}</div></section>`,
+    cuerpo: (c) => `<section class="wrap estado-pago"${vaciar ? ' data-vaciar-carrito' : ''}${slug === 'exito' ? ' data-celebrar' : ''}><h1 class="h1 h1-pag">${slug === 'exito' ? '<span class="check-grande" aria-hidden="true"></span>' : ''}${t}</h1><p class="lead">${d}</p><div class="cta">${slug === 'error' ? `<a class="btn btn-pri" href="${c.h('/carrito/')}">Volver al carrito</a>` : `<a class="btn btn-pri" href="${c.h('/tienda/')}">Seguir comprando</a><a class="btn btn-sec" href="${c.h('/cuenta/')}">Ver mis pedidos</a>`}</div></section>`,
   });
 });
 

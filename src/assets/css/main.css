@@ -790,3 +790,115 @@ body.buscando .cabecera { backdrop-filter: none; -webkit-backdrop-filter: none; 
 .objetivo::after { background: linear-gradient(180deg, transparent 30%, rgba(8, 9, 11, 0.86)); }
 @media (max-width: 860px) { .ciencia-lista li { min-height: 0; padding-block: 22px; } .ciencia-lista strong { font-size: 2.2rem; } }
 .objetivo-txt { background: rgba(10, 11, 13, 0.9); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); }
+
+/* ================= Movimiento en todo el sitio ================= */
+:root { --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1); }
+
+/* Revelar al entrar: sube 18px y aparece. Usa la propiedad translate para no chocar con la inclinación. */
+.js-mov .rv { opacity: 0; translate: 0 18px; transition: opacity 560ms var(--ease-out) var(--rv, 0ms), translate 640ms var(--ease-out) var(--rv, 0ms); }
+.js-mov .rv.visto { opacity: 1; translate: none; }
+.js-mov .ciencia-lista li.rv.visto { opacity: 0.38; }
+.js-mov .ciencia-lista li.rv.visto.activo { opacity: 1; }
+/* Los títulos de sección dibujan una línea de acento al aparecer. */
+.h2-sec { position: relative; padding-bottom: 10px; }
+.h2-sec::after { content: ""; position: absolute; left: 0; bottom: 0; width: 44px; height: 3px; border-radius: 3px; background: var(--acc); transform-origin: left; transition: transform 700ms var(--ease-out) 150ms; }
+.js-mov .h2-sec.rv::after { transform: scaleX(0); }
+.js-mov .h2-sec.rv.visto::after { transform: none; }
+
+/* Cabecera: se esconde al bajar, vuelve al subir, y toma sombra al despegarse del borde. */
+.cabecera { transition: transform 260ms var(--ease-out), box-shadow 200ms ease; }
+.cabecera.con-sombra { box-shadow: 0 8px 24px -18px rgba(0, 0, 0, 0.45); }
+.cabecera.oculta { transform: translateY(-100%); }
+.tienda-barra { transition: top 260ms var(--ease-out); }
+.cabecera.oculta ~ main .tienda-barra { top: 0; }
+
+/* Tarjetas: inclinación con el cursor y un brillo que sigue al puntero. */
+.tarjeta, .objetivo, .guia-card { transition: transform 420ms var(--ease-out), border-color 200ms ease, box-shadow 300ms ease; will-change: auto; }
+.inclinada { transition: transform 120ms linear, border-color 200ms ease, box-shadow 300ms ease; box-shadow: var(--sombra); }
+.tarjeta::before, .guia-card::before { content: ""; position: absolute; inset: 0; z-index: 2; pointer-events: none; border-radius: inherit; opacity: 0; transition: opacity 300ms ease; background: radial-gradient(260px circle at var(--lx, 50%) var(--ly, 0%), rgba(255, 255, 255, 0.16), transparent 60%); }
+.guia-card { position: relative; }
+.inclinada::before { opacity: 1; }
+
+/* Botón "Agregar": confirma con un check. */
+.btn .check { width: 14px; height: 8px; border-left: 2.5px solid currentColor; border-bottom: 2.5px solid currentColor; transform: rotate(-45deg) translateY(-2px); display: inline-block; }
+.btn.hecho { background: var(--fg); color: var(--bg); border-color: var(--fg); }
+.btn.hecho .check { animation: checkEntra 260ms var(--ease-out); }
+@keyframes checkEntra { from { transform: rotate(-45deg) translateY(-2px) scale(0.5); opacity: 0; } }
+/* Brillo que cruza el botón principal al pasar el cursor. */
+.btn-pri { position: relative; overflow: hidden; }
+.btn-pri::after { content: ""; position: absolute; inset: 0; background: linear-gradient(105deg, transparent 35%, rgba(255, 255, 255, 0.35) 50%, transparent 65%); transform: translateX(-120%); pointer-events: none; }
+@media (hover: hover) and (pointer: fine) {
+  .btn-pri:hover::after { transform: translateX(120%); transition: transform 700ms var(--ease-out); }
+  .objetivo-ir, .enlace { transition: letter-spacing 200ms ease; }
+  .objetivo:hover .objetivo-ir { letter-spacing: 0.02em; }
+  .menu a { position: relative; }
+  .menu a::after { content: ""; position: absolute; left: 14px; right: 14px; bottom: 6px; height: 2px; border-radius: 2px; background: var(--acc); transform: scaleX(0); transform-origin: left; transition: transform 220ms var(--ease-out); }
+  .menu a:hover::after { transform: scaleX(1); }
+  .pie ul a { transition: color 160ms ease, translate 200ms var(--ease-out); }
+  .pie ul a:hover { color: var(--acc); translate: 3px 0; }
+  .sabor:hover { border-color: var(--fg); }
+  .filtros a { transition: border-color 160ms ease, background-color 160ms ease, transform 160ms var(--ease-out); }
+  .cinta:hover .cinta-in { animation-play-state: paused; }
+  .resena { transition: transform 300ms var(--ease-out), border-color 200ms ease; }
+  .resena:hover { transform: translateY(-3px); border-color: color-mix(in srgb, var(--acc) 40%, var(--line)); }
+  .dato { transition: transform 300ms var(--ease-out); }
+  .dato:hover { transform: translateY(-3px); }
+}
+.filtros a:active, .chips button:active, .pestanas button:active, .sabor:active { transform: scale(0.96); }
+
+/* Acordeones: se abren con altura animada donde el navegador lo permite (Chrome y Edge recientes). */
+@supports (interpolate-size: allow-keywords) {
+  :root { interpolate-size: allow-keywords; }
+  details::details-content { height: 0; overflow: clip; transition: height 260ms var(--ease-out), content-visibility 260ms allow-discrete; }
+  details[open]::details-content { height: auto; }
+}
+details > :not(summary) { transition: opacity 260ms ease; }
+details:not([open]) > :not(summary) { opacity: 0; }
+details[open] > :not(summary) { opacity: 1; }
+summary { transition: color 160ms ease; }
+@media (hover: hover) and (pointer: fine) { summary:hover { color: var(--acc); } }
+
+/* Panel del buscador: aparece desde arriba; los resultados entran escalonados. */
+.buscador-panel:not([hidden]) { animation: panelEntra 180ms var(--ease-out); transform-origin: top left; }
+@keyframes panelEntra { from { opacity: 0; transform: translateY(-6px) scale(0.98); } }
+.buscador-panel .res { animation: resEntra 240ms var(--ease-out) both; }
+.buscador-panel .res:nth-child(3) { animation-delay: 30ms; } .buscador-panel .res:nth-child(4) { animation-delay: 60ms; }
+.buscador-panel .res:nth-child(5) { animation-delay: 90ms; } .buscador-panel .res:nth-child(6) { animation-delay: 120ms; } .buscador-panel .res:nth-child(7) { animation-delay: 150ms; }
+@keyframes resEntra { from { opacity: 0; translate: 0 6px; } }
+@media (max-width: 860px) { .buscador.abierto { animation: hojaEntra 220ms var(--ease-out); } @keyframes hojaEntra { from { opacity: 0; translate: 0 12px; } } }
+/* Tarjetas que se agregan después (búsqueda, productos nuevos del panel). */
+.tarjeta.entra-js { animation: tarjetaEntra 420ms var(--ease-out) both; animation-delay: calc(min(var(--i, 0), 8) * 40ms); }
+@keyframes tarjetaEntra { from { opacity: 0; translate: 0 12px; } }
+
+
+/* Barra inferior: el ícono tocado da un pequeño salto. */
+.tabbar > :active .tab-ico { transform: translateY(-2px) scale(1.08); }
+.tab-ico { transition: transform 160ms var(--ease-out); }
+
+/* Imágenes grandes con un leve desplazamiento al hacer scroll (parallax nativo del navegador, sin JS). */
+@supports (animation-timeline: view()) {
+  .familia-img, .ciencia-img img, .articulo-portada img, .historia-con-img img, .nosotros-img { animation: paralaje linear both; animation-timeline: view(); animation-range: cover; }
+  @keyframes paralaje { from { transform: scale(1.08) translateY(-3%); } to { transform: scale(1.08) translateY(3%); } }
+}
+
+/* Barra de lectura de las guías. */
+.lectura { position: fixed; left: 0; right: 0; top: 0; height: 3px; z-index: 70; background: var(--acc); transform-origin: left; transform: scaleX(0); pointer-events: none; }
+
+/* Pago aprobado: check que se dibuja y chispas una sola vez. */
+.check-grande { display: inline-grid; place-items: center; width: 1em; height: 1em; margin-right: 0.25em; border-radius: 50%; background: var(--acc); vertical-align: -0.12em; position: relative; animation: checkPop 520ms var(--ease-out); }
+.check-grande::after { content: ""; width: 0.38em; height: 0.2em; border-left: 0.07em solid var(--acc-fg); border-bottom: 0.07em solid var(--acc-fg); transform: rotate(-45deg) translate(0.02em, -0.04em); }
+@keyframes checkPop { 0% { transform: scale(0.6); opacity: 0; } 60% { transform: scale(1.12); opacity: 1; } 100% { transform: none; } }
+.chispa { position: fixed; z-index: 150; width: 9px; height: 9px; border-radius: 2px; pointer-events: none; }
+
+/* Panel y cuenta: barras que crecen, pestañas con transición. */
+.barras i { transform-origin: left; animation: barraCrece 700ms var(--ease-out) both; }
+@keyframes barraCrece { from { transform: scaleX(0); } }
+.admin-tabs button, .pestanas button { transition: color 160ms ease, border-color 200ms var(--ease-out), background-color 200ms ease, box-shadow 200ms ease, transform 160ms var(--ease-out); }
+.kpi { animation: tarjetaEntra 420ms var(--ease-out) both; }
+.kpi:nth-child(2) { animation-delay: 40ms; } .kpi:nth-child(3) { animation-delay: 80ms; } .kpi:nth-child(4) { animation-delay: 120ms; } .kpi:nth-child(5) { animation-delay: 160ms; }
+
+@media (prefers-reduced-motion: reduce) {
+  .cabecera.oculta { transform: none; }
+  .familia-img, .ciencia-img img, .articulo-portada img, .historia-con-img img, .nosotros-img { animation: none; }
+}
+[data-cuenta-app], [data-admin-app] { min-height: 100svh; }

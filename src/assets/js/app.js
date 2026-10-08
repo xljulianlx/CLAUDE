@@ -154,9 +154,9 @@ document.addEventListener('click', (ev) => {
   if (t.dataset.agregar) {
     const p = t.dataset.agregar; let s = t.dataset.sabor;
     if (t.dataset.saborDesde) s = $(`input[name="${t.dataset.saborDesde}"]:checked`)?.value || P[p].sabores[0].slug;
-    agregar([{ p, s: s || P[p].sabores[0].slug, q: 1 }], centro(t)); return;
+    agregar([{ p, s: s || P[p].sabores[0].slug, q: 1 }], centro(t)); confirmarBoton(t); return;
   }
-  if (t.dataset.agregarCombo) { agregar(t.dataset.agregarCombo.split(',').map((x) => { const [p, s] = x.split(':'); return { p, s, q: 1 }; }), centro(t)); return; }
+  if (t.dataset.agregarCombo) { agregar(t.dataset.agregarCombo.split(',').map((x) => { const [p, s] = x.split(':'); return { p, s, q: 1 }; }), centro(t)); confirmarBoton(t); return; }
   const cambio = t.dataset.mas || t.dataset.menos || t.dataset.quitar;
   if (cambio) {
     const [p, s] = cambio.split('|'); const c = leer(); const f = c.find((i) => i.p === p && i.s === s); if (!f) return;
@@ -176,6 +176,12 @@ document.addEventListener('click', (ev) => {
     (navigator.clipboard?.writeText(txt) || Promise.reject()).then(ok, () => { const el = $('[data-copiable]'); const sel = getSelection(); const rg = document.createRange(); rg.selectNodeContents(el); sel.removeAllRanges(); sel.addRange(rg); avisar('Correo seleccionado, cópialo con tu teclado'); });
   }
 });
+// El botón confirma lo que hizo: "Agregado" con un check por un momento y vuelve a su texto.
+function confirmarBoton(b) {
+  if (!b.classList.contains('btn') || b.classList.contains('hecho')) return;
+  const txt = b.textContent; b.classList.add('hecho'); b.innerHTML = '<span class="check" aria-hidden="true"></span>Agregado';
+  setTimeout(() => { b.classList.remove('hecho'); b.textContent = txt; }, 1500);
+}
 function refrescar(rebote) {
   pintarContador(); const caj = $('#cajon'); if (caj && !caj.hidden) pintarCajon();
   if ($('[data-carrito-items]')) pintarPaginaCarrito();
@@ -204,7 +210,7 @@ if (compra) {
   compra.addEventListener('submit', (ev) => {
     ev.preventDefault();
     const s = $('input[name="sabor"]:checked', compra)?.value; const q = Math.max(1, Math.min(9, +cant.value || 1));
-    agregar([{ p: slug, s, q }], centro($('.ficha-galeria') || compra));
+    agregar([{ p: slug, s, q }], centro($('.ficha-galeria') || compra)); confirmarBoton($('[data-boton-compra]', compra));
   });
   const barra = $('[data-barra-compra]'); const boton = $('[data-boton-compra]');
   if (barra && boton && 'IntersectionObserver' in window) {
@@ -233,8 +239,15 @@ const orden = $('[data-orden]'); const rejilla = $('[data-rejilla]');
 if (orden && rejilla) {
   orden.addEventListener('change', () => {
     const v = orden.value; const items = $$('.tarjeta', rejilla);
+    // FLIP: cada tarjeta se desliza desde su lugar anterior al nuevo, así se entiende el cambio de orden.
+    const antes = new Map(items.map((el) => [el, el.getBoundingClientRect()]));
     items.sort((a, b) => (v === 'precio-asc' ? a.dataset.precio - b.dataset.precio : v === 'precio-desc' ? b.dataset.precio - a.dataset.precio : a.dataset.ordenBase - b.dataset.ordenBase));
     items.forEach((el, i) => { el.style.setProperty('--i', i); rejilla.appendChild(el); });
+    if (reducido.matches || !document.body.animate) return;
+    items.forEach((el) => {
+      const a = antes.get(el); const b = el.getBoundingClientRect(); const dx = a.left - b.left; const dy = a.top - b.top;
+      if (dx || dy) el.animate([{ translate: `${dx}px ${dy}px` }, { translate: '0 0' }], { duration: 420, easing: 'cubic-bezier(0.77, 0, 0.175, 1)' });
+    });
   });
 }
 
@@ -291,7 +304,7 @@ const porPorcion = (p) => (p.porciones ? Math.round(p.precio / p.porciones / 100
 function tarjetaJS(p, i) {
   const s = p.sabores[0]; const pp = porPorcion(p);
   const nombre = p.url ? `<a href="${p.url}">${esc(p.nombre)}</a>` : esc(p.nombre);
-  return `<article class="tarjeta" style="--i:${i}" data-tarjeta="${p.slug}" data-precio="${p.precio}" data-orden-base="${i}">
+  return `<article class="tarjeta entra-js" style="--i:${i}" data-tarjeta="${p.slug}" data-precio="${p.precio}" data-orden-base="${i}">
   <div class="tarjeta-img"><img src="${esc(foto(p.slug, s.slug, 600))}" width="600" height="600" alt=""${i < 6 ? '' : ' loading="lazy"'} decoding="async"><p class="sello" data-stock-de="${p.slug}" hidden></p></div>
   <div class="tarjeta-info"><p class="tarjeta-cat">${esc(p.categoriaNombre || '')}</p><h3>${nombre}</h3><p class="tarjeta-resumen">${esc(p.resumen || '')}</p>
   <div class="tarjeta-pie"><p class="precio"><span data-precio-de="${p.slug}">${cop(p.precio)}</span><small>${pp ? `${cop(pp)} por porción` : esc(p.presentacion || '')}</small></p>
