@@ -1,6 +1,6 @@
 # Halo Nutrition
 
-Tienda de suplementos deportivos (demostración) que vende productos de marcas como Optimum Nutrition, Dragon Pharma y Nutramerican. La foto real del producto estrella "vive" en la portada (flota, se balancea, se inclina hacia el cursor y salta al tocarla). Incluye buscador, combos con descuento, cuentas de cliente (correo, Google y Facebook), panel de administración y pago con Mercado Pago Checkout Pro. Los precios son de ejemplo; los datos de cada producto salen solo de lo que dice su etiqueta.
+Tienda de suplementos deportivos (demostración) que vende productos de marcas como Optimum Nutrition, Dragon Pharma y Nutramerican. El producto estrella gira en 3D en la portada y en cada ficha usando su foto real (flota, gira, sigue el cursor, se arrastra con el dedo y salta al tocarlo), siempre activo y sin pedir permiso. Incluye buscador, combos con descuento, cuentas de cliente (correo, Google y Facebook), panel de administración y pago con Mercado Pago Checkout Pro. Los precios son de ejemplo; los datos de cada producto salen solo de lo que dice su etiqueta.
 
 ## Estructura
 
@@ -14,6 +14,7 @@ src/assets/js/precios.js     Combos, cupón y envío: el mismo cálculo en el ca
 src/assets/js/checkout.js    /finalizar-compra/: contacto, envío (departamentos de Colombia), cupón, pago y recibo.
 src/assets/js/cuenta.js     /cuenta/: entrar, crear cuenta, Google, Facebook, recuperar clave, mis pedidos.
 src/assets/js/admin.js      /admin/: resumen de ventas, productos (foto, precio, stock, visible, eliminar), pedidos.
+src/assets/js/vivo3d.js     3D con la foto real: WebGL que gira la etiqueta sobre la silueta del envase.
 src/assets/js/movimiento.js Animaciones: entradas al hacer scroll (más rápidas en celular), foto viva, contadores.
 scripts/build.mjs           Genera public/: páginas, sitemap.xml con imágenes, robots.txt, JSON-LD.
 scripts/semilla-sql.mjs     Genera supabase/semilla.sql con los productos del catálogo.

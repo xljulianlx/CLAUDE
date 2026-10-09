@@ -68,12 +68,12 @@ function vivo() {
   document.querySelectorAll('[data-vivo]').forEach((fig) => {
     const img = fig.querySelector('img'); if (!img) return;
     fig.addEventListener('click', (e) => {
-      if (e.target.closest('a, button, input, label') || !img.animate) return;
+      if (fig.classList.contains('con-3d') || e.target.closest('a, button, input, label') || !img.animate) return;
       img.animate([{ scale: '1' }, { scale: '1.07 0.9', offset: 0.16 }, { scale: '0.95 1.07', offset: 0.42 }, { scale: '1.02 0.98', offset: 0.7 }, { scale: '1' }], { duration: 620, easing: 'ease-out' });
     });
     if (!conMouse.matches) return;
     let raf = 0; let ev = null;
-    fig.addEventListener('pointermove', (e) => { ev = e; if (!raf) raf = requestAnimationFrame(() => { raf = 0; const r = fig.getBoundingClientRect(); fig.style.setProperty('--ry', `${(((ev.clientX - r.left) / r.width - 0.5) * 12).toFixed(2)}deg`); fig.style.setProperty('--rx', `${(-((ev.clientY - r.top) / r.height - 0.5) * 10).toFixed(2)}deg`); }); });
+    fig.addEventListener('pointermove', (e) => { if (fig.classList.contains('con-3d')) return; ev = e; if (!raf) raf = requestAnimationFrame(() => { raf = 0; const r = fig.getBoundingClientRect(); fig.style.setProperty('--ry', `${(((ev.clientX - r.left) / r.width - 0.5) * 12).toFixed(2)}deg`); fig.style.setProperty('--rx', `${(-((ev.clientY - r.top) / r.height - 0.5) * 10).toFixed(2)}deg`); }); });
     fig.addEventListener('pointerleave', () => { fig.style.setProperty('--rx', '0deg'); fig.style.setProperty('--ry', '0deg'); });
   });
 }

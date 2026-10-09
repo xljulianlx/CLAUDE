@@ -532,4 +532,7 @@ if (haySesionGuardada()) {
 pintarContador();
 addEventListener('storage', (e) => { if (e.key === CLAVE) refrescar(); });
 import('./movimiento.js').then((m) => m.iniciarMovimiento()).catch(() => {});
+// Envase en 3D con la foto real: siempre activo, sin preguntar. Se carga apenas se pinta la página.
+if ($('[data-vivo]') && window.WebGLRenderingContext) requestAnimationFrame(() => setTimeout(() => import('./vivo3d.js').then((m) => m.iniciar()).catch(() => {}), 0));
+
 export { leer, guardar, validos, resumen, aplicarCupon, cuponActual, P, foto, cop, esc, avisar, refrescar, pintarContador };

@@ -417,7 +417,7 @@ paginas.push({
       <h1 id="hero-t" class="h1 titular"><span class="sr">Halo Nutrition, suplementos deportivos: </span><span class="pal" style="--w:0">Entrena,</span> <span class="pal" style="--w:1">recupera,</span> <span class="pal hueca" style="--w:2">repite.</span></h1>
       <p class="hero-sub">Proteína, creatina, pre-entreno, BCAA y barras de Optimum Nutrition, Dragon Pharma y Nutramerican, con envío a toda Colombia.</p>
     </div>
-    <figure class="hero-media" data-vivo>
+    <figure class="hero-media" data-vivo data-forma="${w.forma}">
       ${imgProducto(c, w, w.sabores[0], { tam: '1000', sizes: '(min-width: 1024px) 46vw, 80vw', alt: `Envase de ${w.nombre}${deMarca(w)}, sabor ${w.sabores[0].nombre}`, lazy: false })}
       <span class="hero-sombra" aria-hidden="true"></span>
     </figure>
@@ -628,7 +628,7 @@ productos.forEach((p) => {
     jsonld: [productoLD],
     cuerpo: (c) => `
 <article class="wrap ficha" data-producto="${p.slug}">
-  <figure class="ficha-galeria" style="--c1:${s0.c1}" data-vivo>
+  <figure class="ficha-galeria" style="--c1:${s0.c1}" data-vivo data-forma="${p.forma}">
     ${imgProducto(c, p, s0, { tam: '1000', sizes: '(min-width: 1024px) 50vw, 92vw', alt: `${p.nombre}${deMarca(p)}, ${p.categoria === 'accesorios' ? 'color' : 'sabor'} ${s0.nombre}, ${p.presentacion}`, lazy: false, extra: ' data-ficha-img' })}
   </figure>
   <div class="ficha-info">

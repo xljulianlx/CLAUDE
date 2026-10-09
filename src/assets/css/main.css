@@ -1027,9 +1027,17 @@ body { background: var(--bg) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3
 /* Foto "viva" (portada y ficha): la foto real del envase flota y se balancea con CSS, sin cálculo por cuadro.
    Con mouse se inclina hacia el cursor y al tocarla da un salto (movimiento.js). */
 [data-vivo] { --rx: 0deg; --ry: 0deg; transform: perspective(900px) rotateX(var(--rx)) rotateY(var(--ry)); transition: transform 0.5s var(--ease-out); cursor: pointer; -webkit-tap-highlight-color: transparent; }
+/* El envase se mueve siempre (lo pidió la tienda): es un balanceo lento y corto, sin destellos. */
+[data-vivo] > img { animation: vivo 5.4s ease-in-out infinite; transform-origin: 50% 85%; }
+@keyframes vivo { 0%, 100% { translate: 0 0; rotate: -1.5deg; } 50% { translate: 0 -2.2%; rotate: 1.5deg; } }
+/* 3D con la foto real (vivo3d.js): el lienzo reemplaza la foto cuando ya dibujó su primer cuadro, idéntico a la foto. */
+[data-vivo] { touch-action: pan-y; }
+.vivo3d { position: absolute; z-index: 1; pointer-events: none; opacity: 0; transition: opacity 0.25s ease; }
+.con-3d .vivo3d { opacity: 1; }
+.con-3d > img { opacity: 0; animation: none; transition: opacity 0.25s ease; }
+.con-3d[data-vivo] { transform: none; }
+@media (hover: hover) and (pointer: fine) { .con-3d .vivo3d { filter: drop-shadow(0 14px 18px rgba(20, 16, 12, 0.16)); } }
 @media (prefers-reduced-motion: no-preference) {
-  [data-vivo] > img { animation: vivo 5.4s ease-in-out infinite; transform-origin: 50% 85%; }
-  @keyframes vivo { 0%, 100% { translate: 0 0; rotate: -1.5deg; } 50% { translate: 0 -2.2%; rotate: 1.5deg; } }
   /* Celular: las entradas empiezan antes y duran menos, para que nada se quede esperando al deslizar. */
   .js-mov.mov-rapido .rv { translate: 0 10px; transition-duration: 300ms, 340ms; }
   .mov-rapido .hero-copy > *, .mov-rapido .hero-acciones { animation-duration: 420ms; }
@@ -1612,3 +1620,6 @@ details[open] > summary .chip-ico { background: linear-gradient(140deg, color-mi
 /* Fotos reales sobre fondo transparente: una sombra suave para que el envase se apoye. */
 .tarjeta-img img, .ficha-galeria > img, .hero-media > img, .combo-fotos img, .paso-img { filter: drop-shadow(0 14px 18px rgba(20, 16, 12, 0.16)); }
 @media (pointer: coarse) { .tarjeta-img img, .combo-fotos img, .paso-img { filter: none; } }
+/* El lienzo 3D tiene margen para el salto: que nunca genere scroll lateral. */
+.ficha-galeria, .hero-media { contain: layout; }
+main { overflow-x: clip; }
