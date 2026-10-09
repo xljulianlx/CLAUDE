@@ -1,6 +1,7 @@
 // Lógica de la tienda: carrito (localStorage), cajón accesible, buscador, fichas de producto, datos en vivo
 // (precio, stock y visibilidad desde el panel) y pago con Mercado Pago.
-import { datos, modoDemo, productosPublico, haySesionGuardada, sesion, pagoSimulado } from './datos.js';
+import { datos, modoDemo, productosPublico, haySesionGuardada, sesion } from './datos.js';
+import { calcularPedido, comboCercano } from './precios.js';
 
 const P = Object.fromEntries(datos.productos.map((p) => [p.slug, p]));
 
@@ -26,8 +27,24 @@ const leer = () => {
 const validos = (c) => c.filter((i) => P[i.p]);
 const guardar = (c) => { memoria = c; try { localStorage.setItem(CLAVE, JSON.stringify(c)); } catch { /* sin almacenamiento: queda en memoria */ } };
 const cuenta = (c) => validos(c).reduce((n, i) => n + i.q, 0);
-const subtotal = (c) => validos(c).reduce((n, i) => n + i.q * P[i.p].precio, 0);
-const envio = (s) => (s === 0 || s >= datos.gratisDesde ? 0 : datos.envio);
+/* ---------- precios: combos y cupón (mismas reglas que el servidor) ---------- */
+const lineasDe = (c) => validos(c).map((i) => ({ slug: i.p, sabor: i.s, cantidad: i.q, precio: P[i.p].precio }));
+function cuponActual() { try { return JSON.parse(sessionStorage.getItem('halo-cupon') || 'null'); } catch { return null; } }
+function resumen(c = leer()) {
+  const cu = cuponActual();
+  return calcularPedido(lineasDe(c), { combos: datos.combos || [], cupones: cu ? { [cu.codigo]: { pct: cu.pct, texto: cu.texto } } : {}, envio: datos.envio, gratisDesde: datos.gratisDesde }, cu?.codigo);
+}
+// El cupón se compara por su huella SHA-256: el código real no está escrito en la página.
+async function aplicarCupon(codigo) {
+  const clave = String(codigo || '').trim().toUpperCase();
+  if (!clave) { try { sessionStorage.removeItem('halo-cupon'); } catch { /* nada */ } return { ok: true, quitado: true }; }
+  const h = [...new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(clave)))].map((b) => b.toString(16).padStart(2, '0')).join('');
+  const def = (datos.cuponesHash || {})[h];
+  if (!def) return { ok: false, error: 'Ese cupón no existe o ya no está vigente.' };
+  try { sessionStorage.setItem('halo-cupon', JSON.stringify({ codigo: clave, ...def })); } catch { /* nada */ }
+  return { ok: true, cupon: { codigo: clave, ...def } };
+}
+const filasDescuento = (r) => `${r.combos.map((k) => `<div class="fila-total ahorro"><span><svg class="ico" aria-hidden="true"><use href="#i-chispa"/></svg>${k.nombre}${k.veces > 1 ? ` ×${k.veces}` : ''} (−${k.pct} %)</span><span>−${cop(k.ahorro)}</span></div>`).join('')}${r.cupon ? `<div class="fila-total ahorro"><span><svg class="ico" aria-hidden="true"><use href="#i-tarjeta"/></svg>Cupón ${r.cupon.codigo}</span><span>−${cop(r.descuentoCupon)}</span></div>` : ''}`;
 
 /* ---------- avisos y contador ---------- */
 let avisoT;
@@ -65,7 +82,7 @@ function contar(el, desde, hasta) {
 
 function pintarCajon({ todasEntran = false } = {}) {
   const caj = $('#cajon'); if (!caj) return;
-  const c = validos(leer()); const s = subtotal(c); const e = envio(s);
+  const c = validos(leer()); const r = resumen(c); const s = r.productos; const e = r.envio;
   let n = 0;
   const lineas = c.map((i) => { const clave = `${i.p}|${i.s}`; const entra = todasEntran || !vistas.has(clave); return lineaHTML(i, entra ? n++ : 0, entra); }).join('');
   vistas = new Set(c.map((i) => `${i.p}|${i.s}`));
@@ -74,14 +91,18 @@ function pintarCajon({ todasEntran = false } = {}) {
   $('[data-envio]', caj).innerHTML = c.length ? `${falta > 0 ? `Te faltan <strong>${cop(falta)}</strong> para envío gratis` : '<strong>Tu envío es gratis</strong>'}<div class="envio-linea" aria-hidden="true"><i style="--p:${Math.min(1, s / datos.gratisDesde).toFixed(3)}"></i></div>` : '';
   // Sugerencia para alcanzar el envío gratis: el producto más barato que no está en el carrito y cubre lo que falta.
   let sugerencia = '';
-  if (c.length && falta > 0) {
+  // Primero: si falta un solo producto para un combo, se sugiere ese (descuento real).
+  const cerca = c.length ? comboCercano(lineasDe(c), datos.combos || []) : null;
+  const pf = cerca && P[cerca.faltan[0]];
+  if (pf && !pf.oculto && pf.stock !== 0) sugerencia = `<div class="sugerencia combo-sug"><img src="${foto(pf.slug, pf.sabores[0].slug)}" width="160" height="160" alt="" loading="lazy" decoding="async"><p><span>Activa el ${cerca.c.nombre} (−${cerca.c.descuento} %)</span><strong>${pf.nombre}</strong> ${cop(pf.precio)}</p><button class="btn btn-sec btn-sm" type="button" data-agregar="${pf.slug}" data-sabor="${pf.sabores[0].slug}" aria-label="Agregar ${pf.nombre} al carrito">Agregar</button></div>`;
+  else if (c.length && falta > 0) {
     const fuera = Object.values(P).filter((x) => !x.oculto && x.stock !== 0 && !c.some((i) => i.p === x.slug)).sort((a, b) => a.precio - b.precio);
     const s2 = fuera.find((x) => x.precio >= falta) || fuera[fuera.length - 1];
     if (s2) sugerencia = `<div class="sugerencia"><img src="${foto(s2.slug, s2.sabores[0].slug)}" width="160" height="160" alt="" loading="lazy" decoding="async"><p><span>Con esto tu envío es gratis</span><strong>${s2.nombre}</strong> ${cop(s2.precio)}</p><button class="btn btn-sec btn-sm" type="button" data-agregar="${s2.slug}" data-sabor="${s2.sabores[0].slug}" aria-label="Agregar ${s2.nombre} al carrito">Agregar</button></div>`;
   }
   $('[data-lista]', caj).innerHTML = (lineas + sugerencia) || `<div class="vacio"><p>Tu carrito está vacío.</p><a class="btn btn-sec" href="${datos.tienda}">Ver la tienda</a></div>`;
-  $('[data-pie-cajon]', caj).innerHTML = c.length ? `<div class="fila-total"><span>Subtotal</span><span data-sub>${cop(subAnterior)}</span></div><div class="fila-total"><span>Envío</span><span>${e ? cop(e) : 'Gratis'}</span></div><a class="btn btn-pri btn-grande" href="${datos.carrito}">Ir a pagar</a><button class="btn btn-sec" type="button" data-cerrar-carrito>Seguir comprando</button>` : '';
-  contar($('[data-sub]', caj), subAnterior, s); subAnterior = s;
+  $('[data-pie-cajon]', caj).innerHTML = c.length ? `${r.descuentoCombos || r.descuentoCupon ? `<div class="fila-total"><span>Subtotal</span><span>${cop(r.subtotal)}</span></div>${filasDescuento(r)}` : ''}<div class="fila-total"><span>Envío</span><span>${e ? cop(e) : 'Gratis'}</span></div><div class="fila-total total"><span>Total</span><span data-sub>${cop(subAnterior)}</span></div><a class="btn btn-pri btn-grande" href="${datos.checkout}"><svg class="ico" aria-hidden="true"><use href="#i-candado"/></svg> Finalizar compra</a><button class="btn btn-sec" type="button" data-cerrar-carrito>Seguir comprando</button>` : '';
+  contar($('[data-sub]', caj), subAnterior, r.total); subAnterior = r.total;
 }
 
 /* ---------- cajón accesible ---------- */
@@ -275,18 +296,31 @@ document.addEventListener('click', (ev) => {
 });
 
 /* ---------- calculadora de proteína ---------- */
+// 1,4 a 2 g por kilo según objetivo; quien entrena 5 días o más suma 0,1 y quien entrena 1-2 días resta 0,1 (siempre dentro del rango).
 const calc = $('[data-calc]');
 if (calc) {
-  const kg = $('#calc-kg', calc); const porcion = 25;
+  const kg = $('#calc-kg', calc); const porcion = 25; const arco = $('[data-calc-arco]', calc); const out = $('[data-calc-g]', calc);
+  let actual = +out.textContent || 126; let anim = 0;
+  const contarA = (hasta) => {
+    cancelAnimationFrame(anim); const desde = actual; actual = hasta;
+    if (reducido.matches) { out.textContent = hasta; return; }
+    const t0 = performance.now(); const paso = (t) => { const u = Math.min(1, (t - t0) / 420); out.textContent = Math.round(desde + (hasta - desde) * (1 - (1 - u) ** 3)); if (u < 1) anim = requestAnimationFrame(paso); };
+    anim = requestAnimationFrame(paso);
+  };
   const pintar = () => {
-    const f = +($('input[name="calc-obj"]:checked', calc)?.value || 1.8); const g = Math.round(kg.value * f);
-    const porciones = Math.min(3, Math.max(1, Math.round((g * 0.25) / porcion)));
+    const base = +($('input[name="calc-obj"]:checked', calc)?.value || 1.8); const dias = +($('input[name="calc-dias"]:checked', calc)?.value || 4);
+    const f = Math.min(2, Math.max(1.4, base + (dias >= 5 ? 0.1 : dias <= 2 ? -0.1 : 0)));
+    const g = Math.round(kg.value * f);
+    const batidos = Math.min(3, Math.max(1, Math.round((g * 0.25) / porcion))); const comida = g - batidos * porcion;
+    const partes = [['Desayuno', Math.round(comida * 0.25), '#f2b443', 'chispa'], ['Almuerzo', Math.round(comida * 0.4), '#e2662c', 'hoja'], ['Cena', comida - Math.round(comida * 0.25) - Math.round(comida * 0.4), '#7349c2', 'reloj'], [`${batidos} ${batidos === 1 ? 'batido' : 'batidos'} Halo`, batidos * porcion, '#2f6fd6', 'gota']];
     $('[data-calc-kg]', calc).textContent = `${kg.value} kg`;
-    const out = $('[data-calc-g]', calc); const desde = +out.textContent || g;
-    if (reducido.matches) out.textContent = g;
-    else { const t0 = performance.now(); const paso = (t) => { const u = Math.min(1, (t - t0) / 300); out.textContent = Math.round(desde + (g - desde) * (1 - (1 - u) ** 3)); if (u < 1) requestAnimationFrame(paso); }; requestAnimationFrame(paso); }
-    $('[data-calc-txt]', calc).textContent = `Con ${porciones} ${porciones === 1 ? 'porción' : 'porciones'} de Whey Isolate al día cubres ${porciones * porcion} g; el resto, con tus comidas. Un tarro te dura ${Math.floor(30 / porciones)} días.`;
     kg.style.setProperty('--p', `${((kg.value - kg.min) / (kg.max - kg.min)) * 100}%`);
+    contarA(g);
+    arco.style.strokeDasharray = `${Math.min(100, (g / 300) * 100).toFixed(1)} 100`;
+    $('[data-calc-reparto]', calc).innerHTML = `<div class="rep-barra">${partes.map(([t, v, col]) => `<span style="flex:${v};background:${col}" title="${t}: ${v} g"></span>`).join('')}</div><ul class="rep-ley">${partes.map(([t, v, col, n]) => `<li><i style="background:${col}"><svg class="ico" aria-hidden="true"><use href="#i-${n}"/></svg></i><span>${t}</span><strong>${v} g</strong></li>`).join('')}</ul>`;
+    const dura = Math.floor(30 / batidos);
+    $('[data-calc-tarro]', calc).innerHTML = `<span class="tarro-ico" style="--p:${Math.min(1, dura / 30)}" aria-hidden="true"></span><span>Un tarro de Whey Isolate te dura <strong>${dura} días</strong> con ${batidos} ${batidos === 1 ? 'batido' : 'batidos'} al día.</span>`;
+    calc.classList.remove('pulso'); void calc.offsetWidth; calc.classList.add('pulso');
   };
   calc.addEventListener('input', pintar); pintar();
 }
@@ -311,38 +345,15 @@ if (orden && rejilla) {
 /* ---------- página del carrito y pago ---------- */
 function pintarPaginaCarrito() {
   const cont = $('[data-carrito-items]'); const cifras = $('[data-resumen-cifras]'); const pagar = $('[data-pagar]');
-  const c = validos(leer()); const s = subtotal(c); const e = envio(s);
+  const c = validos(leer()); const r = resumen(c);
   cont.innerHTML = c.length ? c.map((i, idx) => lineaHTML(i, idx, false)).join('') : `<div class="vacio"><p>Tu carrito está vacío.</p><a class="btn btn-pri" href="${datos.tienda}">Ver la tienda</a></div>`;
-  cifras.innerHTML = `<div class="fila-total"><span>Subtotal</span><span>${cop(s)}</span></div><div class="fila-total"><span>Envío</span><span>${c.length ? (e ? cop(e) : 'Gratis') : cop(0)}</span></div>${c.length && s < datos.gratisDesde ? `<p class="nota">Agrega ${cop(datos.gratisDesde - s)} más y el envío es gratis.</p>` : ''}<div class="fila-total total"><span>Total</span><span>${cop(s + e)}</span></div>`;
-  pagar.disabled = !c.length;
+  cifras.innerHTML = `<div class="fila-total"><span>Subtotal</span><span>${cop(r.subtotal)}</span></div>${filasDescuento(r)}<div class="fila-total"><span>Envío</span><span>${c.length ? (r.envio ? cop(r.envio) : 'Gratis') : cop(0)}</span></div>${c.length && r.productos < datos.gratisDesde ? `<p class="nota">Agrega ${cop(datos.gratisDesde - r.productos)} más y el envío es gratis.</p>` : ''}<div class="fila-total total"><span>Total</span><span>${cop(r.total)}</span></div>`;
+  pagar.classList.toggle('desactivado', !c.length); pagar.setAttribute('aria-disabled', String(!c.length));
 }
 const botonPagar = $('[data-pagar]');
 if (botonPagar) {
   pintarPaginaCarrito();
-  // Sin Supabase (modo demostración) el pago se simula: el pedido aparece en el panel y se descuenta el stock.
-  if (modoDemo) { botonPagar.textContent = 'Simular pago (demostración)'; const nota = $('[data-pago-nota]'); if (nota) nota.textContent = 'Modo demostración: no se cobra nada. El pedido queda registrado en este navegador y lo ves en tu cuenta y en el panel.'; }
-  botonPagar.addEventListener('click', async () => {
-    const err = $('[data-pago-error]'); err.textContent = '';
-    const c = validos(leer()); if (!c.length) return;
-    if (modoDemo) {
-      botonPagar.disabled = true;
-      try { const s = await sesion(); await pagoSimulado(c, s?.email); location.href = datos.exito; } catch (e) { err.textContent = `No se pudo simular el pago: ${e.message}`; botonPagar.disabled = false; }
-      return;
-    }
-    botonPagar.disabled = true; const txt = botonPagar.textContent; botonPagar.textContent = 'Conectando con Mercado Pago…';
-    try {
-      const s = await sesion().catch(() => null);
-      const r = await fetch(`${datos.raiz}api/crear-preferencia`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ email: s?.email || '', items: c.map((i) => ({ slug: i.p, sabor: i.s, cantidad: i.q })) }) });
-      const j = await r.json().catch(() => ({}));
-      if (!r.ok || !j.init_point) throw new Error(j.error || 'sin-api');
-      location.href = j.init_point;
-    } catch (e) {
-      err.textContent = e.message === 'sin-api' || e instanceof TypeError
-        ? 'El pago se activa cuando el sitio está publicado con las credenciales de Mercado Pago. En esta vista previa no se puede pagar.'
-        : `No pudimos iniciar el pago: ${e.message}. Inténtalo de nuevo.`;
-      botonPagar.disabled = false; botonPagar.textContent = txt;
-    }
-  });
+  botonPagar.addEventListener('click', (e) => { if (!validos(leer()).length) e.preventDefault(); });
 }
 if ($('[data-vaciar-carrito]')) guardar([]);
 
@@ -551,3 +562,5 @@ if (document.body.dataset.frasco) {
   else if ((reducido.matches || ahorro) && !quiere3D()) avisar3D(reducido.matches ? 'El frasco 3D está en pausa porque tu sistema pide reducir el movimiento.' : 'El frasco 3D está en pausa porque tienes activado el ahorro de datos.', true);
   else if (conGL) iniciar3D();
 }
+
+export { leer, guardar, validos, resumen, aplicarCupon, cuponActual, P, foto, cop, esc, avisar, refrescar, pintarContador };

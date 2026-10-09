@@ -71,33 +71,39 @@ const estrellas = (n) => '★★★★★'.slice(0, Math.round(n)) + '☆☆☆�
 const fechaLarga = (f) => new Date(f + 'T12:00:00').toLocaleDateString('es-CO', { day: 'numeric', month: 'long', year: 'numeric' });
 
 /* ---------- íconos (un solo sprite SVG por página, trazo de 2 px) ---------- */
+// Íconos duotono: una capa de relleno suave (fill) y el trazo encima (line), estilo de los sets modernos.
 const ICONOS = {
-  camion: '<path d="M2 6h12v10H2zM14 10h4l4 3v3h-8z"/><circle cx="6" cy="18" r="2"/><circle cx="17" cy="18" r="2"/>',
-  escudo: '<path d="M12 2 4 5v6c0 5 3.4 9.3 8 11 4.6-1.7 8-6 8-11V5z"/><path d="m8.5 12 2.5 2.5 4.5-5"/>',
-  candado: '<rect x="4" y="10" width="16" height="11" rx="2.5"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/><path d="M12 14.5v2.5"/>',
-  matraz: '<path d="M9 2h6M10 2v7L4 20a1 1 0 0 0 1 2h14a1 1 0 0 0 1-2l-6-11V2"/><path d="M7 15h10"/>',
-  rayo: '<path d="M13 2 4 14h7l-1 8 9-12h-7z"/>',
-  balanza: '<path d="M12 3v18M6 21h12M5 7h14"/><path d="m5 7-3 7a3.5 3.5 0 0 0 6 0zM19 7l-3 7a3.5 3.5 0 0 0 6 0z"/>',
-  hoja: '<path d="M5 19c0-9 5-14 15-14 0 10-5 15-14 15"/><path d="M5 19 13 11"/>',
-  reloj: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
-  caja: '<path d="m3 7 9-4 9 4v10l-9 4-9-4z"/><path d="m3 7 9 4 9-4M12 11v10"/>',
-  vuelta: '<path d="M3 12a9 9 0 0 1 15.5-6.3L21 8M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-15.5 6.3L3 16M3 21v-5h5"/>',
-  sobre: '<rect x="3" y="5" width="18" height="14" rx="2.5"/><path d="m4 7 8 6 8-6"/>',
-  chat: '<path d="M4 5h16v11H9l-5 4z"/><path d="M8 9.5h8M8 12.5h5"/>',
-  check: '<path d="m5 12.5 4.5 4.5L19 7.5"/>',
-  info: '<circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.5"/>',
-  pregunta: '<circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.7.3-1 1-1 1.7v.5M12 17v.5"/>',
-  cuchara: '<ellipse cx="8" cy="8" rx="5" ry="4" transform="rotate(-35 8 8)"/><path d="m11.5 11 9 9"/>',
-  tabla: '<rect x="3" y="4" width="18" height="16" rx="2.5"/><path d="M3 10h18M9 10v10"/>',
-  tarjeta: '<rect x="2.5" y="5" width="19" height="14" rx="2.5"/><path d="M2.5 10h19M6 15h4"/>',
-  mapa: '<path d="M12 21s7-6.2 7-12a7 7 0 0 0-14 0c0 5.8 7 12 7 12z"/><circle cx="12" cy="9" r="2.5"/>',
-  corazon: '<path d="M12 20s-8-4.8-8-10.5A4.5 4.5 0 0 1 12 7a4.5 4.5 0 0 1 8 2.5C20 15.2 12 20 12 20z"/>',
-  chispa: '<path d="M12 3v4M12 17v4M3 12h4M17 12h4M5.6 5.6l2.8 2.8M15.6 15.6l2.8 2.8M5.6 18.4l2.8-2.8M15.6 8.4l2.8-2.8"/>',
-  pesa: '<path d="M6 7v10M3 9v6M18 7v10M21 9v6M6 12h12"/>',
-  gota: '<path d="M12 3s6 6.6 6 11a6 6 0 0 1-12 0c0-4.4 6-11 6-11z"/>',
-  cero: '<circle cx="12" cy="12" r="8"/><path d="M6.5 17.5 17.5 6.5"/>',
+  camion: ['<path d="M2 6h12v10H2z"/><path d="M14 10h4l4 3v3h-8z"/>', '<path d="M2 6h12v10H2zM14 10h4l4 3v3h-8z"/><circle cx="6" cy="18" r="2"/><circle cx="17" cy="18" r="2"/>'],
+  escudo: ['<path d="M12 2 4 5v6c0 5 3.4 9.3 8 11 4.6-1.7 8-6 8-11V5z"/>', '<path d="M12 2 4 5v6c0 5 3.4 9.3 8 11 4.6-1.7 8-6 8-11V5z"/><path d="m8.5 12 2.5 2.5 4.5-5"/>'],
+  candado: ['<rect x="4" y="10" width="16" height="11" rx="2.5"/>', '<rect x="4" y="10" width="16" height="11" rx="2.5"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/><circle cx="12" cy="15.5" r="1.2"/>'],
+  matraz: ['<path d="M8 15h8l4 5a1 1 0 0 1-1 2H5a1 1 0 0 1-1-2z"/>', '<path d="M9 2h6M10 2v7L4 20a1 1 0 0 0 1 2h14a1 1 0 0 0 1-2l-6-11V2"/><path d="M7 15h10"/>'],
+  rayo: ['<path d="M13 2 4 14h7l-1 8 9-12h-7z"/>', '<path d="M13 2 4 14h7l-1 8 9-12h-7z"/>'],
+  balanza: ['<path d="m5 7-3 7a3.5 3.5 0 0 0 6 0zM19 7l-3 7a3.5 3.5 0 0 0 6 0z"/>', '<path d="M12 3v18M6 21h12M5 7h14"/><path d="m5 7-3 7a3.5 3.5 0 0 0 6 0zM19 7l-3 7a3.5 3.5 0 0 0 6 0z"/>'],
+  hoja: ['<path d="M5 19c0-9 5-14 15-14 0 10-5 15-14 15z"/>', '<path d="M5 19c0-9 5-14 15-14 0 10-5 15-14 15"/><path d="M5 19 13 11"/>'],
+  reloj: ['<circle cx="12" cy="12" r="9"/>', '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>'],
+  caja: ['<path d="m3 7 9 4 9-4v10l-9 4-9-4z"/>', '<path d="m3 7 9-4 9 4v10l-9 4-9-4z"/><path d="m3 7 9 4 9-4M12 11v10"/>'],
+  vuelta: ['<circle cx="12" cy="12" r="7"/>', '<path d="M3 12a9 9 0 0 1 15.5-6.3L21 8M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-15.5 6.3L3 16M3 21v-5h5"/>'],
+  sobre: ['<rect x="3" y="5" width="18" height="14" rx="2.5"/>', '<rect x="3" y="5" width="18" height="14" rx="2.5"/><path d="m4 7 8 6 8-6"/>'],
+  chat: ['<path d="M4 5h16v11H9l-5 4z"/>', '<path d="M4 5h16v11H9l-5 4z"/><path d="M8 9.5h8M8 12.5h5"/>'],
+  check: ['<circle cx="12" cy="12" r="9"/>', '<path d="m7 12.5 3.5 3.5L17 9"/>'],
+  info: ['<circle cx="12" cy="12" r="9"/>', '<circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.5"/>'],
+  pregunta: ['<circle cx="12" cy="12" r="9"/>', '<circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.7.3-1 1-1 1.7v.5M12 17v.5"/>'],
+  cuchara: ['<ellipse cx="8" cy="8" rx="5" ry="4" transform="rotate(-35 8 8)"/>', '<ellipse cx="8" cy="8" rx="5" ry="4" transform="rotate(-35 8 8)"/><path d="m11.5 11 9 9"/>'],
+  tabla: ['<rect x="3" y="4" width="18" height="6" rx="2"/>', '<rect x="3" y="4" width="18" height="16" rx="2.5"/><path d="M3 10h18M9 10v10"/>'],
+  tarjeta: ['<rect x="2.5" y="5" width="19" height="14" rx="2.5"/>', '<rect x="2.5" y="5" width="19" height="14" rx="2.5"/><path d="M2.5 10h19M6 15h4"/>'],
+  mapa: ['<path d="M12 21s7-6.2 7-12a7 7 0 0 0-14 0c0 5.8 7 12 7 12z"/>', '<path d="M12 21s7-6.2 7-12a7 7 0 0 0-14 0c0 5.8 7 12 7 12z"/><circle cx="12" cy="9" r="2.5"/>'],
+  corazon: ['<path d="M12 20s-8-4.8-8-10.5A4.5 4.5 0 0 1 12 7a4.5 4.5 0 0 1 8 2.5C20 15.2 12 20 12 20z"/>', '<path d="M12 20s-8-4.8-8-10.5A4.5 4.5 0 0 1 12 7a4.5 4.5 0 0 1 8 2.5C20 15.2 12 20 12 20z"/>'],
+  chispa: ['<path d="M12 3c.6 4.5 2.5 6.4 7 7-4.5.6-6.4 2.5-7 7-.6-4.5-2.5-6.4-7-7 4.5-.6 6.4-2.5 7-7z"/>', '<path d="M12 3c.6 4.5 2.5 6.4 7 7-4.5.6-6.4 2.5-7 7-.6-4.5-2.5-6.4-7-7 4.5-.6 6.4-2.5 7-7z"/><path d="M19 16v4M17 18h4"/>'],
+  pesa: ['<rect x="4" y="7" width="4" height="10" rx="1.5"/><rect x="16" y="7" width="4" height="10" rx="1.5"/>', '<rect x="4" y="7" width="4" height="10" rx="1.5"/><rect x="16" y="7" width="4" height="10" rx="1.5"/><path d="M8 12h8M2 10v4M22 10v4"/>'],
+  gota: ['<path d="M12 3s6 6.6 6 11a6 6 0 0 1-12 0c0-4.4 6-11 6-11z"/>', '<path d="M12 3s6 6.6 6 11a6 6 0 0 1-12 0c0-4.4 6-11 6-11z"/><path d="M9 14.5a3 3 0 0 0 3 3"/>'],
+  cero: ['<circle cx="12" cy="12" r="8"/>', '<circle cx="12" cy="12" r="8"/><path d="M6.5 17.5 17.5 6.5"/>'],
+  casa: ['<path d="M4 10.5 12 4l8 6.5V20H4z"/>', '<path d="M3 11 12 3.5 21 11"/><path d="M5 9.5V20h5v-5.5h4V20h5V9.5"/>'],
+  tienda: ['<rect x="4" y="4" width="6.5" height="6.5" rx="2"/><rect x="13.5" y="13.5" width="6.5" height="6.5" rx="2"/>', '<rect x="4" y="4" width="6.5" height="6.5" rx="2"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="2"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="2"/><rect x="13.5" y="13.5" width="6.5" height="6.5" rx="2"/>'],
+  lupa: ['<circle cx="10.5" cy="10.5" r="7"/>', '<circle cx="10.5" cy="10.5" r="7"/><path d="m16 16 5 5"/>'],
+  persona: ['<circle cx="12" cy="8" r="4.5"/>', '<circle cx="12" cy="8" r="4.5"/><path d="M3.5 21c1.2-4.2 4.4-6.5 8.5-6.5s7.3 2.3 8.5 6.5"/>'],
+  bolsa: ['<path d="M5 8h14l-1.2 12.2a1 1 0 0 1-1 .8H7.2a1 1 0 0 1-1-.8z"/>', '<path d="M5 8h14l-1.2 12.2a1 1 0 0 1-1 .8H7.2a1 1 0 0 1-1-.8z"/><path d="M9 8V6.5a3 3 0 0 1 6 0V8"/>'],
 };
-const sprite = () => `<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>${Object.entries(ICONOS).map(([k, v]) => `<symbol id="i-${k}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${v}</symbol>`).join('')}</defs></svg>`;
+const sprite = () => `<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>${Object.entries(ICONOS).map(([k, [relleno, linea]]) => `<symbol id="i-${k}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><g class="i-r" fill="currentColor" stroke="none">${relleno}</g>${linea}</symbol>`).join('')}</defs></svg>`;
 const ico = (n, cls = '') => `<svg class="ico${cls ? ' ' + cls : ''}" aria-hidden="true" focusable="false"><use href="#i-${n}"/></svg>`;
 // Ícono en círculo de color. Colores: naranja, verde, azul, ámbar, violeta, rosa.
 const TONOS = ['naranja', 'verde', 'azul', 'ambar', 'violeta', 'rosa'];
@@ -152,11 +158,11 @@ function cabecera(c) {
 function barraMovil(c) {
   const actual = (r) => (r === '/' ? c.ruta === '/' : c.ruta.startsWith(r)) ? ' aria-current="page"' : '';
   return `<nav class="tabbar" aria-label="Navegación rápida">
-  <a href="${c.h('/')}"${actual('/')}><span class="tab-ico tab-inicio" aria-hidden="true"></span>Inicio</a>
-  <a href="${c.h('/tienda/')}"${actual('/tienda/')}><span class="tab-ico tab-tienda" aria-hidden="true"></span>Tienda</a>
-  <button type="button" data-abrir-busqueda><span class="tab-ico tab-buscar" aria-hidden="true"></span>Buscar</button>
-  <a href="${c.h('/cuenta/')}"${actual('/cuenta/')} data-enlace-cuenta-tab><span class="tab-ico tab-cuenta" aria-hidden="true"></span>Cuenta</a>
-  <a href="${c.h('/carrito/')}" data-abrir-carrito data-destino-carrito><span class="tab-ico tab-carrito" aria-hidden="true"><span class="cuenta" data-cuenta>0</span></span>Carrito</a>
+  <a href="${c.h('/')}"${actual('/')}><span class="tab-ico" aria-hidden="true">${ico('casa')}</span>Inicio</a>
+  <a href="${c.h('/tienda/')}"${actual('/tienda/')}><span class="tab-ico" aria-hidden="true">${ico('tienda')}</span>Tienda</a>
+  <button type="button" data-abrir-busqueda><span class="tab-ico" aria-hidden="true">${ico('lupa')}</span>Buscar</button>
+  <a href="${c.h('/cuenta/')}"${actual('/cuenta/')} data-enlace-cuenta-tab><span class="tab-ico" aria-hidden="true">${ico('persona')}</span>Cuenta</a>
+  <a href="${c.h('/carrito/')}" data-abrir-carrito data-destino-carrito><span class="tab-ico tab-carrito" aria-hidden="true">${ico('bolsa')}<span class="cuenta" data-cuenta>0</span></span>Carrito</a>
 </nav>`;
 }
 
@@ -214,6 +220,10 @@ function catalogoJSON(c) {
     envio: sitio.envio, gratisDesde: sitio.envioGratisDesde, assets: c.a(''), raiz: c.base,
     carrito: c.h('/carrito/'), tienda: c.h('/tienda/'), buscar: c.h('/buscar/'), cuenta: c.h('/cuenta/'), admin: c.h('/admin/'), exito: c.h('/pago/exito/'),
     categorias, supabase: SB_URL && SB_ANON ? { url: SB_URL, anon: SB_ANON } : null,
+    checkout: c.h('/finalizar-compra/'),
+    combos: (sitio.combos || []).filter((k) => k.items.every((x) => prod(x))).map((k) => ({ slug: k.slug, nombre: k.nombre, items: k.items, descuento: k.descuento })),
+    // Solo la huella de cada cupón: el código real no queda escrito en la página.
+    cuponesHash: Object.fromEntries(Object.entries(sitio.cupones || {}).map(([k, v]) => [createHash('sha256').update(k.toUpperCase()).digest('hex'), v])),
   }).replace(/</g, '\\u003c');
 }
 
@@ -338,6 +348,25 @@ function bloqueSEO(titulo, parrafos, enlaces = '') {
   return `<section class="wrap seo-bloque" aria-label="${esc(titulo)}"><details><summary>${chip('info', 'azul')}<span>${esc(titulo)}</span></summary><div class="seo-texto">${parrafos.map((t) => `<p>${t}</p>`).join('')}${enlaces}</div></details></section>`;
 }
 
+// Combos con descuento automático en el carrito.
+function combosHTML(c) {
+  const lista = (sitio.combos || []).filter((k) => k.items.every((x) => prod(x)));
+  if (!lista.length) return '';
+  return `<section class="seccion wrap combos-sec" id="combos" aria-labelledby="combos-t">
+  <div class="combos-cab"><p class="eyebrow">Combos</p><h2 class="h2" id="combos-t">Arma tu rutina y ahorra</h2><p class="lead">Productos que funcionan mejor juntos. El descuento se aplica solo en el carrito.</p></div>
+  <ul class="combos">${lista.map((k, i) => {
+    const ps = k.items.map(prod); const lleno = ps.reduce((a, p) => a + p.precio, 0); const final = ps.reduce((a, p) => a + Math.round(p.precio * (1 - k.descuento / 100)), 0);
+    return `<li class="combo-card" style="--c:${k.color};--i:${i}" data-revelar>
+      <span class="combo-pct">−${k.descuento} %</span>
+      <div class="combo-fotos n${ps.length}" aria-hidden="true">${ps.map((p, j) => `<span style="--j:${j}">${imgProducto(c, p, p.sabores[0], { sizes: '160px' })}</span>`).join('')}</div>
+      <h3>${esc(k.nombre)}</h3><p class="combo-lema">${esc(k.lema)}</p>
+      <ul class="combo-items">${ps.map((p) => `<li>${ico('check')}<a href="${c.h(`/productos/${p.slug}/`)}">${esc(p.nombre)}</a></li>`).join('')}</ul>
+      <div class="combo-pie"><p class="combo-precio"><s>${cop(lleno)}</s><strong>${cop(final)}</strong><span>Ahorras ${cop(lleno - final)}${final >= sitio.envioGratisDesde ? ' + envío gratis' : ''}</span></p>
+      <button class="btn btn-pri" type="button" data-agregar-combo="${ps.map((p) => `${p.slug}:${p.sabores[0].slug}`).join(',')}">${ico('caja')} Agregar combo</button></div>
+    </li>`; }).join('')}</ul>
+</section>`;
+}
+
 function guiasTarjetas(c, lista, conFecha = false, eager = 0) {
   return `<ul class="guias-tarjetas">${lista.map((b, i) => { const img = portadaGuia(b); return `<li data-revelar><a class="guia-card" href="${c.h(`/blog/${b.slug}/`)}">${img ? `<img src="${c.a(`img/escenas/${img}-600.webp`)}" width="600" height="315" alt=""${i < eager ? '' : ' loading="lazy"'} decoding="async">` : ''}<span class="guia-card-txt">${conFecha ? `<time datetime="${b.fecha}">${fechaLarga(b.fecha)}</time>` : ''}<span class="guia-t">${esc(b.titulo)}</span><span class="guia-d">${esc(b.descripcion)}</span></span></a></li>`; }).join('')}</ul>`;
 }
@@ -398,6 +427,8 @@ paginas.push({
   <div class="rejilla compacta" data-rejilla>${productos.map((p, i) => tarjeta(c, p, i, i < 6)).join('')}</div>
 </section>
 
+${combosHTML(c)}
+
 <section class="seccion wrap objetivos" aria-labelledby="obj-t">
   <h2 class="h2 h2-sec" id="obj-t">Compra por objetivo</h2>
   <ul class="objetivos-lista">${[['proteinas', 'Ganar músculo', 'Proteína whey y barras para llegar a tu meta diaria.'], ['rendimiento', 'Fuerza y energía', 'Creatina, pre-entreno y BCAA para rendir más.'], ['accesorios', 'Para llevar', 'Shakers que no gotean ni dejan grumos.']].map(([k, t, d]) => `<li data-revelar><a class="objetivo" href="${c.h(`/tienda/${k}/`)}">${escenaImg(c, `cat-${k}`, { sizes: '(min-width: 860px) 31vw, 92vw' })}<span class="objetivo-txt"><span class="objetivo-t">${t}</span><span>${d}</span><span class="objetivo-ir" aria-hidden="true">Ver ${cat(k).nombre.toLowerCase()} →</span></span></a></li>`).join('')}</ul>
@@ -409,25 +440,50 @@ paginas.push({
 </section>
 
 <section class="seccion wrap bento-sec" aria-labelledby="bento-t">
-  <h2 class="h2 h2-sec" id="bento-t">Por qué Halo</h2>
+  <div class="bento-cab"><h2 class="h2 h2-sec" id="bento-t">Por qué Halo</h2><p class="lead">Toca los puntos del envase para ver lo que lo hace distinto.</p></div>
   <div class="bento">
-    <article class="bt bt-macro" data-revelar>
-      <div class="anillo" data-anillo aria-hidden="true"><svg viewBox="0 0 120 120"><circle class="an-fondo" cx="60" cy="60" r="50"/><circle class="an-p" cx="60" cy="60" r="50" pathLength="100" style="--v:83"/><circle class="an-c" cx="60" cy="60" r="50" pathLength="100" style="--v:4;--o:83"/><circle class="an-g" cx="60" cy="60" r="50" pathLength="100" style="--v:2;--o:87"/></svg><span><strong><span data-contar="25">25</span> g</strong>proteína</span></div>
-      <div><h3>Cada porción de 30 g</h3><ul class="macros"><li><i class="m-p"></i>Proteína <strong>25 g</strong></li><li><i class="m-c"></i>Carbohidratos <strong>1,2 g</strong></li><li><i class="m-g"></i>Grasa <strong>0,6 g</strong></li></ul><p>El 83 % de cada medida es proteína. Sin azúcar añadida ni mezclas propietarias.</p></div>
+    <article class="bt bt-etiqueta" data-etiqueta>
+      <div class="et-foto">
+        <span class="et-halo" aria-hidden="true"></span>
+        ${imgProducto(c, w, w.sabores[1] || w.sabores[0], { sizes: '(min-width: 860px) 30vw, 70vw', alt: `${w.nombre} de Halo` })}
+        ${[['50%', '20%'], ['33%', '50%'], ['66%', '44%'], ['50%', '74%']].map(([x, y], i) => `<button class="hotspot" type="button" style="--x:${x};--y:${y};--i:${i}" data-hs="${i}" aria-pressed="${i === 0}" aria-controls="et-info" aria-label="${['Se mezcla en 10 segundos', 'Endulzada con stevia', 'Lote analizado', 'Sin mezclas propietarias'][i]}"><span></span></button>`).join('')}
+      </div>
+      <div class="et-info" id="et-info" aria-live="polite">
+        ${[['gota', 'azul', 'Se mezcla en 10 segundos', 'Con agua o leche, sin grumos y sin licuadora.'], ['hoja', 'verde', 'Endulzada con stevia', 'Sin azúcar añadida y con muy poca lactosa.'], ['matraz', 'violeta', 'Lote analizado', 'Un laboratorio independiente confirma cada lote antes de venderlo.'], ['cero', 'naranja', 'Sin mezclas propietarias', 'Cada ingrediente aparece con su dosis exacta en la etiqueta.']].map(([n, t, h, d], i) => `<div class="et-dato" data-hs-dato="${i}"${i ? ' hidden' : ''}>${chip(n, t)}<h3>${h}</h3><p>${d}</p></div>`).join('')}
+        <div class="et-nav" aria-hidden="true">${[0, 1, 2, 3].map((i) => `<i data-hs-punto="${i}"${i ? '' : ' class="activo"'}></i>`).join('')}</div>
+      </div>
     </article>
-    <article class="bt bt-envio" data-revelar><h3><strong><span data-contar="48">48</span> h</strong> y está en tu puerta</h3><p>Despacho el mismo día si pides antes de las 2 p. m.</p><div class="ruta" aria-hidden="true"><span class="camion"></span></div></article>
-    <article class="bt bt-garantia" data-revelar><span class="g-ico g-garantia" aria-hidden="true"></span><h3><strong><span data-contar="${sitio.diasDevolucion}">${sitio.diasDevolucion}</span> días</strong></h3><p>para devolverlo, aunque el envase esté abierto.</p></article>
-    <article class="bt bt-lab" data-revelar>${escenaImg(c, 'laboratorio', { sizes: '(min-width: 860px) 25vw, 46vw' })}<p><span class="g-ico g-lab" aria-hidden="true"></span>Cada lote pasa por un laboratorio independiente.</p></article>
+    <article class="bt bt-ruta" data-revelar>
+      <h3><strong><span data-contar="48">48</span> h</strong> y está en tu puerta</h3>
+      <div class="ruta-mapa" aria-hidden="true">
+        <svg viewBox="0 0 320 110" preserveAspectRatio="none"><path class="ruta-camino" d="M18 82 C 80 10, 150 110, 210 46 S 290 30, 302 30"/></svg>
+        <span class="pin pin-a">${ico('caja')}</span><span class="pin pin-b">${ico('mapa')}</span>
+        <span class="camion-ruta">${ico('camion')}</span>
+      </div>
+      <p class="ruta-txt">${ico('reloj')} Sale hoy hacia <strong data-ciudad>Medellín</strong></p>
+    </article>
+    <article class="bt bt-reloj" data-revelar>
+      <div class="reloj" data-reloj aria-hidden="true"><svg viewBox="0 0 120 120"><defs><linearGradient id="g-reloj" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#3fbf74"/><stop offset="1" stop-color="#1f6fd6"/></linearGradient></defs><circle class="rl-f" cx="60" cy="60" r="50"/><circle class="rl-v" cx="60" cy="60" r="50" pathLength="100"/></svg><span><strong data-contar="${sitio.diasDevolucion}">${sitio.diasDevolucion}</strong>días</span></div>
+      <div><h3>Pruébalo sin riesgo</h3><p>Si no te convence, te devolvemos el dinero, aunque el envase esté abierto.</p></div>
+    </article>
+    <article class="bt bt-lab" data-revelar>${escenaImg(c, 'laboratorio', { sizes: '(min-width: 860px) 25vw, 46vw' })}<span class="escaneo" aria-hidden="true"></span>
+      <p class="lab-sello">${ico('check')} <span>Lote HN-2410 · Aprobado<small>Ejemplo de certificado</small></span></p></article>
   </div>
 </section>
 
 <section class="seccion wrap calc-sec" aria-labelledby="calc-t">
-  <div class="calc-texto"><p class="eyebrow">Calculadora</p><h2 class="h2" id="calc-t">¿Cuánta proteína necesitas al día?</h2><p class="lead">Mueve la barra con tu peso y elige tu objetivo. Usamos el rango de 1,4 a 2 g por kilo que recomiendan las guías de nutrición deportiva.</p><a class="enlace" href="${c.h('/blog/cuanta-proteina-necesitas/')}">Lee la guía completa</a></div>
+  <div class="calc-texto"><p class="eyebrow">Calculadora</p><h2 class="h2" id="calc-t">¿Cuánta proteína necesitas al día?</h2><p class="lead">Mueve la barra, elige tu objetivo y cuántos días entrenas. Usamos el rango de 1,4 a 2 g por kilo que recomiendan las guías de nutrición deportiva.</p><a class="enlace" href="${c.h('/blog/cuanta-proteina-necesitas/')}">Lee la guía completa</a></div>
   <form class="calc" data-calc onsubmit="return false">
-    <div class="calc-peso"><label for="calc-kg">Tu peso</label><output for="calc-kg" data-calc-kg>70 kg</output><input id="calc-kg" type="range" min="40" max="140" step="1" value="70"></div>
-    <fieldset class="calc-obj"><legend>Tu objetivo</legend>${[['mantener', 'Mantenerme', 1.4], ['ganar', 'Ganar músculo', 1.8, true], ['definir', 'Definir', 2]].map(([v, t, f, sel]) => `<label><input type="radio" name="calc-obj" value="${f}"${sel ? ' checked' : ''}><span>${t}</span></label>`).join('')}</fieldset>
-    <div class="calc-res" role="status"><p><strong data-calc-g>126</strong> g de proteína al día</p><p class="nota" data-calc-txt>Con 1 porción de ${esc(w.nombre)} cubres 25 g. Un tarro te dura 30 días.</p></div>
-    <button class="btn btn-pri" type="button" data-agregar="${w.slug}" data-sabor="${w.sabores[0].slug}">Agregar ${esc(w.nombre)} · ${cop(w.precio)}</button>
+    <div class="calc-peso"><label for="calc-kg">${ico('balanza')} Tu peso</label><output for="calc-kg" data-calc-kg>70 kg</output><input id="calc-kg" type="range" min="40" max="140" step="1" value="70"></div>
+    <fieldset class="calc-objetivo"><legend>Tu objetivo</legend>${[['mantener', 'Mantenerme', 1.4, 'corazon', 'rosa'], ['ganar', 'Ganar músculo', 1.8, 'pesa', 'naranja', true], ['definir', 'Definir', 2, 'rayo', 'violeta']].map(([v, t, f, n, tono, sel]) => `<label class="obj-card"><input type="radio" name="calc-obj" value="${f}"${sel ? ' checked' : ''}>${chip(n, tono)}<span>${t}</span></label>`).join('')}</fieldset>
+    <fieldset class="calc-dias"><legend>Días que entrenas por semana</legend><div>${[1, 2, 3, 4, 5, 6, 7].map((d) => `<label><input type="radio" name="calc-dias" value="${d}"${d === 4 ? ' checked' : ''}><span>${d}</span></label>`).join('')}</div></fieldset>
+    <div class="calc-res" role="status">
+      <div class="medidor-g" aria-hidden="true"><svg viewBox="0 0 220 124"><defs><linearGradient id="g-calc" x1="0" x2="1"><stop offset="0" stop-color="#f2b443"/><stop offset=".55" stop-color="#e2662c"/><stop offset="1" stop-color="#b9471a"/></linearGradient></defs><path class="mg-f" d="M16 112 A 94 94 0 0 1 204 112" pathLength="100"/><path class="mg-v" d="M16 112 A 94 94 0 0 1 204 112" pathLength="100" data-calc-arco/></svg></div>
+      <p class="calc-num"><strong data-calc-g>126</strong><span>g de proteína al día</span></p>
+      <div class="reparto" data-calc-reparto></div>
+      <p class="calc-tarro" data-calc-tarro></p>
+    </div>
+    <button class="btn btn-pri" type="button" data-agregar="${w.slug}" data-sabor="${w.sabores[0].slug}">${ico('caja')} Agregar ${esc(w.nombre)} · ${cop(w.precio)}</button>
   </form>
 </section>
 
@@ -444,14 +500,7 @@ paginas.push({
   <div class="resenas-muro">${Object.entries(resenas).filter(([slug]) => prod(slug)).flatMap(([slug, l]) => l.slice(0, 1).map((r) => ({ ...r, slug }))).slice(0, 4).map((r) => `<figure class="resena" data-revelar><span class="resena-g">${GOOGLE_G}</span><span class="estrellas" aria-label="${r.rating} de 5 estrellas">${estrellas(r.rating)}</span><blockquote>“${esc(r.texto)}”</blockquote><figcaption><span class="avatar" style="--h:${tono(r.autor)}" aria-hidden="true">${esc(iniciales(r.autor))}</span><span><strong>${esc(r.autor)}</strong>, ${esc(r.ciudad)}<br>Compró <a href="${c.h(`/productos/${r.slug}/`)}">${esc(prod(r.slug).nombre)}</a></span><img class="resena-prod" src="${prod(r.slug).imagenUrl || c.a(foto(prod(r.slug), prod(r.slug).sabores[0], 160))}" width="160" height="160" alt="" loading="lazy" decoding="async"></figcaption></figure>`).join('')}</div>
 </section>
 
-${creatina ? `<section class="seccion wrap combo" aria-labelledby="combo-t" data-revelar>
-  <div class="combo-img" aria-hidden="true">${imgProducto(c, w, w.sabores[1] || w.sabores[0], { sizes: '(min-width: 768px) 20vw, 40vw' })}${imgProducto(c, creatina, creatina.sabores[0], { sizes: '(min-width: 768px) 20vw, 40vw' })}</div>
-  <div>
-    <h2 class="h2" id="combo-t">Empieza por lo básico</h2>
-    <p class="lead">${esc(w.nombre)} y Creatina cubren lo que más funciona: proteína suficiente y fuerza. Juntos suman ${cop(w.precio + creatina.precio)} y el envío te sale gratis.</p>
-    <button class="btn btn-pri" type="button" data-agregar-combo="${w.slug}:${w.sabores[0].slug},${creatina.slug}:${creatina.sabores[0].slug}">Agregar los dos</button>
-  </div>
-</section>` : ''}
+
 
 <section class="ciencia wrap" aria-labelledby="ciencia-t">
   <div class="ciencia-texto">
@@ -673,10 +722,57 @@ paginas.push({
   cuerpo: () => `<section class="admin" data-admin-app><div class="wrap"><h1 class="h1 h1-pag">Panel de administración</h1><p class="nota">Cargando…</p></div></section>`,
 });
 
+// Finalizar compra: datos, envío y pago con Mercado Pago (no indexable)
+const DEPARTAMENTOS = { 'Amazonas': ['Leticia'], 'Antioquia': ['Medellín', 'Envigado', 'Itagüí', 'Bello', 'Rionegro', 'Sabaneta'], 'Arauca': ['Arauca'], 'Atlántico': ['Barranquilla', 'Soledad', 'Malambo'], 'Bogotá D.C.': ['Bogotá'], 'Bolívar': ['Cartagena', 'Magangué'], 'Boyacá': ['Tunja', 'Duitama', 'Sogamoso'], 'Caldas': ['Manizales'], 'Caquetá': ['Florencia'], 'Casanare': ['Yopal'], 'Cauca': ['Popayán'], 'Cesar': ['Valledupar'], 'Chocó': ['Quibdó'], 'Córdoba': ['Montería'], 'Cundinamarca': ['Soacha', 'Chía', 'Zipaquirá', 'Fusagasugá', 'Facatativá', 'Mosquera'], 'Guainía': ['Inírida'], 'Guaviare': ['San José del Guaviare'], 'Huila': ['Neiva', 'Pitalito'], 'La Guajira': ['Riohacha', 'Maicao'], 'Magdalena': ['Santa Marta'], 'Meta': ['Villavicencio'], 'Nariño': ['Pasto', 'Ipiales', 'Tumaco'], 'Norte de Santander': ['Cúcuta'], 'Putumayo': ['Mocoa'], 'Quindío': ['Armenia'], 'Risaralda': ['Pereira', 'Dosquebradas'], 'San Andrés y Providencia': ['San Andrés'], 'Santander': ['Bucaramanga', 'Floridablanca', 'Girón', 'Piedecuesta'], 'Sucre': ['Sincelejo'], 'Tolima': ['Ibagué'], 'Valle del Cauca': ['Cali', 'Palmira', 'Buenaventura', 'Tuluá', 'Jamundí'], 'Vaupés': ['Mitú'], 'Vichada': ['Puerto Carreño'] };
+const campo = (id, etiqueta, attrs = '', ayuda = '') => `<div class="campo"><label for="${id}">${etiqueta}</label><input id="${id}" name="${id.replace('co-', '')}" ${attrs}><p class="campo-msg" id="${id}-msg">${ayuda}</p></div>`;
+paginas.push({
+  ruta: '/finalizar-compra/', tipo: 'checkout', indexar: false, titulo: 'Finalizar compra | Halo Nutrition', descripcion: 'Completa tus datos de envío y paga de forma segura con Mercado Pago.', modulo: 'checkout.js',
+  cuerpo: (c) => `
+<noscript><style>.checkout { visibility: visible !important; }</style></noscript>
+<section class="wrap checkout" data-checkout aria-labelledby="co-t">
+  <ol class="co-pasos" aria-label="Pasos de la compra"><li class="hecho">${ico('check')}<span>Carrito</span></li><li class="actual" aria-current="step">${ico('mapa')}<span>Datos y envío</span></li><li>${ico('candado')}<span>Pago</span></li></ol>
+  <h1 class="h1 h1-pag" id="co-t">Finalizar compra</h1>
+  <div class="co-grid">
+    <aside class="co-aside" aria-label="Resumen del pedido">
+      <button class="co-toggle" type="button" aria-expanded="false" aria-controls="co-resumen" data-co-toggle>${ico('caja')}<span>Ver resumen</span><strong data-co-total-corto></strong></button>
+      <div class="co-resumen" id="co-resumen" data-co-resumen><p class="nota">Cargando tu pedido…</p></div>
+    </aside>
+    <form class="co-form" data-co-form novalidate>
+      <fieldset class="co-paso"><legend><span class="co-n">1</span>Contacto</legend>
+        ${campo('co-email', 'Correo', 'type="email" inputmode="email" autocomplete="email" autocapitalize="none" spellcheck="false" required', 'Aquí te llega la confirmación y la guía de envío.')}
+        <div class="dos">${campo('co-nombre', 'Nombre', 'autocomplete="given-name" required')}${campo('co-apellido', 'Apellido', 'autocomplete="family-name" required')}</div>
+        <div class="campo"><label for="co-celular">Celular</label><div class="prefijo"><span aria-hidden="true">🇨🇴 +57</span><input id="co-celular" name="celular" type="tel" inputmode="numeric" autocomplete="tel-national" required placeholder="300 123 4567"></div><p class="campo-msg" id="co-celular-msg">Para coordinar la entrega.</p></div>
+      </fieldset>
+      <fieldset class="co-paso"><legend><span class="co-n">2</span>Envío</legend>
+        <div class="dos"><div class="campo"><label for="co-tipo">Documento</label><select id="co-tipo" name="tipo"><option value="CC">Cédula de ciudadanía</option><option value="CE">Cédula de extranjería</option><option value="NIT">NIT</option></select></div>${campo('co-documento', 'Número', 'inputmode="numeric" autocomplete="off" required')}</div>
+        <div class="dos"><div class="campo"><label for="co-departamento">Departamento</label><select id="co-departamento" name="departamento" required><option value="">Elige…</option>${Object.keys(DEPARTAMENTOS).map((d) => `<option>${d}</option>`).join('')}</select><p class="campo-msg" id="co-departamento-msg"></p></div>${campo('co-ciudad', 'Ciudad o municipio', 'list="co-ciudades" autocomplete="address-level2" required')}</div>
+        <datalist id="co-ciudades"></datalist>
+        ${campo('co-direccion', 'Dirección', 'autocomplete="street-address" required placeholder="Calle 10 # 43-21"')}
+        <div class="dos">${campo('co-detalle', 'Apartamento, torre u oficina (opcional)', 'autocomplete="address-line2"')}${campo('co-barrio', 'Barrio (opcional)', '')}</div>
+        <div class="co-estimado" data-co-estimado hidden>${ico('camion')}<p></p></div>
+      </fieldset>
+      <fieldset class="co-paso"><legend><span class="co-n">3</span>Pago</legend>
+        <div class="mp-card">
+          <div class="mp-cab"><span class="mp-logo" aria-hidden="true">${ico('candado')}</span><div><strong>Mercado Pago</strong><p>Pagas en la ventana segura de Mercado Pago. Nunca vemos ni guardamos los datos de tu tarjeta.</p></div></div>
+          <ul class="mp-medios">${[['tarjeta', 'Tarjeta de crédito', 'En cuotas según tu banco'], ['tarjeta', 'Tarjeta débito', 'Visa, Mastercard y más'], ['candado', 'PSE', 'Débito desde tu cuenta'], ['caja', 'Efectivo', 'Paga en puntos autorizados']].map(([n, t, d]) => `<li>${chip(n, 'azul')}<span><strong>${t}</strong>${d}</span></li>`).join('')}</ul>
+        </div>
+        <label class="check co-acepto"><input type="checkbox" name="acepto" required> <span>Acepto los <a href="${c.h('/envios-y-devoluciones/')}">términos de envío y devoluciones</a> y el tratamiento de mis datos para gestionar el pedido (Ley 1581 de 2012).</span></label>
+        <p class="campo-error" data-co-error role="alert"></p>
+        <button class="btn btn-pri btn-grande co-pagar" type="submit" data-co-pagar>${ico('candado')} <span>Pagar con Mercado Pago</span></button>
+        <ul class="co-sellos"><li>${ico('escudo')} Conexión cifrada</li><li>${ico('vuelta')} ${sitio.diasDevolucion} días de garantía</li><li>${ico('camion')} Envío a toda Colombia</li></ul>
+      </fieldset>
+    </form>
+  </div>
+  <script type="application/json" id="departamentos">${JSON.stringify(DEPARTAMENTOS)}</script>
+</section>
+<div class="co-barra" data-co-barra><div><span>Total</span><strong data-co-total-barra></strong></div><button class="btn btn-pri" type="button" data-co-ir-pagar>${ico('candado')} Pagar</button></div>
+<div class="co-cargando" data-co-cargando hidden role="status" aria-live="assertive"><div class="co-cargando-in"><span class="co-spin" aria-hidden="true"></span><p data-co-cargando-t>Conectando con Mercado Pago…</p><ol class="co-cargando-pasos"><li>Validando tus datos</li><li>Reservando tu pedido</li><li>Abriendo la pasarela segura</li></ol></div></div>`,
+});
+
 // Carrito y retorno de pago
 paginas.push({
   ruta: '/carrito/', tipo: 'carrito', indexar: false, titulo: 'Tu carrito | Halo Nutrition', descripcion: 'Revisa tu pedido y paga de forma segura con Mercado Pago.', sinGsap: true,
-  cuerpo: () => `
+  cuerpo: (c) => `
 <section class="wrap carrito-pag" aria-labelledby="carrito-t">
   <h1 class="h1 h1-pag" id="carrito-t">Tu carrito</h1>
   <div class="carrito-rejilla">
@@ -684,9 +780,8 @@ paginas.push({
     <aside class="resumen" aria-labelledby="resumen-t" data-resumen>
       <h2 id="resumen-t">Resumen</h2>
       <div data-resumen-cifras></div>
-      <button class="btn btn-pri btn-grande" type="button" data-pagar disabled>Pagar con Mercado Pago</button>
-      <p class="campo-error" data-pago-error role="alert"></p>
-      <p class="nota" data-pago-nota>Te llevamos a Mercado Pago para elegir tu medio de pago. Volverás aquí al terminar.</p>
+      <a class="btn btn-pri btn-grande" href="${c.h('/finalizar-compra/')}" data-pagar>${ico('candado')} Continuar con el pago</a>
+      <p class="nota">En el siguiente paso pones tus datos de envío y pagas con Mercado Pago.</p>
       <ul class="confianza compacta"><li><strong>${sitio.diasDevolucion} días de garantía.</strong></li><li><strong>Envío gratis desde ${cop(sitio.envioGratisDesde)}.</strong></li></ul>
     </aside>
   </div>
@@ -696,8 +791,8 @@ paginas.push({
   ['pendiente', 'Pago pendiente', 'Tu pago está en proceso. Te escribimos apenas Mercado Pago lo confirme.', true],
   ['error', 'El pago no se completó', 'No se hizo ningún cobro. Puedes intentarlo de nuevo con otro medio de pago.', false]].forEach(([slug, t, d, vaciar]) => {
   paginas.push({
-    ruta: `/pago/${slug}/`, tipo: 'pago', indexar: false, titulo: `${t} | Halo Nutrition`, descripcion: d, sinGsap: true,
-    cuerpo: (c) => `<section class="wrap estado-pago"${vaciar ? ' data-vaciar-carrito' : ''}${slug === 'exito' ? ' data-celebrar' : ''}><h1 class="h1 h1-pag">${slug === 'exito' ? '<span class="check-grande" aria-hidden="true"></span>' : ''}${t}</h1><p class="lead">${d}</p><div class="cta">${slug === 'error' ? `<a class="btn btn-pri" href="${c.h('/carrito/')}">Volver al carrito</a>` : `<a class="btn btn-pri" href="${c.h('/tienda/')}">Seguir comprando</a><a class="btn btn-sec" href="${c.h('/cuenta/')}">Ver mis pedidos</a>`}</div></section>`,
+    ruta: `/pago/${slug}/`, tipo: 'pago', indexar: false, titulo: `${t} | Halo Nutrition`, descripcion: d, sinGsap: true, modulo: slug === 'error' ? undefined : 'checkout.js',
+    cuerpo: (c) => `<section class="wrap estado-pago"${vaciar ? ' data-vaciar-carrito' : ''}${slug === 'exito' ? ' data-celebrar' : ''}><h1 class="h1 h1-pag">${slug === 'exito' ? '<span class="check-grande" aria-hidden="true"></span>' : ''}${t}</h1><p class="lead">${d}</p>${slug === 'error' ? '' : '<div class="recibo" data-recibo hidden></div>'}<div class="cta">${slug === 'error' ? `<a class="btn btn-pri" href="${c.h('/carrito/')}">Volver al carrito</a>` : `<a class="btn btn-pri" href="${c.h('/tienda/')}">Seguir comprando</a><a class="btn btn-sec" href="${c.h('/cuenta/')}">Ver mis pedidos</a>`}</div></section>`,
   });
 });
 
@@ -771,6 +866,7 @@ Disallow: /api/
 Disallow: /cuenta/
 Disallow: /admin/
 Disallow: /buscar/
+Disallow: /finalizar-compra/
 
 Sitemap: ${abs('/sitemap.xml')}
 `);

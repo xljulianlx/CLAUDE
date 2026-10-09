@@ -11,8 +11,10 @@
 import { MercadoPagoConfig, Preference } from 'mercadopago';
 import { productos as catalogo, sitio } from '../src/data/catalogo.mjs';
 import { hayBase, rest } from './_supabase.js';
+import { calcularPedido } from '../src/assets/js/precios.js';
 
 const SABOR_UNICO = { slug: 'unico', nombre: 'Único' };
+const txt = (v, max = 120) => String(v ?? '').trim().slice(0, max);
 const correoValido = (e) => typeof e === 'string' && e.length <= 200 && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e);
 
 async function cargar(slugs) {
@@ -35,7 +37,7 @@ export default async function handler(req, res) {
   let P;
   try { P = await cargar(slugs); } catch (e) { console.error(e.message); return res.status(502).json({ error: 'No pudimos revisar el inventario' }); }
 
-  const items = []; const lineas = []; const porProducto = {};
+  const lineas = []; const porProducto = {};
   for (const it of entrada) {
     const p = P[it?.slug];
     const sabor = p?.sabores.find((s) => s.slug === it?.sabor);
@@ -44,30 +46,47 @@ export default async function handler(req, res) {
     if (!p.visible) return res.status(409).json({ error: `${p.nombre} ya no está disponible` });
     porProducto[p.slug] = (porProducto[p.slug] || 0) + cantidad;
     if (p.stock != null && porProducto[p.slug] > p.stock) return res.status(409).json({ error: p.stock ? `Solo quedan ${p.stock} unidades de ${p.nombre}` : `${p.nombre} está agotado` });
-    items.push({ id: `${p.slug}-${sabor.slug}`, title: `${p.nombre} ${sabor.nombre}`, quantity: cantidad, unit_price: p.precio, currency_id: sitio.moneda });
-    lineas.push({ slug: p.slug, sabor: sabor.slug, cantidad, precio: p.precio });
+    lineas.push({ slug: p.slug, sabor: sabor.slug, saborNombre: sabor.nombre, nombre: p.nombre, cantidad, precio: p.precio });
   }
 
-  const subtotal = items.reduce((n, i) => n + i.unit_price * i.quantity, 0);
-  const envio = subtotal >= sitio.envioGratisDesde ? 0 : sitio.envio;
+  // Mismas reglas que el carrito: combos, cupón y envío. El precio final de cada unidad ya trae el descuento.
+  const r = calcularPedido(lineas, { combos: sitio.combos || [], cupones: sitio.cupones || {}, envio: sitio.envio, gratisDesde: sitio.envioGratisDesde }, req.body?.cupon);
+  if (r.cuponError) return res.status(400).json({ error: r.cuponError });
+  const items = r.lineas.map((l) => ({ id: `${l.slug}-${l.sabor}`, title: `${l.nombre} ${l.saborNombre}${l.combo ? ' (combo)' : ''}`, quantity: l.cantidad, unit_price: l.precioFinal, currency_id: sitio.moneda }));
+  const { subtotal, envio } = r;
   if (envio) items.push({ id: 'envio', title: 'Envío nacional', quantity: 1, unit_price: envio, currency_id: sitio.moneda });
   const referencia = `halo-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-  const email = correoValido(req.body?.email) ? req.body.email.trim().toLowerCase() : null;
+
+  // Datos del comprador y de envío (validados aquí también, no solo en el navegador).
+  const cb = req.body?.comprador || {}; const en = req.body?.envio || {};
+  const email = correoValido(cb.email || req.body?.email) ? String(cb.email || req.body?.email).trim().toLowerCase() : null;
+  const celular = /^3\d{9}$/.test(String(cb.celular || '')) ? String(cb.celular) : null;
+  const tipoDoc = ['CC', 'CE', 'NIT'].includes(cb.documento?.tipo) ? cb.documento.tipo : null;
+  const numDoc = /^\d{5,12}$/.test(String(cb.documento?.numero || '')) ? String(cb.documento.numero) : null;
+  const envioDatos = en.direccion ? { departamento: txt(en.departamento, 60), ciudad: txt(en.ciudad, 80), direccion: txt(en.direccion, 160), detalle: txt(en.detalle, 120), barrio: txt(en.barrio, 80) } : null;
+  if (cb.email && (!email || !celular || !envioDatos?.ciudad || !envioDatos?.direccion)) return res.status(400).json({ error: 'Revisa tus datos de contacto y envío' });
+  // Campos del comprador según la referencia de preferencias de Mercado Pago (payer).
+  const payer = email ? {
+    email, name: txt(cb.nombre, 60) || undefined, surname: txt(cb.apellido, 60) || undefined,
+    ...(celular ? { phone: { area_code: '57', number: celular } } : {}),
+    ...(tipoDoc && numDoc ? { identification: { type: tipoDoc, number: numDoc } } : {}),
+    ...(envioDatos ? { address: { street_name: envioDatos.direccion } } : {}),
+  } : null;
 
   try {
-    if (hayBase()) await rest('pedidos', { method: 'POST', prefer: 'return=minimal', body: { referencia, estado: 'pendiente', cliente_email: email, items: lineas, subtotal, envio, total: subtotal + envio } });
+    if (hayBase()) await rest('pedidos', { method: 'POST', prefer: 'return=minimal', body: { referencia, estado: 'pendiente', cliente_email: email, cliente_nombre: payer ? `${payer.name || ''} ${payer.surname || ''}`.trim() || null : null, cliente_telefono: celular, documento: tipoDoc && numDoc ? `${tipoDoc} ${numDoc}` : null, envio_datos: envioDatos, cupon: r.cupon?.codigo || null, descuento: subtotal - r.productos, items: r.lineas.map((l) => ({ slug: l.slug, sabor: l.sabor, cantidad: l.cantidad, precio: l.precioFinal })), subtotal, envio, total: r.total } });
     const cliente = new MercadoPagoConfig({ accessToken: token });
     const preferencia = await new Preference(cliente).create({
       body: {
         items,
-        ...(email ? { payer: { email } } : {}),
+        ...(payer ? { payer } : {}),
         back_urls: { success: `${base}/pago/exito/`, pending: `${base}/pago/pendiente/`, failure: `${base}/pago/error/` },
         auto_return: 'approved',
         notification_url: `${base}/api/webhook-mercadopago`,
         external_reference: referencia,
       },
     });
-    return res.status(200).json({ id: preferencia.id, init_point: preferencia.init_point });
+    return res.status(200).json({ id: preferencia.id, init_point: preferencia.init_point, referencia, total: r.total });
   } catch (e) {
     console.error('Crear preferencia:', e?.message || e);
     return res.status(502).json({ error: 'Mercado Pago no respondió' });

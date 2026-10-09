@@ -195,15 +195,16 @@ export async function actualizarPedido(id, cambios) {
   const sb = await cliente(); const { error } = await sb.from('pedidos').update(cambios).eq('id', id); if (error) throw error;
 }
 // Solo demostración: registra un pago simulado y descuenta inventario, como haría el webhook real.
-export async function pagoSimulado(carrito, email) {
-  const lista = estadoDemo(); const P = Object.fromEntries(lista.lista.map((p) => [p.slug, p]));
-  const items = carrito.map((i) => ({ slug: i.p, sabor: i.s, cantidad: i.q, precio: P[i.p]?.precio ?? 0 }));
-  const subtotal = items.reduce((s, it) => s + it.precio * it.cantidad, 0); const envio = subtotal >= datos.gratisDesde ? 0 : datos.envio;
+// r: resultado de calcularPedido (precios con combos y cupón) · comprador y envio: datos del formulario.
+export async function pagoSimulado(r, comprador = {}, envioDatos = null) {
+  const lista = estadoDemo();
+  const items = r.lineas.map((l) => ({ slug: l.slug, sabor: l.sabor, cantidad: l.cantidad, precio: l.precioFinal }));
   const l = leerLS(DEMO_PED, null) || pedidosEjemplo();
-  l.unshift({ id: `demo-${Date.now()}`, referencia: `halo-${Date.now().toString(36)}`, creado: new Date().toISOString(), estado: 'pagado', cliente_nombre: '', cliente_email: email || 'cliente.demo@correo.example', items, subtotal, envio, total: subtotal + envio, guia: '' });
-  guardarLS(DEMO_PED, l);
+  const pedido = { id: `demo-${Date.now()}`, referencia: `halo-${Date.now().toString(36)}`, creado: new Date().toISOString(), estado: 'pagado', cliente_nombre: [comprador.nombre, comprador.apellido].filter(Boolean).join(' '), cliente_email: comprador.email || 'cliente.demo@correo.example', cliente_telefono: comprador.celular || '', envio_datos: envioDatos, items, subtotal: r.subtotal, descuento: r.subtotal - r.productos, cupon: r.cupon?.codigo || null, envio: r.envio, total: r.total, guia: '' };
+  l.unshift(pedido); guardarLS(DEMO_PED, l);
   items.forEach((it) => { const p = lista.lista.find((x) => x.slug === it.slug); if (p) p.stock = Math.max(0, p.stock - it.cantidad); });
   guardarLS(DEMO_PROD, lista);
+  return pedido;
 }
 // Publica los cambios del catálogo en las páginas (reconstruye el sitio con el deploy hook). En demo no hace falta.
 export async function publicar() {

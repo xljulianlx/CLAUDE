@@ -9,6 +9,8 @@ src/data/catalogo.mjs       Catálogo base (productos, sabores, reseñas, blog, 
 src/assets/css/main.css     Sistema de diseño (tema claro).
 src/assets/js/datos.js      Capa de datos: Supabase o, sin configurar, "modo demostración" en el navegador.
 src/assets/js/app.js        Carrito, buscador, datos en vivo (precio, stock, visibilidad), fichas, pago.
+src/assets/js/precios.js     Combos, cupón y envío: el mismo cálculo en el carrito y en el servidor.
+src/assets/js/checkout.js    /finalizar-compra/: contacto, envío (departamentos de Colombia), cupón, pago y recibo.
 src/assets/js/cuenta.js     /cuenta/: entrar, crear cuenta, Google, Facebook, recuperar clave, mis pedidos.
 src/assets/js/admin.js      /admin/: resumen de ventas, productos (foto, precio, stock, visible, eliminar), pedidos.
 src/assets/js/escena.js     Escena 3D persistente entre páginas.
@@ -61,6 +63,12 @@ La seguridad está en la base de datos: los clientes solo leen productos visible
 3. En Mercado Pago, configura la URL de notificaciones: `https://TU-DOMINIO/api/webhook-mercadopago`.
 
 Precio, stock y visibilidad se actualizan solos en la tienda apenas se guardan en el panel. Productos nuevos, fotos y textos llegan a las páginas que lee Google cuando el administrador toca "Publicar cambios en la web".
+
+## Combos, cupones y pago
+
+- Combos y cupones se definen en `sitio.combos` y `sitio.cupones` de `src/data/catalogo.mjs`. El descuento baja el precio de cada unidad (Mercado Pago no acepta ítems negativos) y el servidor lo recalcula con los precios de la base de datos.
+- La página no contiene los códigos de cupón, solo su huella SHA-256. Cambia o quita `BIENVENIDA10` antes de vender.
+- `/finalizar-compra/` envía a la preferencia los datos del comprador (`payer`: nombre, apellido, correo, celular, documento CC/CE/NIT, dirección) y guarda la dirección de envío en el pedido. Ejecuta de nuevo `supabase/esquema.sql` para agregar las columnas nuevas (es seguro repetirlo).
 
 ## SEO
 

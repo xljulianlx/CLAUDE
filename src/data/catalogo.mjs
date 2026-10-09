@@ -15,6 +15,15 @@ export const sitio = {
   horario: 'Lunes a viernes, 8 a. m. a 6 p. m.',
   // Las reseñas de este archivo son de ejemplo. Con datos reales, poner en false para quitar el aviso.
   resenasDeEjemplo: true,
+  // Combos: si el carrito tiene una unidad de cada producto del combo, esas unidades llevan el descuento.
+  // El navegador y el servidor usan las mismas reglas (src/assets/js/precios.js).
+  combos: [
+    { slug: 'basico', nombre: 'Combo Básico', lema: 'Proteína y fuerza, lo que más funciona', items: ['whey-isolate', 'creatina-monohidratada'], descuento: 10, color: '#b9471a' },
+    { slug: 'energia', nombre: 'Combo Energía', lema: 'Para sesiones largas e intensas', items: ['pre-entreno-pulse', 'bcaa-2-1-1', 'shaker-halo'], descuento: 15, color: '#7349c2' },
+    { slug: 'snack', nombre: 'Combo Proteína a toda hora', lema: 'Batido en casa y barra para llevar', items: ['whey-isolate', 'barras-proteicas', 'shaker-halo'], descuento: 12, color: '#1f8f50' },
+  ],
+  // Cupones (se validan otra vez en el servidor). Cambia o quita estos de ejemplo antes de vender.
+  cupones: { BIENVENIDA10: { pct: 10, texto: '10 % de bienvenida' } },
 };
 
 export const categorias = [

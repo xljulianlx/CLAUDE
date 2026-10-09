@@ -10,6 +10,7 @@ const conMouse = matchMedia('(hover: hover) and (pointer: fine)');
 
 export function iniciarMovimiento() {
   cabecera();
+  etiqueta(); // los puntos se pueden tocar siempre; solo el recorrido automático depende del movimiento
   if (reducido.matches) return;
   document.documentElement.classList.add('js-mov');
   revelar();
@@ -19,6 +20,7 @@ export function iniciarMovimiento() {
   celebrar();
   lema();
   anillos();
+  ruta();
   conGsap();
 }
 
@@ -157,8 +159,34 @@ function lema() {
 
 /* ---------- anillo de macronutrientes: se dibuja al verlo ---------- */
 function anillos() {
-  const els = [...document.querySelectorAll('[data-anillo]')]; if (!els.length || !('IntersectionObserver' in window)) return;
+  const els = [...document.querySelectorAll('[data-anillo], [data-reloj]')]; if (!els.length || !('IntersectionObserver' in window)) return;
   els.forEach((el) => el.classList.add('espera'));
   const io = new IntersectionObserver((es) => es.forEach((e) => { if (e.isIntersecting) { e.target.classList.remove('espera'); io.unobserve(e.target); } }), { threshold: 0.5 });
   els.forEach((el) => io.observe(el));
+}
+
+/* ---------- "Por qué Halo": puntos del envase que se recorren solos hasta que la persona toca uno ---------- */
+function etiqueta() {
+  const raiz = document.querySelector('[data-etiqueta]'); if (!raiz) return;
+  const puntos = [...raiz.querySelectorAll('[data-hs]')]; const datos = [...raiz.querySelectorAll('[data-hs-dato]')]; const nav = [...raiz.querySelectorAll('[data-hs-punto]')];
+  let actual = 0; let auto = null;
+  const mostrar = (i) => {
+    actual = i;
+    puntos.forEach((p, k) => p.setAttribute('aria-pressed', String(k === i)));
+    nav.forEach((p, k) => p.classList.toggle('activo', k === i));
+    datos.forEach((d, k) => { d.hidden = k !== i; if (k === i) { d.classList.remove('entra'); void d.offsetWidth; d.classList.add('entra'); } });
+  };
+  const ciclo = () => { auto = setInterval(() => mostrar((actual + 1) % puntos.length), 3600); };
+  raiz.addEventListener('click', (e) => { const b = e.target.closest('[data-hs]'); if (!b) return; clearInterval(auto); mostrar(+b.dataset.hs); });
+  if (!reducido.matches) new IntersectionObserver(([e]) => { clearInterval(auto); if (e.isIntersecting) ciclo(); }).observe(raiz);
+}
+
+/* ---------- ruta de entrega: la ciudad de destino cambia en cada viaje ---------- */
+function ruta() {
+  const el = document.querySelector('[data-ciudad]'); if (!el) return;
+  const ciudades = ['Medellín', 'Bogotá', 'Cali', 'Barranquilla', 'Bucaramanga', 'Pereira', 'Cartagena'];
+  let i = 0; const camion = document.querySelector('.camion-ruta');
+  camion?.addEventListener('animationiteration', () => {
+    i = (i + 1) % ciudades.length; el.classList.remove('cambia'); void el.offsetWidth; el.textContent = ciudades[i]; el.classList.add('cambia');
+  });
 }
