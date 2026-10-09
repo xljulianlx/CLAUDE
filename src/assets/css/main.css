@@ -1789,3 +1789,40 @@ main { overflow-x: clip; }
 .tarjeta.cat-proteinas { --cc: #a8380a; }
 .tarjeta.cat-accesorios { --cc: #1f56b0; }
 .tarjeta.cat-rendimiento { --cc: #5f37a8; }
+
+/* ================= Estrellas de calificación (SVG, con medias estrellas) ================= */
+.estrellas { position: relative; display: inline-flex; vertical-align: -0.16em; letter-spacing: 0; line-height: 1; font-size: 1em; color: inherit; flex: none; }
+.e-fila { display: inline-flex; gap: 0.12em; white-space: nowrap; }
+.e-fila svg { width: 1.05em; height: 1.05em; flex: none; }
+.e-base svg { fill: #dfe2e7; }
+.e-llena { position: absolute; inset: 0 auto 0 0; overflow: hidden; }
+.e-llena svg { fill: url(#g-estrella); filter: drop-shadow(0 1px 0.6px rgba(160, 90, 0, 0.35)); }
+.valoracion .estrellas { font-size: 0.95rem; }
+.google-t .estrellas { font-size: 1.15rem; }
+.resena .estrellas { font-size: 1.05rem; }
+
+/* ================= Cinta de la portada: siempre en una línea y corriendo (izquierda a derecha) ================= */
+.cinta-in, .js-mov .cinta-in { display: flex; flex-wrap: nowrap; width: max-content; animation: cintaDer 38s linear infinite; }
+.cinta-in span:nth-child(n) { display: inline-flex; }
+@keyframes cintaDer { from { transform: translateX(-50%); } to { transform: translateX(0); } }
+/* Garantías del pie en celular: también corren aunque el sistema pida menos movimiento (es lento y sin destellos). */
+@media (max-width: 860px) and (prefers-reduced-motion: reduce) {
+  .pie-confianza { animation: pieCinta 26s linear infinite; }
+  .pie-confianza-marco { overflow: hidden; }
+  .pie-confianza .dup { display: flex; }
+}
+
+/* ================= Tarjetas: fotos sobre fondo neutro y textos alineados entre tarjetas ================= */
+.tarjeta-img { background: var(--tile); }
+.tarjeta-info { display: flex; flex-direction: column; gap: 6px; }
+.tarjeta-cat { align-self: flex-start; }
+.tarjeta h3 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; min-height: calc(2em * 1.2); line-height: 1.2; }
+.rejilla.compacta .tarjeta-resumen { min-height: calc(2em * 1.45); line-height: 1.45; }
+.tarjeta .valoracion { min-height: 1.3em; margin: 0; }
+.tarjeta-pie { margin-top: auto; }
+.tarjeta .precio { grid-template-rows: auto 24px; align-items: center; }
+.tarjeta .precio small { display: block; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; line-height: 20px; }
+.tarjeta .precio-porcion { display: inline-block !important; line-height: 20px; padding-block: 0 !important; }
+.tarjeta h3 a { display: inline; }
+@media (min-width: 1200px) { .rejilla.compacta .tarjeta h3 { font-size: 1.02rem; } }
+.tarjeta h3 a { padding-block: 3px; }

@@ -67,7 +67,9 @@ const resumenResenas = (slug) => {
   const media = r.reduce((a, x) => a + x.rating, 0) / r.length;
   return { media: Math.round(media * 10) / 10, total: r.length };
 };
-const estrellas = (n) => '★★★★★'.slice(0, Math.round(n)) + '☆☆☆☆☆'.slice(0, 5 - Math.round(n));
+// Estrellas en SVG: una fila gris y encima la dorada recortada al porcentaje exacto (4,5 muestra media estrella).
+const ESTRELLA = '<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 1.6c.4 0 .7.2.9.6l2.1 4.3 4.7.7c.8.1 1.1 1.1.5 1.7l-3.4 3.3.8 4.7c.1.8-.7 1.4-1.4 1l-4.2-2.2-4.2 2.2c-.7.4-1.5-.2-1.4-1l.8-4.7L1.8 8.9c-.6-.6-.3-1.6.5-1.7l4.7-.7 2.1-4.3c.2-.4.5-.6.9-.6z"/></svg>';
+const estrellas = (n) => `<span class="e-fila e-base">${ESTRELLA.repeat(5)}</span><span class="e-fila e-llena" style="width:${Math.max(0, Math.min(100, (n / 5) * 100)).toFixed(1)}%">${ESTRELLA.repeat(5)}</span>`;
 const fechaLarga = (f) => new Date(f + 'T12:00:00').toLocaleDateString('es-CO', { day: 'numeric', month: 'long', year: 'numeric' });
 
 /* ---------- íconos (un solo sprite SVG por página, trazo de 2 px) ---------- */
@@ -106,7 +108,7 @@ const ICONOS = {
   persona: ['<circle cx="12" cy="8" r="4.5"/>', '<circle cx="12" cy="8" r="4.5"/><path d="M3.5 21c1.2-4.2 4.4-6.5 8.5-6.5s7.3 2.3 8.5 6.5"/>'],
   bolsa: ['<path d="M5 8h14l-1.2 12.2a1 1 0 0 1-1 .8H7.2a1 1 0 0 1-1-.8z"/>', '<path d="M5 8h14l-1.2 12.2a1 1 0 0 1-1 .8H7.2a1 1 0 0 1-1-.8z"/><path d="M9 8V6.5a3 3 0 0 1 6 0V8"/>'],
 };
-const sprite = () => `<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>${Object.entries(ICONOS).map(([k, [relleno, linea]]) => `<symbol id="i-${k}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><g class="i-r" fill="currentColor" stroke="none">${relleno}</g>${linea}</symbol>`).join('')}</defs></svg>`;
+const sprite = () => `<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs><linearGradient id="g-estrella" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffc83d"/><stop offset="1" stop-color="#f08c00"/></linearGradient>${Object.entries(ICONOS).map(([k, [relleno, linea]]) => `<symbol id="i-${k}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><g class="i-r" fill="currentColor" stroke="none">${relleno}</g>${linea}</symbol>`).join('')}</defs></svg>`;
 const ico = (n, cls = '') => `<svg class="ico${cls ? ' ' + cls : ''}" aria-hidden="true" focusable="false"><use href="#i-${n}"/></svg>`;
 // Ícono en círculo de color. Colores: naranja, verde, azul, ámbar, violeta, rosa.
 const TONOS = ['naranja', 'verde', 'azul', 'ambar', 'violeta', 'rosa'];
@@ -327,7 +329,7 @@ function tarjeta(c, p, i = 0, eager = false) {
     <h3><a href="${c.h(`/productos/${p.slug}/`)}">${esc(p.nombre)}</a></h3>
     ${p.sabores.length > 1 && tieneRender(p) && !p.imagenUrl ? `<div class="muestras" role="group" aria-label="Sabores de ${esc(p.nombre)}">${p.sabores.map((x, k) => `<button type="button" class="muestra" style="--c1:${x.c1};--c2:${x.c2}" data-muestra="${x.slug}" aria-pressed="${k === 0}" aria-label="${esc(x.nombre)}" title="${esc(x.nombre)}"></button>`).join('')}</div>` : ''}
     <p class="tarjeta-resumen">${esc(p.resumen)}</p>
-    ${valoracion(p.slug, c, null, true)}
+    ${valoracion(p.slug, c, null, true) || '<p class="valoracion" aria-hidden="true"></p>'}
     <div class="tarjeta-pie"><p class="precio"><span data-precio-de="${p.slug}">${cop(p.precio)}</span>${pp ? `<small class="precio-porcion">${cop(pp)} por porción</small>` : `<small>${esc(p.presentacion)}</small>`}</p>
     <button class="btn btn-sec btn-sm btn-agregar" type="button" data-agregar="${p.slug}" data-sabor="${s.slug}"${agotado ? ' disabled' : ''} aria-label="Agregar ${esc(p.nombre)} sabor ${esc(s.nombre)} al carrito">Agregar</button></div>
   </div>
