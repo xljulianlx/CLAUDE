@@ -1,5 +1,7 @@
 # Halo Nutrition
 
+Todo el proyecto vive en la carpeta `Halo Nutrition/` de este repositorio. Los comandos se ejecutan desde esa carpeta. En Vercel, en Settings > General > Root Directory, pon `Halo Nutrition`.
+
 Tienda de suplementos deportivos (demostración) que vende productos de marcas como Optimum Nutrition, Dragon Pharma y Nutramerican. El producto estrella gira en 3D en la portada y en cada ficha usando su foto real (flota, gira, sigue el cursor, se arrastra con el dedo y salta al tocarlo), siempre activo y sin pedir permiso. Incluye buscador, combos con descuento, cuentas de cliente (correo, Google y Facebook), panel de administración y pago con Mercado Pago Checkout Pro. Los precios son de ejemplo; los datos de cada producto salen solo de lo que dice su etiqueta.
 
 ## Estructura
