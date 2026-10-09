@@ -6,7 +6,8 @@ import { calcularPedido, comboCercano } from './precios.js';
 const P = Object.fromEntries(datos.productos.map((p) => [p.slug, p]));
 
 
-const reducido = matchMedia('(prefers-reduced-motion: reduce)');
+// Las animaciones se muestran siempre (pedido de la tienda), aunque el sistema pida reducir el movimiento.
+const reducido = { matches: false };
 const num = new Intl.NumberFormat('es-CO', { maximumFractionDigits: 0 });
 const cop = (n) => `$ ${num.format(Math.round(n))}`;
 // Fotos renderizadas por sabor; si el producto tiene foto propia (subida en el panel) se usa esa.
@@ -345,6 +346,7 @@ if (orden && rejilla) {
 function pintarPaginaCarrito() {
   const cont = $('[data-carrito-items]'); const cifras = $('[data-resumen-cifras]'); const pagar = $('[data-pagar]');
   const c = validos(leer()); const r = resumen(c);
+  cont.closest('.carrito-rejilla')?.classList.add('listo');
   cont.innerHTML = c.length ? c.map((i, idx) => lineaHTML(i, idx, false)).join('') : `<div class="vacio"><p>Tu carrito está vacío.</p><a class="btn btn-pri" href="${datos.tienda}">Ver la tienda</a></div>`;
   cifras.innerHTML = `<div class="fila-total"><span>Subtotal</span><span>${cop(r.subtotal)}</span></div>${filasDescuento(r)}<div class="fila-total"><span>Envío</span><span>${c.length ? (r.envio ? cop(r.envio) : 'Gratis') : cop(0)}</span></div>${c.length && r.productos < datos.gratisDesde ? `<p class="nota">Agrega ${cop(datos.gratisDesde - r.productos)} más y el envío es gratis.</p>` : ''}<div class="fila-total total"><span>Total</span><span>${cop(r.total)}</span></div>`;
   pagar.classList.toggle('desactivado', !c.length); pagar.setAttribute('aria-disabled', String(!c.length));

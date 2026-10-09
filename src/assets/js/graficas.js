@@ -11,7 +11,7 @@ const compacto = new Intl.NumberFormat('es-CO', { notation: 'compact', maximumFr
 const entero = new Intl.NumberFormat('es-CO', { maximumFractionDigits: 0 });
 export const cop = (n) => `$ ${entero.format(Math.round(n || 0))}`;
 export const copCorto = (n) => `$ ${compacto.format(Math.round(n || 0))}`;
-const reducido = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
+const reducido = () => false; // animaciones siempre activas (ver movimiento.js)
 
 function techo(v) {
   if (v <= 0) return 1;

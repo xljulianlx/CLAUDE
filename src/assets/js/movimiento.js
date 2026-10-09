@@ -3,9 +3,10 @@
 // - Cabecera que se esconde al bajar y vuelve al subir (más espacio para el contenido).
 // - Inclinación leve de tarjetas y portadas al pasar el cursor (solo con mouse).
 // - Cifras que cuentan, barra de lectura en las guías y celebración al pagar.
-// Con prefers-reduced-motion todo queda quieto y el contenido se ve desde el inicio.
+// Se ven siempre, también con "reducir movimiento" activado (lo pidió la tienda); todo es suave y corto.
 
-const reducido = matchMedia('(prefers-reduced-motion: reduce)');
+// Las animaciones se muestran siempre (pedido de la tienda), aunque el sistema pida reducir el movimiento.
+const reducido = { matches: false };
 const conMouse = matchMedia('(hover: hover) and (pointer: fine)');
 // En celular todo entra antes y más corto: al deslizar con el dedo el contenido llega rápido y no debe esperar.
 const tactil = matchMedia('(pointer: coarse)').matches || innerWidth < 760;

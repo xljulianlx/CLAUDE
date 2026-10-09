@@ -6,7 +6,7 @@ import { leer, guardar, validos, resumen, aplicarCupon, cuponActual, P, foto, co
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
 const ico = (n) => `<svg class="ico" aria-hidden="true"><use href="#i-${n}"/></svg>`;
-const reducido = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const reducido = false; // animaciones siempre activas (ver movimiento.js)
 const PRINCIPALES = ['bogotá', 'medellín', 'cali', 'barranquilla', 'cartagena', 'bucaramanga', 'pereira', 'manizales', 'armenia', 'cúcuta', 'ibagué', 'santa marta', 'villavicencio', 'envigado', 'itagüí', 'bello', 'soacha', 'chía', 'floridablanca'];
 const CLAVE = 'halo-checkout';
 const ULTIMO = 'halo-ultimo-pedido';

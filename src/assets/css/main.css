@@ -1,3 +1,5 @@
+/* Animaciones: la tienda pidió que se vean siempre, también con "reducir movimiento" activado en el sistema.
+   Son suaves (sin destellos ni movimientos bruscos). Los bloques que antes dependían de esa preferencia quedan como "all" o "not all". */
 /* Halo Nutrition. Dirección: "Cold Luxury" grafito + un solo acento naranja señal.
    Tipografía: Geist (display y texto) + Geist Mono (cifras). Radios: botones y chips en píldora,
    tarjetas 18px, campos 12px. Tema claro siempre (fondo claro aunque el sistema esté en modo oscuro). */
@@ -130,7 +132,7 @@ main:focus { outline: none; }
 .cinta-in span { padding: 12px 28px; font-weight: 650; font-size: 0.9rem; white-space: nowrap; display: inline-flex; align-items: center; gap: 28px; }
 .cinta-in span::after { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--acc); }
 @keyframes cinta { to { transform: translateX(-50%); } }
-@media (prefers-reduced-motion: no-preference) {
+@media all {
   .hero-copy > *, .hero-acciones { animation: heroEntra 700ms var(--ease-out) both; }
   .hero-copy > :nth-child(2) { animation-delay: 70ms; }
   .hero-copy > :nth-child(3) { animation-delay: 140ms; }
@@ -645,7 +647,7 @@ body.buscando { overflow: hidden; }
   .dialogo { width: 100%; max-width: 100%; margin: auto 0 0; border-radius: 22px 22px 0 0; max-height: 92svh; }
   .dos { grid-template-columns: 1fr; }
 }
-@media (prefers-reduced-motion: no-preference) {
+@media all {
   .dialogo[open] { animation: dialogoEntra 320ms var(--ease-cajon); }
   @keyframes dialogoEntra { from { transform: translateY(24px); opacity: 0; } }
 }
@@ -656,7 +658,7 @@ body.buscando { overflow: hidden; }
 ::view-transition-old(root), ::view-transition-new(root) { animation-duration: 280ms; animation-timing-function: var(--ease-out); }
 
 /* ---------- movimiento reducido y transparencia reducida ---------- */
-@media (prefers-reduced-motion: reduce) {
+@media not all {
   @view-transition { navigation: none; }
   *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
   .linea.entra::after { display: none; }
@@ -713,7 +715,7 @@ body.buscando .cabecera { backdrop-filter: none; -webkit-backdrop-filter: none; 
 .flota { position: absolute; padding: 8px 14px; border-radius: 999px; background: rgba(255, 255, 255, 0.92); color: #111317; font-weight: 700; font-size: 0.85rem; box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5); }
 .flota::before { content: ""; display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--acc); margin-right: 8px; vertical-align: 1px; }
 .f1 { top: 14%; left: 8%; } .f2 { top: 30%; right: 7%; } .f3 { bottom: 18%; left: 12%; }
-@media (prefers-reduced-motion: no-preference) {
+@media all {
   .flota { animation: flotar 5s ease-in-out infinite; }
   .f2 { animation-delay: -1.6s; } .f3 { animation-delay: -3.1s; }
   @keyframes flotar { 50% { transform: translateY(-10px); } }
@@ -751,7 +753,7 @@ body.buscando .cabecera { backdrop-filter: none; -webkit-backdrop-filter: none; 
 .historia-con-img .historia { columns: auto; }
 @media (max-width: 760px) { .historia-con-img { grid-template-columns: 1fr; } }
 .ficha-galeria { background: radial-gradient(circle at 50% 42%, color-mix(in srgb, var(--c1, #888) 28%, var(--surface)), var(--surface-2) 75%); transition: background 0.6s ease; }
-@media (prefers-reduced-motion: reduce) { .cinta-in { animation: none; flex-wrap: wrap; width: auto; } .cinta-in span:nth-child(n+7) { display: none; } }
+@media not all { .cinta-in { animation: none; flex-wrap: wrap; width: auto; } .cinta-in span:nth-child(n+7) { display: none; } }
 .garantias strong span { font-size: inherit; color: inherit; }
 .objetivo::after { background: linear-gradient(180deg, transparent 30%, rgba(8, 9, 11, 0.86)); }
 @media (max-width: 860px) { .ciencia-lista li { min-height: 0; padding-block: 22px; } .ciencia-lista strong { font-size: 2.2rem; } }
@@ -863,7 +865,7 @@ summary { transition: color 160ms ease; }
 .kpi { animation: tarjetaEntra 420ms var(--ease-out) both; }
 .kpi:nth-child(2) { animation-delay: 40ms; } .kpi:nth-child(3) { animation-delay: 80ms; } .kpi:nth-child(4) { animation-delay: 120ms; } .kpi:nth-child(5) { animation-delay: 160ms; }
 
-@media (prefers-reduced-motion: reduce) {
+@media not all {
   .cabecera.oculta { transform: none; }
   .familia-img, .ciencia-img img, .articulo-portada img, .historia-con-img img, .nosotros-img { animation: none; }
 }
@@ -872,7 +874,7 @@ summary { transition: color 160ms ease; }
 
 /* ================= Rediseño: portada viva y secciones que destacan ================= */
 html { scroll-behavior: smooth; }
-@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+@media not all { html { scroll-behavior: auto; } }
 
 /* Grano fino en todo el sitio: quita lo "plano" sin ensuciar (muy baja opacidad). */
 /* Grano fino: va en el fondo del body (se pinta una vez, sin capa encima de la página ni mezcla de colores). */
@@ -885,20 +887,20 @@ html { scroll-behavior: smooth; }
 .o1 { --k: 60; width: 34vmax; height: 34vmax; right: -8vmax; top: -10vmax; background: radial-gradient(closest-side, color-mix(in srgb, var(--hc1) 55%, transparent), transparent); }
 .o2 { --k: -40; width: 22vmax; height: 22vmax; right: 30%; bottom: -8vmax; background: radial-gradient(closest-side, color-mix(in srgb, var(--acc) 35%, transparent), transparent); }
 .o3 { --k: 90; width: 14vmax; height: 14vmax; left: 38%; top: 14%; background: radial-gradient(closest-side, color-mix(in srgb, var(--hc2) 40%, transparent), transparent); opacity: 0.35; }
-@media (prefers-reduced-motion: no-preference) {
+@media all {
   .o1 { animation: deriva 16s ease-in-out infinite; } .o2 { animation: deriva 19s ease-in-out -6s infinite reverse; } .o3 { animation: deriva 13s ease-in-out -3s infinite; }
   @keyframes deriva { 33% { transform: translate(3vmax, 2vmax) scale(1.06); } 66% { transform: translate(-2vmax, 3vmax) scale(0.96); } }
 }
 /* Titular: las palabras suben en cascada y "relleno." se llena de color. */
 .titular .pal { display: inline-block; }
 .hueca { color: transparent; -webkit-text-stroke: 1.6px var(--fg); background: linear-gradient(90deg, var(--acc) 0 50%, transparent 50% 100%) 100% 0 / 200% 100% no-repeat; -webkit-background-clip: text; background-clip: text; }
-@media (prefers-reduced-motion: no-preference) {
+@media all {
   .titular .pal { animation: palabra 760ms var(--ease-out) both; animation-delay: calc(var(--w) * 90ms + 60ms); }
   @keyframes palabra { from { transform: translateY(0.45em) rotate(3deg); } }
   .titular .pal.hueca { animation: palabra 760ms var(--ease-out) both 330ms, llenar 900ms var(--ease-in-out) 1000ms forwards; }
   @keyframes llenar { to { background-position: 0 0; } }
 }
-@media (prefers-reduced-motion: reduce) { .hueca { background-position: 0 0; } }
+@media not all { .hueca { background-position: 0 0; } }
 /* Selector de sabor dentro de la portada. */
 .hero-sabor { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 18px; }
 .hero-prod { display: grid; text-decoration: none; line-height: 1.25; min-height: 44px; align-content: center; }
@@ -949,7 +951,7 @@ html { scroll-behavior: smooth; }
 .m-p { background: var(--acc); } .m-c { background: #e0a100; } .m-g { background: #3d7be0; }
 .ruta { height: 34px; margin-top: 6px; position: relative; background: linear-gradient(90deg, var(--line) 50%, transparent 50%) 0 50% / 14px 2px repeat-x; }
 .camion { position: absolute; left: 0; top: 2px; width: 44px; height: 30px; background: var(--acc); -webkit-mask: var(--m) no-repeat center / contain; mask: var(--m) no-repeat center / contain; --m: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 44 30'%3E%3Cpath d='M2 4h24v16H2zM27 10h8l7 6v4H27z'/%3E%3Ccircle cx='10' cy='24' r='4'/%3E%3Ccircle cx='34' cy='24' r='4'/%3E%3C/svg%3E"); }
-@media (prefers-reduced-motion: no-preference) {
+@media all {
   .camion { animation: camion 5s var(--ease-in-out) infinite; }
   @keyframes camion { 0% { left: -12%; } 45%, 55% { left: calc(100% - 44px); } 100% { left: 112%; } }
 }
@@ -999,7 +1001,7 @@ html { scroll-behavior: smooth; }
 .paso-img { width: 200px; height: 200px; object-fit: contain; }
 @media (max-width: 760px) { .paso { grid-template-columns: auto minmax(0, 1fr); min-height: 0; top: calc(var(--cab) + 12px + var(--i) * 12px); } .paso-img { display: none; } }
 @supports (animation-timeline: view()) {
-  @media (prefers-reduced-motion: no-preference) {
+  @media all {
     .paso { animation: pasoAtras linear both; animation-timeline: view(); animation-range: exit-crossing 0% exit-crossing 100%; }
     @keyframes pasoAtras { to { transform: scale(0.94); filter: brightness(0.96); } }
   }
@@ -1037,7 +1039,7 @@ body { background: var(--bg) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3
 .con-3d > img { opacity: 0; animation: none; transition: opacity 0.25s ease; }
 .con-3d[data-vivo] { transform: none; }
 @media (hover: hover) and (pointer: fine) { .con-3d .vivo3d { filter: drop-shadow(0 14px 18px rgba(20, 16, 12, 0.16)); } }
-@media (prefers-reduced-motion: no-preference) {
+@media all {
   /* Celular: las entradas empiezan antes y duran menos, para que nada se quede esperando al deslizar. */
   .js-mov.mov-rapido .rv { translate: 0 10px; transition-duration: 300ms, 340ms; }
   .mov-rapido .hero-copy > *, .mov-rapido .hero-acciones { animation-duration: 420ms; }
@@ -1316,7 +1318,7 @@ h1, h2, h3 { hyphens: auto; -webkit-hyphens: auto; }
 .combo-card { --c: var(--acc); position: relative; display: flex; flex-direction: column; gap: 10px; padding: 18px 20px 20px; border-radius: calc(var(--r-tarjeta) + 8px); background: radial-gradient(120% 70% at 50% 0%, color-mix(in srgb, var(--c) 16%, transparent), transparent 70%), var(--surface); border: 1px solid color-mix(in srgb, var(--c) 22%, var(--line)); overflow: hidden; isolation: isolate; }
 .combo-card::after { content: ""; position: absolute; inset: auto -30% -40% auto; width: 70%; aspect-ratio: 1; border-radius: 50%; background: radial-gradient(closest-side, color-mix(in srgb, var(--c) 14%, transparent), transparent); z-index: -1; }
 .combo-pct { position: absolute; top: 14px; right: 14px; z-index: 2; padding: 6px 12px; border-radius: 999px; font-weight: 800; font-size: 0.95rem; color: #fff; background: linear-gradient(135deg, color-mix(in srgb, var(--c) 75%, #fff), var(--c)); box-shadow: 0 8px 18px -8px var(--c); }
-@media (prefers-reduced-motion: no-preference) { .combo-pct { animation: latePct 2.6s ease-in-out infinite; } @keyframes latePct { 50% { transform: scale(1.08) rotate(-4deg); } } }
+@media all { .combo-pct { animation: latePct 2.6s ease-in-out infinite; } @keyframes latePct { 50% { transform: scale(1.08) rotate(-4deg); } } }
 .combo-fotos { position: relative; height: 170px; display: flex; justify-content: center; align-items: flex-end; margin-top: 6px; }
 .combo-fotos span { width: 140px; margin-inline: -26px; transform: rotate(calc((var(--j) - 1) * 9deg)) translateY(calc(var(--j) * 0px)); transition: transform 500ms var(--ease-out); filter: drop-shadow(0 14px 16px rgba(0, 0, 0, 0.22)); }
 .combo-fotos.n2 span { transform: rotate(calc((var(--j) - 0.5) * 12deg)); }
@@ -1462,13 +1464,13 @@ body.pagando { overflow: hidden; }
 .bt-etiqueta { grid-column: span 2; grid-row: span 2; grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr); align-items: center; gap: 18px; background: radial-gradient(70% 80% at 30% 40%, color-mix(in srgb, var(--ambar) 16%, transparent), transparent 70%), var(--surface); }
 .et-foto { position: relative; aspect-ratio: 1; }
 .et-foto img { width: 100%; height: 100%; object-fit: contain; position: relative; z-index: 1; }
-@media (prefers-reduced-motion: no-preference) { .et-foto img { animation: vivo 5.4s ease-in-out infinite; transform-origin: 50% 85%; } }
+@media all { .et-foto img { animation: vivo 5.4s ease-in-out infinite; transform-origin: 50% 85%; } }
 .et-halo { position: absolute; inset: 12%; border-radius: 50%; background: conic-gradient(from 0deg, color-mix(in srgb, var(--acc) 30%, transparent), color-mix(in srgb, var(--azul) 25%, transparent), color-mix(in srgb, var(--verde) 25%, transparent), color-mix(in srgb, var(--acc) 30%, transparent)); opacity: 0.55; mask: radial-gradient(closest-side, transparent 62%, #000 64%, #000 70%, transparent 72%); -webkit-mask: radial-gradient(closest-side, transparent 62%, #000 64%, #000 70%, transparent 72%); }
-@media (prefers-reduced-motion: no-preference) { .et-halo { animation: girar 18s linear infinite; } }
+@media all { .et-halo { animation: girar 18s linear infinite; } }
 .hotspot { position: absolute; left: var(--x); top: var(--y); z-index: 2; width: 44px; height: 44px; margin: -22px 0 0 -22px; border-radius: 50%; display: grid; place-items: center; }
 .hotspot span { width: 18px; height: 18px; border-radius: 50%; background: #fff; box-shadow: 0 0 0 4px var(--acc), 0 6px 16px -4px rgba(0, 0, 0, 0.45); transition: transform 220ms var(--ease-out), box-shadow 220ms ease; }
 .hotspot::before { content: ""; position: absolute; inset: 6px; border-radius: 50%; border: 2px solid var(--acc); opacity: 0; }
-@media (prefers-reduced-motion: no-preference) { .hotspot::before { animation: onda 2.2s ease-out infinite; animation-delay: calc(var(--i) * 0.45s); } @keyframes onda { 0% { transform: scale(0.6); opacity: 0.9; } 100% { transform: scale(1.7); opacity: 0; } } }
+@media all { .hotspot::before { animation: onda 2.2s ease-out infinite; animation-delay: calc(var(--i) * 0.45s); } @keyframes onda { 0% { transform: scale(0.6); opacity: 0.9; } 100% { transform: scale(1.7); opacity: 0; } } }
 .hotspot[aria-pressed="true"] span { transform: scale(1.35); background: var(--acc); box-shadow: 0 0 0 4px #fff, 0 0 0 8px color-mix(in srgb, var(--acc) 35%, transparent), 0 8px 20px -4px var(--acc); }
 @media (hover: hover) and (pointer: fine) { .hotspot:hover span { transform: scale(1.25); } }
 .et-info { display: grid; gap: 14px; align-content: center; min-height: 190px; }
@@ -1487,15 +1489,15 @@ body.pagando { overflow: hidden; }
 .ruta-mapa { position: relative; height: 110px; margin-block: 4px; --camino: path('M18 82 C 80 10, 150 110, 210 46 S 290 30, 302 30'); }
 .ruta-mapa svg { position: absolute; inset: 0; width: 320px; height: 110px; max-width: 100%; overflow: visible; }
 .ruta-camino { fill: none; stroke: color-mix(in srgb, var(--verde) 45%, var(--line)); stroke-width: 3; stroke-dasharray: 2 9; stroke-linecap: round; }
-@media (prefers-reduced-motion: no-preference) { .ruta-camino { animation: hormigas 1.2s linear infinite; } @keyframes hormigas { to { stroke-dashoffset: -11; } } }
+@media all { .ruta-camino { animation: hormigas 1.2s linear infinite; } @keyframes hormigas { to { stroke-dashoffset: -11; } } }
 .pin { position: absolute; width: 34px; height: 34px; margin: -17px 0 0 -17px; border-radius: 12px; display: grid; place-items: center; color: #fff; box-shadow: 0 8px 16px -8px rgba(0, 0, 0, 0.5); }
 .pin .ico { width: 18px; height: 18px; }
 .pin-a { left: 18px; top: 82px; background: linear-gradient(135deg, #f2b443, #d4561e); }
 .pin-b { left: 302px; top: 30px; background: linear-gradient(135deg, #3fbf74, #1f8f50); }
 .camion-ruta { position: absolute; left: 0; top: 0; width: 38px; height: 38px; display: grid; place-items: center; border-radius: 50%; background: var(--bg); color: var(--acc); box-shadow: 0 8px 18px -8px rgba(0, 0, 0, 0.5), 0 0 0 3px color-mix(in srgb, var(--acc) 25%, transparent); offset-path: var(--camino); offset-rotate: 0deg; offset-anchor: center; }
 .camion-ruta .ico { width: 20px; height: 20px; }
-@media (prefers-reduced-motion: no-preference) { .camion-ruta { animation: viaje 4.2s var(--ease-in-out) infinite; } @keyframes viaje { 0% { offset-distance: 0%; } 80%, 100% { offset-distance: 100%; } } }
-@media (prefers-reduced-motion: reduce) { .camion-ruta { offset-distance: 60%; } }
+@media all { .camion-ruta { animation: viaje 4.2s var(--ease-in-out) infinite; } @keyframes viaje { 0% { offset-distance: 0%; } 80%, 100% { offset-distance: 100%; } } }
+@media not all { .camion-ruta { offset-distance: 60%; } }
 .ruta-txt { display: flex; gap: 8px; align-items: center; color: var(--mut); }
 .ruta-txt .ico { color: var(--verde); }
 .ruta-txt strong { color: var(--fg); display: inline-block; }
@@ -1514,11 +1516,11 @@ body.pagando { overflow: hidden; }
 /* Laboratorio con escaneo */
 .bt-lab { position: relative; min-height: 220px; }
 .escaneo { position: absolute; left: 0; right: 0; top: 0; height: 30%; z-index: 1; background: linear-gradient(180deg, transparent, color-mix(in srgb, #3fbf74 35%, transparent) 85%, #6dffa8 100%); mix-blend-mode: screen; pointer-events: none; }
-@media (prefers-reduced-motion: no-preference) { .escaneo { animation: escanear 3.2s var(--ease-in-out) infinite; } @keyframes escanear { 0% { transform: translateY(-100%); } 60%, 100% { transform: translateY(340%); } } }
+@media all { .escaneo { animation: escanear 3.2s var(--ease-in-out) infinite; } @keyframes escanear { 0% { transform: translateY(-100%); } 60%, 100% { transform: translateY(340%); } } }
 .lab-sello { position: absolute !important; left: 12px; right: 12px; bottom: 12px; z-index: 2; display: flex; gap: 10px; align-items: center; padding: 10px 12px !important; min-height: 0 !important; border-radius: 14px; background: rgba(255, 255, 255, 0.94) !important; color: #111317 !important; font-weight: 700; font-size: 0.88rem !important; box-shadow: 0 10px 24px -10px rgba(0, 0, 0, 0.5); }
 .lab-sello small { display: block; font-weight: 500; color: #4f5560; font-size: 0.75rem; }
 .lab-sello .ico { width: 30px; height: 30px; padding: 6px; border-radius: 50%; background: linear-gradient(135deg, #3fbf74, #1f8f50); color: #fff; flex: none; }
-@media (prefers-reduced-motion: no-preference) { .lab-sello .ico { animation: checkPop 600ms var(--ease-out) both, latido 2.4s ease-out 1s infinite; } }
+@media all { .lab-sello .ico { animation: checkPop 600ms var(--ease-out) both, latido 2.4s ease-out 1s infinite; } }
 @media (max-width: 860px) {
   .bt-etiqueta { grid-column: 1 / -1; grid-row: auto; grid-template-columns: 1fr; }
   .et-foto { max-width: 320px; justify-self: center; width: 100%; }
@@ -1697,7 +1699,7 @@ main { overflow-x: clip; }
   .pie h2 { font-size: 0.66rem; }
   .pie-legal { padding-bottom: 14px; }
 }
-@media (max-width: 860px) and (prefers-reduced-motion: reduce) {
+@media not all {
   .pie-confianza { animation: none; }
   .pie-confianza-marco { overflow-x: auto; scrollbar-width: none; }
   .pie-confianza .dup { display: none; }
@@ -1806,7 +1808,7 @@ main { overflow-x: clip; }
 .cinta-in span:nth-child(n) { display: inline-flex; }
 @keyframes cintaDer { from { transform: translateX(-50%); } to { transform: translateX(0); } }
 /* Garantías del pie en celular: también corren aunque el sistema pida menos movimiento (es lento y sin destellos). */
-@media (max-width: 860px) and (prefers-reduced-motion: reduce) {
+@media not all {
   .pie-confianza { animation: pieCinta 26s linear infinite; }
   .pie-confianza-marco { overflow: hidden; }
   .pie-confianza .dup { display: flex; }
@@ -1826,3 +1828,18 @@ main { overflow-x: clip; }
 .tarjeta h3 a { display: inline; }
 @media (min-width: 1200px) { .rejilla.compacta .tarjeta h3 { font-size: 1.02rem; } }
 .tarjeta h3 a { padding-block: 3px; }
+
+/* ================= Carrito: las filas no se aplastan y la foto se ve completa ================= */
+/* Con muchos productos la lista hace scroll; antes la grilla encogía cada fila (overflow: hidden la deja en 0). */
+.cajon-lista, .carrito-items { grid-auto-rows: max-content; }
+.linea, .sugerencia { min-height: max-content; }
+.linea-img { display: grid; place-items: center; background: radial-gradient(circle at 50% 55%, #fff, var(--tile) 75%); border: 1px solid var(--line); }
+.linea-img img { object-fit: contain; padding: 5px; filter: drop-shadow(0 4px 5px rgba(20, 16, 12, 0.18)); }
+.linea { align-items: start; }
+.linea > :nth-child(2) { align-self: center; min-width: 0; }
+.linea-nombre { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.linea-meta { margin-top: 2px; }
+.sugerencia img { object-fit: contain; padding: 4px; }
+@media (max-width: 860px) { .resumen { order: 0; } }
+/* El resumen espera a que se pinten los productos: así no salta hacia abajo al cargar (CLS). */
+.carrito-rejilla:not(.listo) .resumen { visibility: hidden; }
