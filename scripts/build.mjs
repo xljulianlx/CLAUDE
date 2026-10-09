@@ -48,7 +48,7 @@ const cat = (slug) => categorias.find((c) => c.slug === slug) || { slug, nombre:
 const prod = (slug) => productos.find((p) => p.slug === slug);
 const foto = (p, s, t) => `img/productos/${p.slug}-${s.slug}-${t}.webp`;
 const tieneRender = (p) => existsSync(join(raiz, 'src/assets', foto(p, p.sabores[0], 600)));
-const con3D = (p) => !p.imagenUrl && tieneRender(p);
+const conFotos = (p) => !p.imagenUrl && tieneRender(p);
 const fotoAbs = (p, s) => (p.imagenUrl ? p.imagenUrl : tieneRender(p) ? abs('/assets/' + foto(p, s, 1000)) : abs('/assets/img/og-halo.jpg'));
 const disponible = (p) => p.stock == null || p.stock > 0;
 // Imágenes de ambiente generadas con scripts/render-escenas.mjs (ancho grande y mitad).
@@ -171,13 +171,13 @@ function pie(c) {
   <ul class="pie-confianza">
     <li>${chip('camion', 'verde')}<span><strong>Envío a toda Colombia</strong>Gratis desde ${cop(sitio.envioGratisDesde)}</span></li>
     <li>${chip('candado', 'violeta')}<span><strong>Pago seguro</strong>Con Mercado Pago</span></li>
-    <li>${chip('vuelta', 'azul')}<span><strong>${sitio.diasDevolucion} días de garantía</strong>Aunque esté abierto</span></li>
-    <li>${chip('matraz', 'naranja')}<span><strong>Análisis por lote</strong>Laboratorio independiente</span></li>
+    <li>${chip('vuelta', 'azul')}<span><strong>${sitio.diasDevolucion} días de garantía</strong>Cambio o reembolso</span></li>
+    <li>${chip('escudo', 'naranja')}<span><strong>Marcas reconocidas</strong>Optimum Nutrition, Dragon Pharma y más</span></li>
   </ul>
   <div class="pie-in">
     <div class="pie-marca">
       <a class="logo" href="${c.h('/')}"><span class="logo-aro" aria-hidden="true"></span>HALO</a>
-      <p>Suplementos deportivos con dosis declaradas y análisis por lote. Envíos a toda Colombia.</p>
+      <p>Tienda de suplementos deportivos: proteína, creatina, pre-entreno, BCAA, barras y accesorios. Envíos a toda Colombia.</p>
       <form class="boletin" data-boletin novalidate>
         <label for="boletin-correo">Recibe guías y lanzamientos, un correo al mes</label>
         <div class="boletin-fila"><input id="boletin-correo" name="correo" type="email" autocomplete="email" required placeholder="tu@correo.com"><button class="btn btn-sec" type="submit">Suscribirme</button></div>
@@ -188,7 +188,7 @@ function pie(c) {
     <nav aria-label="Ayuda"><h2>Ayuda</h2><ul><li><a href="${c.h('/envios-y-devoluciones/')}">Envíos y devoluciones</a></li><li><a href="${c.h('/nosotros/#preguntas')}">Preguntas frecuentes</a></li><li><a href="${c.h('/nosotros/#contacto')}">Contacto</a></li><li><a href="${c.h('/cuenta/')}">Mi cuenta</a></li></ul></nav>
     <nav aria-label="Guías"><h2>Guías</h2><ul>${blog.map((b) => `<li><a href="${c.h(`/blog/${b.slug}/`)}">${esc(b.titulo.split(':')[0])}</a></li>`).join('')}</ul></nav>
   </div>
-  <div class="pie-legal"><ul class="medios" aria-label="Medios de pago disponibles en Mercado Pago"><li>${ico('tarjeta')}Tarjeta crédito y débito</li><li>${ico('candado')}PSE</li><li>${ico('caja')}Efectivo</li></ul><p>Pagos procesados por Mercado Pago. Los suplementos no reemplazan una alimentación variada.</p><p>Sitio de demostración con marca, precios y contenido de ejemplo.</p></div>
+  <div class="pie-legal"><ul class="medios" aria-label="Medios de pago disponibles en Mercado Pago"><li>${ico('tarjeta')}Tarjeta crédito y débito</li><li>${ico('candado')}PSE</li><li>${ico('caja')}Efectivo</li></ul><p>Pagos procesados por Mercado Pago. Los suplementos no reemplazan una alimentación variada.</p><p>Sitio de demostración con precios de ejemplo. Las marcas y fotos de producto pertenecen a sus fabricantes.</p></div>
 </footer>`;
 }
 
@@ -215,7 +215,7 @@ function catalogoJSON(c) {
     productos: productos.map((p) => ({
       slug: p.slug, nombre: p.nombre, precio: p.precio, porciones: p.porciones, presentacion: p.presentacion, forma: p.forma, sabores: p.sabores,
       categoria: p.categoria, categoriaNombre: cat(p.categoria).nombre, resumen: p.resumen, palabras: [...(p.palabrasClave || []), ...p.sabores.map((s) => s.nombre)].join(' '),
-      img: p.imagenUrl || (tieneRender(p) ? c.a(foto(p, p.sabores[0], 160)) : c.a('img/sin-foto.svg')), con3D: con3D(p), url: c.h(`/productos/${p.slug}/`),
+      img: p.imagenUrl || (tieneRender(p) ? c.a(foto(p, p.sabores[0], 160)) : c.a('img/sin-foto.svg')), conFotos: conFotos(p), url: c.h(`/productos/${p.slug}/`),
     })),
     envio: sitio.envio, gratisDesde: sitio.envioGratisDesde, assets: c.a(''), raiz: c.base,
     carrito: c.h('/carrito/'), tienda: c.h('/tienda/'), buscar: c.h('/buscar/'), cuenta: c.h('/cuenta/'), admin: c.h('/admin/'), exito: c.h('/pago/exito/'),
@@ -265,7 +265,7 @@ ${ld.map((o) => `<script type="application/ld+json">${JSON.stringify(o).replace(
 <script type="module" src="${c.a('js/app.js')}"></script>
 ${pg.modulo ? `<script type="module" src="${c.a(`js/${pg.modulo}`)}"></script>` : ''}
 </head>
-<body data-pagina="${pg.tipo}"${pg.frasco ? ` data-frasco="${pg.frasco.p}" data-sabor="${pg.frasco.s}"` : ''}>
+<body data-pagina="${pg.tipo}">
 <a class="saltar" href="#contenido">Saltar al contenido</a>
 ${sprite()}
 ${cabecera(c)}
@@ -277,7 +277,6 @@ ${pie(c)}
 ${barraMovil(c)}
 ${cajon()}
 <div class="aviso" data-aviso role="status" aria-live="polite"></div>
-<canvas class="frasco-lienzo" id="frasco-lienzo" aria-hidden="true"></canvas>
 <script>
 /* Cada página nueva empieza arriba, también si la tienda se ve dentro de un marco alto (vistas previas, apps).
    Al volver con "atrás" o al recargar se respeta la posición. Va en línea para no depender de archivos en caché. */
@@ -335,6 +334,8 @@ function tarjeta(c, p, i = 0, eager = false) {
 }
 
 function selectorSabor(p, nombre, sel = 0) {
+  // Un solo sabor: se informa (sin botones) y queda elegido para el carrito.
+  if (p.sabores.length < 2) return `<p class="sabor-unico"><span class="sabor-muestra" style="--c1:${p.sabores[0].c1};--c2:${p.sabores[0].c2}" aria-hidden="true"></span>${p.slug && p.categoria === 'accesorios' ? 'Color' : 'Sabor'}: <strong>${esc(p.sabores[0].nombre)}</strong><input type="radio" name="${nombre}" value="${p.sabores[0].slug}" checked hidden></p>`;
   return `<fieldset class="sabores"><legend>Sabor: <span data-sabor-nombre>${esc(p.sabores[sel].nombre)}</span></legend><div class="sabores-op">${p.sabores.map((s, i) => `<label class="sabor"><input type="radio" name="${nombre}" value="${s.slug}"${i === sel ? ' checked' : ''}><span class="sabor-muestra" style="--c1:${s.c1};--c2:${s.c2}" aria-hidden="true"></span><span>${esc(s.nombre)}</span></label>`).join('')}</div></fieldset>`;
 }
 
@@ -349,11 +350,12 @@ function bloqueSEO(titulo, parrafos, enlaces = '') {
 }
 
 // Combos con descuento automático en el carrito.
-function combosHTML(c) {
-  const lista = (sitio.combos || []).filter((k) => k.items.every((x) => prod(x)));
+const combosValidos = () => (sitio.combos || []).filter((k) => k.items.every((x) => prod(x)));
+function combosHTML(c, { cabecera = true, enlace = false } = {}) {
+  const lista = combosValidos();
   if (!lista.length) return '';
   return `<section class="seccion wrap combos-sec" id="combos" aria-labelledby="combos-t">
-  <div class="combos-cab"><p class="eyebrow">Combos</p><h2 class="h2" id="combos-t">Arma tu rutina y ahorra</h2><p class="lead">Productos que funcionan mejor juntos. El descuento se aplica solo en el carrito.</p></div>
+  ${cabecera ? `<div class="combos-cab"><p class="eyebrow">Combos</p><h2 class="h2" id="combos-t">Arma tu rutina y ahorra</h2><p class="lead">Productos que se usan juntos. El descuento se aplica solo en el carrito.${enlace ? ` <a class="enlace" href="${c.h('/tienda/combos/')}">Ver todos los combos</a>` : ''}</p></div>` : '<h2 class="sr" id="combos-t">Combos disponibles</h2>'}
   <ul class="combos">${lista.map((k, i) => {
     const ps = k.items.map(prod); const lleno = ps.reduce((a, p) => a + p.precio, 0); const final = ps.reduce((a, p) => a + Math.round(p.precio * (1 - k.descuento / 100)), 0);
     return `<li class="combo-card" style="--c:${k.color};--i:${i}" data-revelar>
@@ -379,21 +381,27 @@ const preguntasGenerales = [
 ];
 
 function filtrosHTML(c, actual) {
-  return `<nav class="filtros" aria-label="Categorías"><ul><li><a href="${c.h('/tienda/')}"${!actual ? ' aria-current="page"' : ''}>Todo</a></li>${categorias.map((k) => `<li><a href="${c.h(`/tienda/${k.slug}/`)}"${actual === k.slug ? ' aria-current="page"' : ''}>${k.nombre}</a></li>`).join('')}</ul></nav>`;
+  return `<nav class="filtros" aria-label="Categorías"><ul><li><a href="${c.h('/tienda/')}"${!actual ? ' aria-current="page"' : ''}>Todo</a></li>${categorias.map((k) => `<li><a href="${c.h(`/tienda/${k.slug}/`)}"${actual === k.slug ? ' aria-current="page"' : ''}>${k.nombre}</a></li>`).join('')}${combosValidos().length ? `<li><a class="filtro-combos" href="${c.h('/tienda/combos/')}"${actual === 'combos' ? ' aria-current="page"' : ''}>${ico('caja')}Combos</a></li>` : ''}</ul></nav>`;
 }
 
 /* ---------- páginas ---------- */
 const paginas = [];
-const estrella = productos.find((p) => p.slug === 'whey-isolate' && con3D(p)) || productos.find(con3D) || productos[0];
-const creatina = prod('creatina-monohidratada');
+const estrella = productos.find((p) => p.slug === 'gold-standard-100-whey' && conFotos(p)) || productos.find(conFotos) || productos[0];
+// Puntos sobre la etiqueta de la foto de la portada: [x, y, ícono, tono, título, texto] (solo datos de la etiqueta).
+const HOTSPOTS = [
+  ['41%', '70%', 'balanza', 'naranja', '24 g de proteína', 'Por porción. La etiqueta dice que ayuda a construir y mantener músculo.'],
+  ['53%', '70%', 'rayo', 'violeta', '5,5 g de BCAA', 'Por porción. Según la etiqueta, apoyan la recuperación muscular.'],
+  ['66%', '70.5%', 'escudo', 'verde', 'Aislado de suero', 'Su fuente principal es whey protein isolate y es banned substance tested (probado contra sustancias prohibidas).'],
+  ['58%', '79%', 'caja', 'azul', '29 porciones', 'Envase de 1,98 lb (899 g), sabor Strawberries & Cream.'],
+];
+const deMarca = (p) => (p.marca ? ` de ${p.marca}` : '');
 const orgLD = { '@context': 'https://schema.org', '@type': 'Organization', name: sitio.nombre, url: sitio.url, logo: abs('/assets/img/favicon.svg'), email: sitio.email };
 
 // Inicio
 paginas.push({
   ruta: '/', tipo: 'inicio', titulo: 'Halo Nutrition | Proteína whey, creatina y pre-entreno',
-  descripcion: 'Suplementos deportivos con dosis declaradas y análisis por lote: whey isolate, creatina y pre-entreno. Envío a toda Colombia y 30 días de garantía.',
-  frasco: con3D(estrella) ? { p: estrella.slug, s: estrella.sabores[0].slug } : null,
-  lcp: con3D(estrella) ? { src: foto(estrella, estrella.sabores[0], 1000), srcset: `${foto(estrella, estrella.sabores[0], 600)} 600w, ${foto(estrella, estrella.sabores[0], 1000)} 1000w`, sizes: '(min-width: 1024px) 46vw, 90vw' } : null,
+  descripcion: 'Tienda de suplementos deportivos en Colombia: Gold Standard 100% Whey, creatina micronizada, pre-entreno Venom Inferno, BCAA y barras Fit Bar. Envío a todo el país.',
+  lcp: conFotos(estrella) ? { src: foto(estrella, estrella.sabores[0], 1000), srcset: `${foto(estrella, estrella.sabores[0], 600)} 600w, ${foto(estrella, estrella.sabores[0], 1000)} 1000w`, sizes: '(min-width: 1024px) 46vw, 90vw' } : null,
   jsonld: [orgLD, {
     '@context': 'https://schema.org', '@type': 'WebSite', name: sitio.nombre, url: sitio.url, inLanguage: sitio.idioma,
     potentialAction: { '@type': 'SearchAction', target: { '@type': 'EntryPoint', urlTemplate: `${abs('/buscar/')}?q={search_term_string}` }, 'query-input': 'required name=search_term_string' },
@@ -406,11 +414,11 @@ paginas.push({
   <div class="wrap hero-in">
     <div class="hero-copy">
       <p class="hero-chip"><span aria-hidden="true"></span>Envío gratis desde ${cop(sitio.envioGratisDesde)}</p>
-      <h1 id="hero-t" class="h1 titular"><span class="pal" style="--w:0">Más</span> <span class="pal" style="--w:1">fuerza,</span> <span class="pal" style="--w:2">cero</span> <span class="pal hueca" style="--w:3">relleno.</span></h1>
-      <p class="hero-sub">Proteína aislada, creatina y pre-entreno con dosis declaradas y análisis de laboratorio por lote.</p>
+      <h1 id="hero-t" class="h1 titular"><span class="sr">Halo Nutrition, suplementos deportivos: </span><span class="pal" style="--w:0">Entrena,</span> <span class="pal" style="--w:1">recupera,</span> <span class="pal hueca" style="--w:2">repite.</span></h1>
+      <p class="hero-sub">Proteína, creatina, pre-entreno, BCAA y barras de Optimum Nutrition, Dragon Pharma y Nutramerican, con envío a toda Colombia.</p>
     </div>
-    <figure class="hero-media" data-pose="d:el:.8;m:el:.9" data-frasco-ancla>
-      ${imgProducto(c, w, w.sabores[0], { tam: '1000', sizes: '(min-width: 1024px) 46vw, 80vw', alt: `Envase de ${w.nombre} de Halo, sabor ${w.sabores[0].nombre}`, lazy: false })}
+    <figure class="hero-media" data-vivo>
+      ${imgProducto(c, w, w.sabores[0], { tam: '1000', sizes: '(min-width: 1024px) 46vw, 80vw', alt: `Envase de ${w.nombre}${deMarca(w)}, sabor ${w.sabores[0].nombre}`, lazy: false })}
       <span class="hero-sombra" aria-hidden="true"></span>
     </figure>
     <div class="hero-acciones">
@@ -419,7 +427,7 @@ paginas.push({
     </div>
     <a class="hero-bajar" href="#productos" aria-label="Bajar a los productos"><span aria-hidden="true"></span></a>
   </div>
-  <div class="cinta" aria-hidden="true"><div class="cinta-in">${Array(2).fill(['Análisis de laboratorio por lote', 'Envío a toda Colombia', `${sitio.diasDevolucion} días de garantía`, '0 mezclas propietarias', 'Pago seguro con Mercado Pago', 'Despacho en 48 h'].map((t) => `<span>${t}</span>`).join('')).join('')}</div></div>
+  <div class="cinta" aria-hidden="true"><div class="cinta-in">${Array(2).fill(['Optimum Nutrition', 'Envío a toda Colombia', 'Dragon Pharma', `${sitio.diasDevolucion} días de garantía`, 'Nutramerican', 'Pago seguro con Mercado Pago', 'Despacho en 48 h'].map((t) => `<span>${t}</span>`).join('')).join('')}</div></div>
 </section>
 
 <section class="seccion wrap productos-sec" id="productos" aria-labelledby="productos-t">
@@ -427,29 +435,29 @@ paginas.push({
   <div class="rejilla compacta" data-rejilla>${productos.map((p, i) => tarjeta(c, p, i, i < 6)).join('')}</div>
 </section>
 
-${combosHTML(c)}
+${combosHTML(c, { enlace: true })}
 
 <section class="seccion wrap objetivos" aria-labelledby="obj-t">
   <h2 class="h2 h2-sec" id="obj-t">Compra por objetivo</h2>
-  <ul class="objetivos-lista">${[['proteinas', 'Ganar músculo', 'Proteína whey y barras para llegar a tu meta diaria.'], ['rendimiento', 'Fuerza y energía', 'Creatina, pre-entreno y BCAA para rendir más.'], ['accesorios', 'Para llevar', 'Shakers que no gotean ni dejan grumos.']].map(([k, t, d]) => `<li data-revelar><a class="objetivo" href="${c.h(`/tienda/${k}/`)}">${escenaImg(c, `cat-${k}`, { sizes: '(min-width: 860px) 31vw, 92vw' })}<span class="objetivo-txt"><span class="objetivo-t">${t}</span><span>${d}</span><span class="objetivo-ir" aria-hidden="true">Ver ${cat(k).nombre.toLowerCase()} →</span></span></a></li>`).join('')}</ul>
+  <ul class="objetivos-lista">${[['proteinas', 'Proteína', 'Proteína whey en polvo y barras con 25 g de proteína.'], ['rendimiento', 'Fuerza y energía', 'Creatina, pre-entreno y BCAA 2:1:1.'], ['accesorios', 'Para llevar', 'Botella deportiva para tu bebida en el gimnasio.']].map(([k, t, d]) => `<li data-revelar><a class="objetivo" href="${c.h(`/tienda/${k}/`)}">${escenaImg(c, `cat-${k}`, { sizes: '(min-width: 860px) 31vw, 92vw' })}<span class="objetivo-txt"><span class="objetivo-t">${t}</span><span>${d}</span><span class="objetivo-ir" aria-hidden="true">Ver ${cat(k).nombre.toLowerCase()} →</span></span></a></li>`).join('')}</ul>
 </section>
 
 <section class="lema" aria-hidden="true">
   <p class="lema-fila" data-lema="-1">Fuerza <i></i> Foco <i></i> Recuperación <i></i> Fuerza <i></i> Foco <i></i> Recuperación <i></i></p>
-  <p class="lema-fila hueca" data-lema="1">Cero relleno <i></i> Dosis completas <i></i> Cero relleno <i></i> Dosis completas <i></i></p>
+  <p class="lema-fila hueca" data-lema="1">Envío a toda Colombia <i></i> Pago seguro <i></i> Envío a toda Colombia <i></i> Pago seguro <i></i></p>
 </section>
 
 <section class="seccion wrap bento-sec" aria-labelledby="bento-t">
-  <div class="bento-cab"><h2 class="h2 h2-sec" id="bento-t">Por qué Halo</h2><p class="lead">Toca los puntos del envase para ver lo que lo hace distinto.</p></div>
+  <div class="bento-cab"><h2 class="h2 h2-sec" id="bento-t">Por qué Halo</h2><p class="lead">Toca los puntos de la etiqueta de ${esc(w.nombre)} para leer lo que trae.</p></div>
   <div class="bento">
     <article class="bt bt-etiqueta" data-etiqueta>
       <div class="et-foto">
         <span class="et-halo" aria-hidden="true"></span>
-        ${imgProducto(c, w, w.sabores[1] || w.sabores[0], { sizes: '(min-width: 860px) 30vw, 70vw', alt: `${w.nombre} de Halo` })}
-        ${[['50%', '20%'], ['33%', '50%'], ['66%', '44%'], ['50%', '74%']].map(([x, y], i) => `<button class="hotspot" type="button" style="--x:${x};--y:${y};--i:${i}" data-hs="${i}" aria-pressed="${i === 0}" aria-controls="et-info" aria-label="${['Se mezcla en 10 segundos', 'Endulzada con stevia', 'Lote analizado', 'Sin mezclas propietarias'][i]}"><span></span></button>`).join('')}
+        ${imgProducto(c, w, w.sabores[0], { sizes: '(min-width: 860px) 30vw, 70vw', alt: `Etiqueta de ${w.nombre}${deMarca(w)}` })}
+        ${HOTSPOTS.map(([x, y]) => [x, y]).map(([x, y], i) => `<button class="hotspot" type="button" style="--x:${x};--y:${y};--i:${i}" data-hs="${i}" aria-pressed="${i === 0}" aria-controls="et-info" aria-label="${HOTSPOTS[i][4]}"><span></span></button>`).join('')}
       </div>
       <div class="et-info" id="et-info" aria-live="polite">
-        ${[['gota', 'azul', 'Se mezcla en 10 segundos', 'Con agua o leche, sin grumos y sin licuadora.'], ['hoja', 'verde', 'Endulzada con stevia', 'Sin azúcar añadida y con muy poca lactosa.'], ['matraz', 'violeta', 'Lote analizado', 'Un laboratorio independiente confirma cada lote antes de venderlo.'], ['cero', 'naranja', 'Sin mezclas propietarias', 'Cada ingrediente aparece con su dosis exacta en la etiqueta.']].map(([n, t, h, d], i) => `<div class="et-dato" data-hs-dato="${i}"${i ? ' hidden' : ''}>${chip(n, t)}<h3>${h}</h3><p>${d}</p></div>`).join('')}
+        ${HOTSPOTS.map(([, , n, t, h, d], i) => `<div class="et-dato" data-hs-dato="${i}"${i ? ' hidden' : ''}>${chip(n, t)}<h3>${h}</h3><p>${d}</p></div>`).join('')}
         <div class="et-nav" aria-hidden="true">${[0, 1, 2, 3].map((i) => `<i data-hs-punto="${i}"${i ? '' : ' class="activo"'}></i>`).join('')}</div>
       </div>
     </article>
@@ -464,16 +472,16 @@ ${combosHTML(c)}
     </article>
     <article class="bt bt-reloj" data-revelar>
       <div class="reloj" data-reloj aria-hidden="true"><svg viewBox="0 0 120 120"><defs><linearGradient id="g-reloj" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#3fbf74"/><stop offset="1" stop-color="#1f6fd6"/></linearGradient></defs><circle class="rl-f" cx="60" cy="60" r="50"/><circle class="rl-v" cx="60" cy="60" r="50" pathLength="100"/></svg><span><strong data-contar="${sitio.diasDevolucion}">${sitio.diasDevolucion}</strong>días</span></div>
-      <div><h3>Pruébalo sin riesgo</h3><p>Si no te convence, te devolvemos el dinero, aunque el envase esté abierto.</p></div>
+      <div><h3>Compra sin riesgo</h3><p>Tienes ${sitio.diasDevolucion} días para pedir el cambio o el reembolso de tu pedido.</p></div>
     </article>
     <article class="bt bt-lab" data-revelar>${escenaImg(c, 'laboratorio', { sizes: '(min-width: 860px) 25vw, 46vw' })}<span class="escaneo" aria-hidden="true"></span>
-      <p class="lab-sello">${ico('check')} <span>Lote HN-2410 · Aprobado<small>Ejemplo de certificado</small></span></p></article>
+      <p class="lab-sello">${ico('check')} <span>Banned substance tested<small>Así lo indica la etiqueta</small></span></p></article>
   </div>
 </section>
 
 <section class="seccion wrap calc-sec" aria-labelledby="calc-t">
   <div class="calc-texto"><p class="eyebrow">Calculadora</p><h2 class="h2" id="calc-t">¿Cuánta proteína necesitas al día?</h2><p class="lead">Mueve la barra, elige tu objetivo y cuántos días entrenas. Usamos el rango de 1,4 a 2 g por kilo que recomiendan las guías de nutrición deportiva.</p><a class="enlace" href="${c.h('/blog/cuanta-proteina-necesitas/')}">Lee la guía completa</a></div>
-  <form class="calc" data-calc onsubmit="return false">
+  <form class="calc" data-calc data-porcion="${parseFloat((w.datos.find((d) => d.k === 'Proteína') || {}).v) || 24}" data-porciones="${w.porciones || 29}" data-nombre="${esc(w.nombre)}" onsubmit="return false">
     <div class="calc-peso"><label for="calc-kg">${ico('balanza')} Tu peso</label><output for="calc-kg" data-calc-kg>70 kg</output><input id="calc-kg" type="range" min="40" max="140" step="1" value="70"></div>
     <fieldset class="calc-objetivo"><legend>Tu objetivo</legend>${[['mantener', 'Mantenerme', 1.4, 'corazon', 'rosa'], ['ganar', 'Ganar músculo', 1.8, 'pesa', 'naranja', true], ['definir', 'Definir', 2, 'rayo', 'violeta']].map(([v, t, f, n, tono, sel]) => `<label class="obj-card"><input type="radio" name="calc-obj" value="${f}"${sel ? ' checked' : ''}>${chip(n, tono)}<span>${t}</span></label>`).join('')}</fieldset>
     <fieldset class="calc-dias"><legend>Días que entrenas por semana</legend><div>${[1, 2, 3, 4, 5, 6, 7].map((d) => `<label><input type="radio" name="calc-dias" value="${d}"${d === 4 ? ' checked' : ''}><span>${d}</span></label>`).join('')}</div></fieldset>
@@ -490,35 +498,35 @@ ${combosHTML(c)}
 <section class="seccion wrap pasos-sec" aria-labelledby="pasos-t">
   <h2 class="h2 h2-sec" id="pasos-t">Así de simple</h2>
   <ol class="pasos">
-    ${[['01', 'Elige tu suplemento', 'Pocas opciones, todas con la dosis completa en la etiqueta. Si dudas, la calculadora y las guías te ayudan.', 'whey-isolate', 0], ['02', 'Recíbelo en 48 horas', `Pagas seguro con Mercado Pago y te enviamos la guía por correo. Envío gratis desde ${cop(sitio.envioGratisDesde)}.`, 'pre-entreno-pulse', 0], ['03', 'Entrena y nota la diferencia', `Si no te convence, tienes ${sitio.diasDevolucion} días para devolverlo, aunque el envase esté abierto.`, 'creatina-monohidratada', 1]].map(([n, t, d, slug, si], i) => { const x = prod(slug) || w; const sb = x.sabores[si] || x.sabores[0]; return `<li class="paso" style="--i:${i};--c1:${sb.c1}"><span class="paso-n">${n}</span><div><h3>${t}</h3><p>${d}</p></div>${imgProducto(c, x, sb, { sizes: '(min-width: 860px) 220px, 120px', extra: ' class="paso-img"' })}</li>`; }).join('')}
+    ${[['01', 'Elige tu suplemento', 'Proteína, creatina, pre-entreno, BCAA, barras y accesorios. Si dudas, la calculadora y las guías te ayudan.', 'gold-standard-100-whey', 0], ['02', 'Recíbelo en 48 horas', `Pagas seguro con Mercado Pago y te enviamos la guía por correo. Envío gratis desde ${cop(sitio.envioGratisDesde)}.`, 'venom-inferno', 0], ['03', 'Entrena y repite', `Si algo no está bien con tu pedido, tienes ${sitio.diasDevolucion} días para pedir el cambio o el reembolso.`, 'micronized-creatine-powder', 0]].map(([n, t, d, slug, si], i) => { const x = prod(slug) || w; const sb = x.sabores[si] || x.sabores[0]; return `<li class="paso" style="--i:${i};--c1:${sb.c1}"><span class="paso-n">${n}</span><div><h3>${t}</h3><p>${d}</p></div>${imgProducto(c, x, sb, { sizes: '(min-width: 860px) 220px, 120px', extra: ' class="paso-img"' })}</li>`; }).join('')}
   </ol>
 </section>
 
-<section class="seccion wrap resenas-sec" aria-labelledby="resenas-t">
-  <h2 class="h2" id="resenas-t">Lo que dicen quienes ya entrenan con Halo</h2>
+${Object.values(resenas).flat().length ? `<section class="seccion wrap resenas-sec" aria-labelledby="resenas-t">
+  <h2 class="h2" id="resenas-t">Lo que dicen quienes ya compran en Halo</h2>
   ${cabeceraGoogle(Object.values(resenas).flat())}
   <div class="resenas-muro">${Object.entries(resenas).filter(([slug]) => prod(slug)).flatMap(([slug, l]) => l.slice(0, 1).map((r) => ({ ...r, slug }))).slice(0, 4).map((r) => `<figure class="resena" data-revelar><span class="resena-g">${GOOGLE_G}</span><span class="estrellas" aria-label="${r.rating} de 5 estrellas">${estrellas(r.rating)}</span><blockquote>“${esc(r.texto)}”</blockquote><figcaption><span class="avatar" style="--h:${tono(r.autor)}" aria-hidden="true">${esc(iniciales(r.autor))}</span><span><strong>${esc(r.autor)}</strong>, ${esc(r.ciudad)}<br>Compró <a href="${c.h(`/productos/${r.slug}/`)}">${esc(prod(r.slug).nombre)}</a></span><img class="resena-prod" src="${prod(r.slug).imagenUrl || c.a(foto(prod(r.slug), prod(r.slug).sabores[0], 160))}" width="160" height="160" alt="" loading="lazy" decoding="async"></figcaption></figure>`).join('')}</div>
-</section>
+</section>` : ''}
 
 
 
 <section class="ciencia wrap" aria-labelledby="ciencia-t">
   <div class="ciencia-texto">
-    <p class="eyebrow">Fórmulas claras</p>
-    <h2 class="h2" id="ciencia-t">Lo que dice la etiqueta es lo que hay en el tarro.</h2>
-    <figure class="ciencia-img">${escenaImg(c, 'laboratorio', { alt: `${w.nombre} de Halo en el laboratorio`, sizes: '(min-width: 860px) 44vw, 92vw' })}
-      <span class="flota f1" aria-hidden="true">25 g proteína</span><span class="flota f2" aria-hidden="true">Lote analizado</span><span class="flota f3" aria-hidden="true">0 rellenos</span></figure>
+    <p class="eyebrow">Datos de etiqueta</p>
+    <h2 class="h2" id="ciencia-t">Lo que dice cada etiqueta, a la vista.</h2>
+    <figure class="ciencia-img">${escenaImg(c, 'laboratorio', { alt: `${w.nombre}${deMarca(w)}`, sizes: '(min-width: 860px) 44vw, 92vw' })}
+      <span class="flota f1" aria-hidden="true">24 g proteína</span><span class="flota f2" aria-hidden="true">5,5 g BCAA</span><span class="flota f3" aria-hidden="true">29 porciones</span></figure>
   </div>
   <ol class="ciencia-lista">
-    <li data-paso>${chip('balanza', 'naranja')}<strong>25 g</strong><p>de proteína por porción en Whey Isolate. Medido, no redondeado hacia arriba.</p></li>
-    <li data-paso>${chip('cero', 'violeta')}<strong>0</strong><p>mezclas propietarias. Cada ingrediente aparece con su dosis exacta.</p></li>
-    <li data-paso>${chip('matraz', 'verde')}<strong>1 lote, 1 análisis</strong><p>Un laboratorio independiente revisa cada lote antes de venderlo.</p></li>
+    <li data-paso>${chip('balanza', 'naranja')}<strong>24 g</strong><p>de proteína por porción en Gold Standard 100% Whey, con aislado de suero como fuente principal.</p></li>
+    <li data-paso>${chip('matraz', 'verde')}<strong>5 g</strong><p>de creatina monohidratada por porción en Micronized Creatine Powder: 100 % pura y 60 porciones.</p></li>
+    <li data-paso>${chip('pesa', 'violeta')}<strong>25 g</strong><p>de proteína en cada Fit Bar de 60 g, con whey protein isolate.</p></li>
   </ol>
 </section>
 
 <section class="seccion wrap familia" aria-labelledby="familia-t" data-revelar>
-  ${escenaImg(c, 'familia', { alt: 'Toda la línea de suplementos Halo', sizes: '(min-width: 1320px) 1240px, 100vw', clase: 'familia-img' })}
-  <div class="familia-txt"><h2 class="h2" id="familia-t">Pocos productos. Todos con dosis completas.</h2><p>Seis productos que se combinan entre sí, para que armes tu rutina sin pagar por rellenos.</p><a class="btn btn-pri" href="${c.h('/tienda/')}">Ver toda la tienda</a></div>
+  ${escenaImg(c, 'familia', { alt: 'Gold Standard 100% Whey, Micronized Creatine Powder, Venom Inferno, BCAA 2:1:1, Fit Bar y la botella deportiva', sizes: '(min-width: 1320px) 1240px, 100vw', clase: 'familia-img' })}
+  <div class="familia-txt"><h2 class="h2" id="familia-t">Todo para tu rutina, en un solo pedido.</h2><p>Proteína, creatina, pre-entreno, BCAA, barra de proteína y botella. Junta varios en un combo y ahorra.</p><a class="btn btn-pri" href="${c.h('/tienda/')}">Ver toda la tienda</a></div>
 </section>
 
 <section class="seccion wrap guias-sec" aria-labelledby="guias-t">
@@ -529,8 +537,8 @@ ${combosHTML(c)}
 ${preguntasHTML(preguntasGenerales)}
 
 ${bloqueSEO('Suplementos deportivos en Colombia: cómo elegir', [
-  'En Halo Nutrition vendemos suplementos deportivos en Colombia con dosis declaradas en la etiqueta y análisis de laboratorio por lote. Nuestra línea incluye proteína whey isolate, creatina monohidratada micronizada, pre-entreno con cafeína, BCAA 2:1:1, barras de proteína y accesorios como shakers.',
-  'Si buscas ganar masa muscular o recuperarte mejor, empieza por cubrir tu proteína diaria: la proteína whey aislada aporta 25 g por porción con muy poca grasa y lactosa. Para ganar fuerza en entrenamientos cortos e intensos, la creatina monohidratada es el suplemento con más estudios. El pre-entreno ayuda con energía y foco antes de entrenar.',
+  'En Halo Nutrition vendemos suplementos deportivos en Colombia: proteína Gold Standard 100% Whey y creatina Micronized Creatine Powder de Optimum Nutrition, el pre-entreno Venom Inferno de Dragon Pharma, BCAA 2:1:1 sabor sandía, la barra de proteína Fit Bar de Nutramerican y una botella deportiva.',
+  'Gold Standard 100% Whey aporta 24 g de proteína y 5,5 g de BCAA por porción, con aislado de suero como fuente principal. Micronized Creatine Powder trae 5 g de creatina monohidratada por porción. Venom Inferno es un pre-entreno de estimulación extrema y la Fit Bar suma 25 g de proteína por barra.',
   `Enviamos a todas las ciudades de Colombia en 2 a 5 días hábiles. El envío cuesta ${cop(sitio.envio)} y es gratis en compras desde ${cop(sitio.envioGratisDesde)}. Pagas de forma segura con Mercado Pago y tienes ${sitio.diasDevolucion} días de garantía.`,
 ], `<p>Explora por categoría: ${categorias.map((k) => `<a href="${c.h(`/tienda/${k.slug}/`)}">${k.nombre.toLowerCase()}</a>`).join(', ')}. O lee nuestras <a href="${c.h('/blog/')}">guías de suplementación</a>.</p>`)}`;
   },
@@ -538,10 +546,10 @@ ${bloqueSEO('Suplementos deportivos en Colombia: cómo elegir', [
 
 // Tienda y categorías
 const textosCategoria = {
-  null: ['Suplementos deportivos', 'Proteína, creatina, pre-entreno y accesorios con dosis declaradas.', 'Todos los suplementos de Halo tienen la dosis de cada ingrediente en la etiqueta y un análisis de laboratorio por lote. Elige proteína whey para completar tu proteína diaria, creatina monohidratada para fuerza, pre-entreno para energía y foco, o BCAA para hidratarte en sesiones largas. Enviamos a toda Colombia.'],
-  proteinas: ['Proteínas', 'Whey isolate y barras proteicas para completar tu proteína diaria.', 'La proteína whey isolate aporta 25 g de proteína por porción con muy poca grasa y lactosa, y se mezcla sin grumos. Las barras proteicas suman 20 g de proteína con solo 2 g de azúcar. Ambas sirven para alcanzar tu meta de proteína sin cocinar más, después de entrenar o como snack.'],
-  rendimiento: ['Rendimiento', 'Creatina, pre-entreno y BCAA para entrenar con más fuerza y foco.', 'La creatina monohidratada micronizada es el suplemento con más evidencia para fuerza y potencia: 5 g al día, sin fase de carga. El pre-entreno combina 200 mg de cafeína con citrulina y beta-alanina. Los BCAA 2:1:1 incluyen electrolitos para sesiones largas.'],
-  accesorios: ['Accesorios', 'Shakers para preparar y llevar tus suplementos.', 'Nuestro shaker de 700 ml en tritán libre de BPA tiene tapa de rosca antiderrame y bolita de acero para mezclar sin grumos. Va al lavavajillas.'],
+  null: ['Suplementos deportivos', 'Proteína, creatina, pre-entreno, BCAA, barras y accesorios.', 'Encuentra Gold Standard 100% Whey y Micronized Creatine Powder de Optimum Nutrition, el pre-entreno Venom Inferno de Dragon Pharma, BCAA 2:1:1 con electrolitos, la barra Fit Bar de Nutramerican y una botella deportiva. Enviamos a toda Colombia.'],
+  proteinas: ['Proteínas', 'Proteína whey en polvo y barras de proteína.', 'Gold Standard 100% Whey aporta 24 g de proteína y 5,5 g de BCAA por porción, con aislado de suero como fuente principal y 29 porciones por envase. La Fit Bar de Nutramerican trae 25 g de proteína por barra de 60 g, con whey protein isolate.'],
+  rendimiento: ['Rendimiento', 'Creatina, pre-entreno y BCAA 2:1:1.', 'Micronized Creatine Powder de Optimum Nutrition es 100 % creatina monohidratada, con 5 g por porción y 60 porciones. Venom Inferno de Dragon Pharma es un pre-entreno de estimulación extrema de 280 g. El BCAA 2:1:1 sabor sandía trae 6 g de BCAA con sales de electrolitos y 30 servicios.'],
+  accesorios: ['Accesorios', 'Botella deportiva para llevar tu bebida.', 'Botella deportiva negra con tapa de pico y argolla para colgarla o llevarla en la mano.'],
 };
 function paginaTienda(categoria) {
   const lista = categoria ? productos.filter((p) => p.categoria === categoria.slug) : productos;
@@ -561,12 +569,29 @@ function paginaTienda(categoria) {
   <div class="orden"><label for="orden">Ordenar por</label><select id="orden" data-orden><option value="destacados">Más vendidos</option><option value="precio-asc">Precio: menor a mayor</option><option value="precio-desc">Precio: mayor a menor</option></select></div>
 </div>
 <section class="wrap" aria-label="Productos"><h2 class="sr">Productos</h2><div class="rejilla compacta" data-rejilla data-categoria="${categoria ? categoria.slug : ''}">${lista.map((p, i) => tarjeta(c, p, i, i < 6)).join('')}</div><p class="cuenta-prod" data-cuenta-prod>${lista.length} ${lista.length === 1 ? 'producto' : 'productos'}</p></section>
+${categoria ? '' : combosHTML(c, { enlace: true })}
 ${preguntasHTML(preguntasGenerales.slice(0, 3))}
 ${bloqueSEO(`Sobre ${textos[0].toLowerCase()}`, [textos[2], `Enviamos a toda Colombia en 2 a 5 días hábiles, gratis desde ${cop(sitio.envioGratisDesde)}. Pagas con Mercado Pago y tienes ${sitio.diasDevolucion} días de garantía.`])}`,
   });
 }
 paginaTienda(null);
 categorias.forEach(paginaTienda);
+
+// Combos dentro de la tienda: página propia con el mismo filtro de categorías.
+if (combosValidos().length) {
+  const ruta = '/tienda/combos/';
+  paginas.push({
+    ruta, tipo: 'tienda', migas: [['Inicio', '/'], ['Tienda', '/tienda/'], ['Combos', ruta]],
+    titulo: 'Combos de suplementos con descuento | Halo Nutrition',
+    descripcion: `Combos de proteína, creatina, pre-entreno y BCAA con hasta ${Math.max(...combosValidos().map((k) => k.descuento))} % de descuento automático. Envío a toda Colombia.`,
+    jsonld: [{ '@context': 'https://schema.org', '@type': 'CollectionPage', name: 'Combos de suplementos', url: abs(ruta), inLanguage: sitio.idioma, mainEntity: { '@type': 'ItemList', numberOfItems: combosValidos().length, itemListElement: combosValidos().map((k, i) => ({ '@type': 'ListItem', position: i + 1, name: k.nombre })) } }],
+    cuerpo: (c) => `
+<section class="wrap tienda-cab"><div><h1 class="h1 h1-pag">Combos de suplementos</h1><p class="lead">Agrega el combo completo y el descuento se aplica solo en el carrito. También vale si agregas los productos por separado.</p></div>${escenaImg(c, 'familia', { sizes: '(min-width: 760px) 300px, 108px', lazy: false, clase: 'tienda-banner' })}</section>
+<div class="wrap tienda-barra">${filtrosHTML(c, 'combos')}</div>
+${combosHTML(c, { cabecera: false })}
+${preguntasHTML([['¿Cómo funciona el descuento?', 'Cuando el carrito tiene una unidad de cada producto del combo, esas unidades llevan el descuento del combo. Lo ves aplicado antes de pagar.'], ['¿Puedo combinar un combo con un cupón?', 'Sí. El cupón se aplica sobre el total con el descuento del combo.'], ...preguntasGenerales.slice(0, 2)])}`,
+  });
+}
 
 // Productos
 productos.forEach((p) => {
@@ -576,7 +601,7 @@ productos.forEach((p) => {
   const guia = blog.find((b) => b.producto === p.slug);
   const productoLD = {
     '@context': 'https://schema.org', '@type': 'Product', name: p.nombre, description: p.descripcion, sku: p.slug, category: k.nombre,
-    brand: { '@type': 'Brand', name: sitio.nombre },
+    ...(p.marca ? { brand: { '@type': 'Brand', name: p.marca } } : {}),
     image: p.imagenUrl ? [p.imagenUrl] : p.sabores.map((s) => fotoAbs(p, s)),
     offers: {
       '@type': 'Offer', url: abs(ruta), priceCurrency: sitio.moneda, price: p.precio, priceValidUntil: VALIDO_HASTA,
@@ -598,13 +623,13 @@ productos.forEach((p) => {
     ruta, tipo: 'producto', migas: [['Inicio', '/'], ['Tienda', '/tienda/'], [k.nombre, `/tienda/${k.slug}/`], [p.nombre, ruta]],
     titulo: titulo.length > 62 ? `${p.nombre} | Halo Nutrition Colombia` : titulo,
     descripcion: `${p.resumen} ${cop(p.precio)}${pp ? ` (${cop(pp)} por porción)` : ''}. Envío a toda Colombia y ${sitio.diasDevolucion} días de garantía.`.slice(0, 160),
-    frasco: con3D(p) ? { p: p.slug, s: s0.slug } : null, tipoOg: 'product', ogImagenAbs: fotoAbs(p, s0),
-    lcp: con3D(p) ? { src: foto(p, s0, 1000), srcset: `${foto(p, s0, 600)} 600w, ${foto(p, s0, 1000)} 1000w`, sizes: '(min-width: 1024px) 50vw, 92vw' } : null,
+    tipoOg: 'product', ogImagenAbs: fotoAbs(p, s0),
+    lcp: conFotos(p) ? { src: foto(p, s0, 1000), srcset: `${foto(p, s0, 600)} 600w, ${foto(p, s0, 1000)} 1000w`, sizes: '(min-width: 1024px) 50vw, 92vw' } : null,
     jsonld: [productoLD],
     cuerpo: (c) => `
 <article class="wrap ficha" data-producto="${p.slug}">
-  <figure class="ficha-galeria" style="--c1:${s0.c1}"${con3D(p) ? ' data-pose="d:el:.92;m:el:.92" data-frasco-ancla' : ''}>
-    ${imgProducto(c, p, s0, { tam: '1000', sizes: '(min-width: 1024px) 50vw, 92vw', alt: `${p.nombre} de Halo, sabor ${s0.nombre}, ${p.presentacion}`, lazy: false, extra: ' data-ficha-img' })}
+  <figure class="ficha-galeria" style="--c1:${s0.c1}" data-vivo>
+    ${imgProducto(c, p, s0, { tam: '1000', sizes: '(min-width: 1024px) 50vw, 92vw', alt: `${p.nombre}${deMarca(p)}, ${p.categoria === 'accesorios' ? 'color' : 'sabor'} ${s0.nombre}, ${p.presentacion}`, lazy: false, extra: ' data-ficha-img' })}
   </figure>
   <div class="ficha-info">
     <p class="tarjeta-cat"><a href="${c.h(`/tienda/${k.slug}/`)}">${k.nombre}</a></p>
@@ -648,19 +673,19 @@ ${rr.length ? `<section class="wrap seccion" id="resenas" aria-labelledby="resen
 // Nosotros
 paginas.push({
   ruta: '/nosotros/', tipo: 'nosotros', migas: [['Inicio', '/'], ['Nosotros', '/nosotros/']],
-  titulo: 'Nosotros | Halo Nutrition, suplementos con dosis declaradas',
-  descripcion: 'Halo nació para que entiendas lo que tomas: pocas fórmulas, dosis completas y análisis de laboratorio por lote. Conoce cómo trabajamos.',
+  titulo: 'Nosotros | Halo Nutrition, tienda de suplementos deportivos',
+  descripcion: 'Halo Nutrition es una tienda en línea de suplementos deportivos con envío a toda Colombia. Conoce cómo trabajamos.',
   jsonld: [{ ...orgLD, '@type': 'Organization' }],
   cuerpo: (c) => `
 <section class="wrap nosotros-cab">
-  <div><h1 class="h1 h1-pag">Suplementos que se entienden.</h1><p class="lead">Halo empezó con dos nutricionistas cansadas de etiquetas confusas. Hoy hacemos pocos productos y los hacemos bien.</p></div>
-  ${escenaImg(c, 'familia', { alt: 'Línea de productos Halo', sizes: '(min-width: 760px) 40vw, 92vw', lazy: false, clase: 'nosotros-img' })}
+  <div><h1 class="h1 h1-pag">Tu tienda de suplementos.</h1><p class="lead">Halo Nutrition es una tienda en línea: elegimos pocos productos, te mostramos lo que dice su etiqueta y te los enviamos a toda Colombia.</p></div>
+  ${escenaImg(c, 'familia', { alt: 'Productos que vende Halo Nutrition', sizes: '(min-width: 760px) 40vw, 92vw', lazy: false, clase: 'nosotros-img' })}
 </section>
-<section class="wrap seccion historia-con-img"><figure>${escenaImg(c, 'laboratorio', { alt: 'Envase de Halo en el laboratorio', sizes: '(min-width: 760px) 40vw, 92vw', lazy: false })}</figure><div class="historia">
-  <p>Cada fórmula se diseña con nutricionistas deportivos y se fabrica en plantas con buenas prácticas de manufactura. Antes de vender un lote, un laboratorio independiente confirma que tiene lo que dice la etiqueta.</p>
-  <p>Publicamos ese análisis para que cualquiera lo pueda revisar. Si algo no cuadra, preferimos no venderlo.</p>
+<section class="wrap seccion historia-con-img"><figure>${escenaImg(c, 'laboratorio', { alt: 'Gold Standard 100% Whey de Optimum Nutrition', sizes: '(min-width: 760px) 40vw, 92vw', lazy: false })}</figure><div class="historia">
+  <p>No fabricamos suplementos: vendemos productos de sus fabricantes, como Optimum Nutrition, Dragon Pharma y Nutramerican. En cada ficha copiamos lo que dice la etiqueta del envase, sin agregar promesas.</p>
+  <p>Antes de usar cualquier suplemento, lee la etiqueta completa y las advertencias del fabricante.</p>
 </div></section>
-<section class="wrap seccion" aria-labelledby="valores-t"><h2 class="h2 h2-sec" id="valores-t">En qué creemos</h2><ul class="valores">${[['pesa', 'naranja', 'Dosis completas', 'Cada porción trae la cantidad que funciona según los estudios, no la mínima para poder nombrarla.'], ['matraz', 'verde', 'Análisis por lote', 'Un laboratorio independiente revisa cada lote antes de que salga a la venta.'], ['cero', 'violeta', 'Cero rellenos', 'Sin mezclas propietarias ni ingredientes para hacer bulto.'], ['corazon', 'rosa', 'Personas reales', 'Te responde alguien del equipo, el mismo día hábil.']].map(([n, t, h, d]) => `<li class="valor t-${t}" data-revelar>${chip(n, t)}<h3>${h}</h3><p>${d}</p></li>`).join('')}</ul></section>
+<section class="wrap seccion" aria-labelledby="valores-t"><h2 class="h2 h2-sec" id="valores-t">En qué creemos</h2><ul class="valores">${[['escudo', 'naranja', 'Marcas conocidas', 'Vendemos productos de fabricantes reconocidos, con su envase y etiqueta.'], ['info', 'verde', 'Información clara', 'En cada ficha está lo que dice la etiqueta: contenido, porciones y datos clave.'], ['camion', 'violeta', 'Envío a toda Colombia', `Despacho en 48 h y envío gratis desde ${cop(sitio.envioGratisDesde)}.`], ['corazon', 'rosa', 'Personas reales', 'Te responde alguien del equipo, el mismo día hábil.']].map(([n, t, h, d]) => `<li class="valor t-${t}" data-revelar>${chip(n, t)}<h3>${h}</h3><p>${d}</p></li>`).join('')}</ul></section>
 ${preguntasHTML(preguntasGenerales)}
 <section class="wrap seccion contacto" id="contacto" aria-labelledby="contacto-t"><div class="contacto-card">${chip('sobre', 'naranja')}<div><h2 class="h2" id="contacto-t">Contacto</h2><p class="lead">Escríbenos y te respondemos el mismo día hábil.</p></div></div><p class="contacto-dato"><span data-copiable>${sitio.email}</span> <button class="btn btn-sec btn-sm" type="button" data-copiar="${sitio.email}">Copiar correo</button></p><p class="nota">${sitio.horario}</p></section>`,
 });
@@ -697,7 +722,7 @@ paginas.push({
 
 // Búsqueda (no indexable: resultados generados en el navegador)
 paginas.push({
-  ruta: '/buscar/', tipo: 'buscar', indexar: false, titulo: 'Buscar productos | Halo Nutrition', descripcion: 'Busca suplementos de Halo Nutrition por nombre, sabor o categoría.',
+  ruta: '/buscar/', tipo: 'buscar', indexar: false, titulo: 'Buscar productos | Halo Nutrition', descripcion: 'Busca suplementos en Halo Nutrition por nombre, marca, sabor o categoría.',
   cuerpo: (c) => `
 <section class="wrap buscar-pag" aria-labelledby="buscar-t">
   <h1 class="h1 h1-pag" id="buscar-t">Buscar</h1>
@@ -800,7 +825,7 @@ paginas.push({
 paginas.push({
   ruta: '/blog/', tipo: 'blog', migas: [['Inicio', '/'], ['Guías', '/blog/']],
   titulo: 'Guías de suplementación deportiva | Halo Nutrition',
-  descripcion: 'Guías claras sobre proteína, creatina y pre-entreno: cómo elegir, cuánto tomar y qué esperar. Escritas por el equipo de nutrición de Halo.',
+  descripcion: 'Guías claras sobre proteína, creatina y pre-entreno: cómo elegir, cuánto tomar y qué esperar. Escritas por el equipo de Halo.',
   jsonld: [{ '@context': 'https://schema.org', '@type': 'Blog', name: 'Guías Halo', url: abs('/blog/'), inLanguage: sitio.idioma, blogPost: blog.map((b) => ({ '@type': 'BlogPosting', headline: b.titulo, url: abs(`/blog/${b.slug}/`), datePublished: b.fecha })) }],
   cuerpo: (c) => `
 <section class="wrap blog-cab"><h1 class="h1 h1-pag">Guías para entrenar mejor</h1><p class="lead">Respuestas cortas a las dudas que más nos llegan.</p></section>
@@ -812,7 +837,6 @@ blog.forEach((b) => {
   paginas.push({
     ruta, tipo: 'articulo', migas: [['Inicio', '/'], ['Guías', '/blog/'], [b.titulo, ruta]], tipoOg: 'article',
     titulo: `${b.tituloSeo || b.titulo.split(":")[0]} | Guías Halo`, descripcion: b.descripcion,
-    frasco: con3D(p) ? { p: p.slug, s: p.sabores[0].slug } : null,
     jsonld: [{ '@context': 'https://schema.org', '@type': 'BlogPosting', headline: b.titulo, description: b.descripcion, datePublished: b.fecha, dateModified: b.fecha, inLanguage: sitio.idioma, author: { '@type': 'Organization', name: sitio.nombre }, publisher: { '@type': 'Organization', name: sitio.nombre, logo: { '@type': 'ImageObject', url: abs('/assets/img/favicon.svg') } }, mainEntityOfPage: abs(ruta), image: portadaGuia(b) ? abs(`/assets/img/escenas/${portadaGuia(b)}-1200.webp`) : abs('/assets/img/og-halo.jpg'), keywords: b.palabrasClave.join(', ') }],
     cuerpo: (c) => `
 <article class="wrap texto-largo articulo">
@@ -820,7 +844,7 @@ blog.forEach((b) => {
   ${portadaGuia(b) ? `<figure class="articulo-portada"><img src="${c.a(`img/escenas/${portadaGuia(b)}-1200.webp`)}" srcset="${c.a(`img/escenas/${portadaGuia(b)}-600.webp`)} 600w, ${c.a(`img/escenas/${portadaGuia(b)}-1200.webp`)} 1200w" sizes="(min-width: 800px) 760px, 92vw" width="1200" height="630" alt="${esc(`${p.nombre} de Halo: ${b.titulo.split(':')[0].toLowerCase()}`)}" decoding="async"></figure>` : ''}
   <aside class="resumen-guia">${chip('chispa', 'ambar')}<div><strong>En pocas palabras</strong><p>${esc(b.descripcion)}</p></div></aside>
   ${b.cuerpo.map(([t, v]) => (t === 'ul' ? `<ul>${v.map((x) => `<li>${esc(x)}</li>`).join('')}</ul>` : `<${t}>${esc(v)}</${t}>`)).join('\n  ')}
-  <aside class="articulo-cta" aria-labelledby="cta-t"><div><h2 id="cta-t">${esc(p.nombre)}</h2><p>${esc(p.resumen)}</p><a class="btn btn-pri" href="${c.h(`/productos/${p.slug}/`)}">Ver ${esc(p.nombre)}</a></div><div class="articulo-cta-img" aria-hidden="true"${con3D(p) ? ' data-pose="d:el:.9" data-frasco-ancla' : ''}>${imgProducto(c, p, p.sabores[0], { sizes: '200px' })}</div></aside>
+  <aside class="articulo-cta" aria-labelledby="cta-t"><div><h2 id="cta-t">${esc(p.nombre)}</h2><p>${esc(p.resumen)}</p><a class="btn btn-pri" href="${c.h(`/productos/${p.slug}/`)}">Ver ${esc(p.nombre)}</a></div><div class="articulo-cta-img" aria-hidden="true">${imgProducto(c, p, p.sabores[0], { sizes: '200px' })}</div></aside>
   <nav class="otras-guias" aria-labelledby="otras-t"><h2 id="otras-t">Otras guías</h2><ul>${otras.map((o) => `<li><a href="${c.h(`/blog/${o.slug}/`)}">${esc(o.titulo)}</a></li>`).join('')}</ul></nav>
 </article>`,
   });

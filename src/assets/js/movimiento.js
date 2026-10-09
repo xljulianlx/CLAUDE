@@ -7,12 +7,16 @@
 
 const reducido = matchMedia('(prefers-reduced-motion: reduce)');
 const conMouse = matchMedia('(hover: hover) and (pointer: fine)');
+// En celular todo entra antes y más corto: al deslizar con el dedo el contenido llega rápido y no debe esperar.
+const tactil = matchMedia('(pointer: coarse)').matches || innerWidth < 760;
 
 export function iniciarMovimiento() {
   cabecera();
   etiqueta(); // los puntos se pueden tocar siempre; solo el recorrido automático depende del movimiento
   if (reducido.matches) return;
   document.documentElement.classList.add('js-mov');
+  if (tactil) document.documentElement.classList.add('mov-rapido');
+  vivo();
   revelar();
   contadores();
   inclinar();
@@ -49,13 +53,29 @@ function revelar() {
       requestAnimationFrame(() => {
         // Escalonado de 60 ms entre los que entran juntos, ordenados como se leen.
         lote.sort((a, b) => { const ra = a.getBoundingClientRect(); const rb = b.getBoundingClientRect(); return ra.top - rb.top || ra.left - rb.left; })
-          .forEach((el, i) => { el.style.setProperty('--rv', `${Math.min(i, 6) * 60}ms`); el.classList.add('visto'); });
+          .forEach((el, i) => { el.style.setProperty('--rv', `${Math.min(i, tactil ? 3 : 6) * (tactil ? 35 : 60)}ms`); el.classList.add('visto'); });
         lote = []; pendiente = false;
       });
     }
-  }, { rootMargin: '0px 0px -8% 0px' });
+  }, { rootMargin: tactil ? '0px 0px 12% 0px' : '0px 0px -8% 0px' });
   els.forEach((el) => io.observe(el));
   // Lo que se agrega después (resultados de búsqueda, productos nuevos) entra con su propia transición CSS.
+}
+
+/* ---------- foto "viva": el envase se inclina hacia el cursor y salta al tocarlo ---------- */
+// La flotación es CSS ([data-vivo] > img). Aquí solo la inclinación (con mouse) y el salto (con toque o clic).
+function vivo() {
+  document.querySelectorAll('[data-vivo]').forEach((fig) => {
+    const img = fig.querySelector('img'); if (!img) return;
+    fig.addEventListener('click', (e) => {
+      if (e.target.closest('a, button, input, label') || !img.animate) return;
+      img.animate([{ scale: '1' }, { scale: '1.07 0.9', offset: 0.16 }, { scale: '0.95 1.07', offset: 0.42 }, { scale: '1.02 0.98', offset: 0.7 }, { scale: '1' }], { duration: 620, easing: 'ease-out' });
+    });
+    if (!conMouse.matches) return;
+    let raf = 0; let ev = null;
+    fig.addEventListener('pointermove', (e) => { ev = e; if (!raf) raf = requestAnimationFrame(() => { raf = 0; const r = fig.getBoundingClientRect(); fig.style.setProperty('--ry', `${(((ev.clientX - r.left) / r.width - 0.5) * 12).toFixed(2)}deg`); fig.style.setProperty('--rx', `${(-((ev.clientY - r.top) / r.height - 0.5) * 10).toFixed(2)}deg`); }); });
+    fig.addEventListener('pointerleave', () => { fig.style.setProperty('--rx', '0deg'); fig.style.setProperty('--ry', '0deg'); });
+  });
 }
 
 /* ---------- cabecera que se esconde al bajar ---------- */
@@ -83,7 +103,7 @@ function contadores() {
   const io = new IntersectionObserver((es) => es.forEach((e) => {
     if (!e.isIntersecting) return; io.unobserve(e.target);
     const el = e.target; const fin = +el.dataset.contar; const t0 = performance.now();
-    const paso = (t) => { const u = Math.min(1, (t - t0) / 1100); el.textContent = Math.round(fin * (1 - (1 - u) ** 3)); if (u < 1) requestAnimationFrame(paso); };
+    const paso = (t) => { const u = Math.min(1, (t - t0) / (tactil ? 700 : 1100)); el.textContent = Math.round(fin * (1 - (1 - u) ** 3)); if (u < 1) requestAnimationFrame(paso); };
     requestAnimationFrame(paso);
   }), { threshold: 0.6 });
   els.forEach((el) => { const sec = el.closest('main > section') || el; if (Math.max(el.getBoundingClientRect().top, sec.getBoundingClientRect().top) > innerHeight) { el.textContent = '0'; io.observe(el); } });

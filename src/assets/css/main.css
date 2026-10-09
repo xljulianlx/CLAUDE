@@ -84,7 +84,7 @@ main:focus { outline: none; }
 .menu a { display: block; padding: 10px 14px; border-radius: 999px; text-decoration: none; color: var(--mut); font-weight: 550; font-size: 0.95rem; transition: color 160ms ease; }
 .menu a[aria-current="page"] { color: var(--fg); background: var(--surface-2); }
 .btn-carrito { display: inline-flex; align-items: center; gap: 10px; min-height: 44px; padding: 0 8px 0 16px; border: 1px solid var(--line); border-radius: 999px; text-decoration: none; font-weight: 600; font-size: 0.95rem; }
-.cuenta { min-width: 28px; height: 28px; padding-inline: 8px; border-radius: 999px; display: grid; place-items: center; background: var(--acc); color: var(--acc-fg); font-family: var(--mono); font-size: 0.8rem; font-weight: 600; }
+.cuenta { min-width: 28px; height: 28px; padding-inline: 8px; border-radius: 999px; display: grid; place-items: center; background: var(--acc); color: var(--acc-fg); font-family: var(--mono); font-size: 0.8rem; font-weight: 600; width: max-content; white-space: nowrap; }
 .cuenta.salta { animation: salta 0.5s var(--ease-out); }
 @keyframes salta { 30% { transform: scale(1.45); } 100% { transform: scale(1); } }
 /* En móvil la navegación vive en la barra inferior: la cabecera queda para el logo y el buscador. */
@@ -121,7 +121,6 @@ main:focus { outline: none; }
 .hero-media > img { width: 100%; height: 100%; object-fit: contain; }
 .hero-media::before { content: ""; position: absolute; inset: 6%; border-radius: 50%; background: radial-gradient(circle, color-mix(in srgb, var(--acc) 22%, transparent), transparent 66%); z-index: -1; }
 .hero-sombra { position: absolute; left: 22%; right: 22%; bottom: 7%; height: 7%; border-radius: 50%; background: radial-gradient(closest-side, rgba(0, 0, 0, 0.32), transparent); z-index: -1; }
-.frasco-activo .hero-media { cursor: pointer; }
 .hero-bajar { position: absolute; left: 50%; bottom: 10px; translate: -50% 0; width: 44px; height: 44px; display: grid; place-items: center; border-radius: 50%; }
 .hero-bajar span { width: 22px; height: 34px; border: 2px solid var(--mut); border-radius: 12px; position: relative; }
 .hero-bajar span::after { content: ""; position: absolute; left: 50%; top: 6px; width: 4px; height: 7px; margin-left: -2px; border-radius: 2px; background: var(--acc); animation: rueda 1.8s var(--ease-out) infinite; }
@@ -156,7 +155,6 @@ main:focus { outline: none; }
   .cinta-in span { padding-block: 9px; font-size: 0.8rem; }
 }
 @media (max-width: 860px) and (max-height: 700px) { .hero-sub, .hero-datos { display: none; } }
-.frasco-activo [data-frasco-ancla] > img { opacity: 0; transition: opacity 0.4s ease; }
 
 .garantias { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0; border-block: 1px solid var(--line); margin-block: 8px 24px; }
 .garantias > div { padding: 22px 20px 22px 0; display: grid; gap: 4px; }
@@ -389,10 +387,6 @@ select { min-height: 44px; padding: 0 14px; border-radius: var(--r-campo); borde
 .aviso { position: fixed; left: 50%; bottom: calc(20px + env(safe-area-inset-bottom, 0px)); z-index: 160; transform: translate(-50%, 16px); opacity: 0; pointer-events: none; background: var(--fg); color: var(--bg); padding: 12px 20px; border-radius: 999px; font-size: 0.92rem; font-weight: 550; transition: opacity 200ms ease, transform 260ms var(--ease-out); max-width: calc(100% - 32px); }
 .aviso.visible { opacity: 1; transform: translate(-50%, 0); }
 
-.aviso-3d { position: fixed; left: 16px; bottom: calc(16px + env(safe-area-inset-bottom, 0px)); z-index: 70; display: flex; align-items: center; gap: 10px; max-width: min(460px, calc(100% - 32px)); padding: 10px 8px 10px 16px; border-radius: 18px; background: var(--vidrio); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1px solid var(--line); box-shadow: var(--sombra); font-size: 0.88rem; }
-.aviso-3d p { flex: 1; }
-.aviso-3d .btn-icono { width: 36px; height: 36px; font-size: 1.3rem; flex: none; }
-.aviso-3d .btn { flex: none; }
 
 /* ---------- pie ---------- */
 .pie { position: relative; z-index: 2; border-top: 1px solid var(--line); margin-top: 48px; background: var(--bg); }
@@ -454,8 +448,7 @@ body.buscando { overflow: hidden; }
   body { padding-bottom: calc(62px + env(safe-area-inset-bottom, 0px)); }
   .barra-compra { bottom: calc(62px + env(safe-area-inset-bottom, 0px)); padding-bottom: 12px; }
   .aviso { bottom: calc(80px + env(safe-area-inset-bottom, 0px)); }
-  .aviso-3d { bottom: calc(74px + env(safe-area-inset-bottom, 0px)); }
-  .pie-legal { padding-bottom: 24px; }
+    .pie-legal { padding-bottom: 24px; }
 }
 .tab-ico { width: 24px; height: 24px; background-color: currentColor; -webkit-mask: var(--m) no-repeat center / contain; mask: var(--m) no-repeat center / contain; position: relative; }
 .tab-inicio { --m: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linejoin='round'%3E%3Cpath d='M3 10.5 12 3l9 7.5V21h-6v-6H9v6H3z'/%3E%3C/svg%3E"); }
@@ -657,13 +650,6 @@ body.buscando { overflow: hidden; }
   @keyframes dialogoEntra { from { transform: translateY(24px); opacity: 0; } }
 }
 
-/* Si el administrador sube una foto propia, el frasco 3D se oculta y se ve la foto. */
-.sin-frasco .frasco-lienzo { display: none; }
-.sin-frasco [data-frasco-ancla] img { opacity: 1 !important; }
-
-/* ---------- lienzo 3D ---------- */
-.frasco-lienzo { position: fixed; inset: 0; width: 100%; height: 100%; z-index: 40; pointer-events: none; opacity: 0; transition: opacity 0.5s ease; }
-.frasco-activo .frasco-lienzo { opacity: 1; }
 
 /* ---------- transiciones entre páginas (View Transitions entre documentos) ---------- */
 @view-transition { navigation: auto; }
@@ -1031,17 +1017,22 @@ body { background: var(--bg) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3
 /* En pantallas táctiles: sin desenfoque de fondo en barras fijas (es lo que más cuesta al hacer scroll), sin paralaje,
    y las manchas de color de la portada quedan quietas. Se ve igual, se mueve más fluido. */
 @media (pointer: coarse) {
-  .cabecera, .tabbar, .barra-compra, .tienda-barra, .objetivo-txt, .hero .sabor, .aviso-3d { -webkit-backdrop-filter: none; backdrop-filter: none; }
+  .cabecera, .tabbar, .barra-compra, .tienda-barra, .objetivo-txt, .hero .sabor { -webkit-backdrop-filter: none; backdrop-filter: none; }
   .cabecera { background: color-mix(in srgb, var(--bg) 96%, transparent); }
   .tabbar, .barra-compra { background: color-mix(in srgb, var(--bg) 97%, transparent); }
   .tienda-barra { background: var(--bg); }
   .orbe { animation: none !important; transition: background-color 700ms ease; }
   .familia-img, .ciencia-img img, .articulo-portada img, .historia-con-img img, .nosotros-img, .paso { animation: none !important; }
 }
-/* Frasco animado con CSS (celulares de gama baja o sin WebGL): la misma foto flota y se balancea. */
+/* Foto "viva" (portada y ficha): la foto real del envase flota y se balancea con CSS, sin cálculo por cuadro.
+   Con mouse se inclina hacia el cursor y al tocarla da un salto (movimiento.js). */
+[data-vivo] { --rx: 0deg; --ry: 0deg; transform: perspective(900px) rotateX(var(--rx)) rotateY(var(--ry)); transition: transform 0.5s var(--ease-out); cursor: pointer; -webkit-tap-highlight-color: transparent; }
 @media (prefers-reduced-motion: no-preference) {
-  .frasco-css .hero-media > img, .frasco-css .ficha-galeria > img { animation: vivo 5.4s ease-in-out infinite; transform-origin: 50% 85%; }
-  @keyframes vivo { 0%, 100% { transform: translateY(0) rotate(-1.5deg); } 50% { transform: translateY(-2.2%) rotate(1.5deg); } }
+  [data-vivo] > img { animation: vivo 5.4s ease-in-out infinite; transform-origin: 50% 85%; }
+  @keyframes vivo { 0%, 100% { translate: 0 0; rotate: -1.5deg; } 50% { translate: 0 -2.2%; rotate: 1.5deg; } }
+  /* Celular: las entradas empiezan antes y duran menos, para que nada se quede esperando al deslizar. */
+  .js-mov.mov-rapido .rv { translate: 0 10px; transition-duration: 300ms, 340ms; }
+  .mov-rapido .hero-copy > *, .mov-rapido .hero-acciones { animation-duration: 420ms; }
 }
 
 /* ================= Color e íconos en las secciones de información ================= */
@@ -1609,3 +1600,15 @@ details[open] > summary .chip-ico { background: linear-gradient(140deg, color-mi
 .lab-sello span { min-width: 0; overflow-wrap: anywhere; }
 .co-barra .btn { padding-inline: 16px; flex: none; }
 .dato:not([class*="t-"]) { --c: var(--naranja); }
+
+/* ================= Productos reales: un solo sabor y combos en la tienda ================= */
+.sabor-unico { display: inline-flex; align-items: center; gap: 10px; font-size: 0.95rem; color: var(--mut); }
+.sabor-unico strong { color: var(--fg); font-weight: 650; }
+.sabor-unico .sabor-muestra { width: 22px; height: 22px; flex: none; }
+.hero .sabor-unico { padding: 8px 14px 8px 10px; border-radius: 999px; background: var(--surface); border: 1px solid var(--line); }
+.filtros a.filtro-combos { gap: 6px; border-color: color-mix(in srgb, var(--naranja) 45%, var(--line)); color: #a83f12; }
+.filtros a.filtro-combos .ico { width: 1em; height: 1em; }
+.filtros a.filtro-combos[aria-current="page"] { background: #a83f12; border-color: #a83f12; color: #fff; }
+/* Fotos reales sobre fondo transparente: una sombra suave para que el envase se apoye. */
+.tarjeta-img img, .ficha-galeria > img, .hero-media > img, .combo-fotos img, .paso-img { filter: drop-shadow(0 14px 18px rgba(20, 16, 12, 0.16)); }
+@media (pointer: coarse) { .tarjeta-img img, .combo-fotos img, .paso-img { filter: none; } }

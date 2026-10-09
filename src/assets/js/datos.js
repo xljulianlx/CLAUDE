@@ -27,9 +27,9 @@ export function haySesionGuardada() {
 }
 
 /* ---------- productos ---------- */
-const DEMO_PROD = 'halo-demo-productos';
+const DEMO_PROD = 'halo-demo-productos-v2';
 function baseDemo() {
-  return datos.productos.map((p, i) => ({ slug: p.slug, nombre: p.nombre, categoria: p.categoria, precio: p.precio, porciones: p.porciones, presentacion: p.presentacion, forma: p.forma, sabores: p.sabores, resumen: p.resumen || '', imagen_url: null, visible: true, stock: [40, 8, 25, 3, 18, 0][i % 6], stock_minimo: 5, orden: i, base: true }));
+  return datos.productos.map((p, i) => ({ slug: p.slug, nombre: p.nombre, categoria: p.categoria, precio: p.precio, porciones: p.porciones, presentacion: p.presentacion, forma: p.forma, sabores: p.sabores, resumen: p.resumen || '', imagen_url: null, visible: true, stock: [40, 8, 25, 3, 18, 12][i % 6], stock_minimo: 5, orden: i, base: true }));
 }
 function estadoDemo() {
   const guardado = leerLS(DEMO_PROD, null);
@@ -154,7 +154,7 @@ export async function esAdmin() {
 }
 
 /* ---------- pedidos ---------- */
-const DEMO_PED = 'halo-demo-pedidos-v2';
+const DEMO_PED = 'halo-demo-pedidos-v3';
 // Historial de ejemplo (unos 90 días) para que el panel tenga gráficas con sentido. Siempre igual (semilla fija).
 function pedidosEjemplo() {
   const P = datos.productos; const ahora = Date.now(); const dia = 864e5;

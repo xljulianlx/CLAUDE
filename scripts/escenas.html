@@ -3,22 +3,23 @@
 <title>Render de escenas</title>
 <canvas id="c" width="1000" height="1000"></canvas>
 <script type="module">
-  // Compone escenas de estudio (fondo, aro de marca, partículas, sombras y reflejo) con los envases 3D del sitio.
-  import { crearRender, crearEtiqueta, hexARgb } from '../src/assets/js/frasco-gl.js';
-  const c = document.getElementById('c');
-  const r = crearRender(c);
-  function envase(producto, sabor, tam, giro, inclinacion) {
-    c.width = tam; c.height = tam;
-    r.setEtiqueta(crearEtiqueta(producto, sabor));
-    r.dibujar({ cx: tam / 2, cy: tam * 0.5, S: (tam * 0.8) / 0.485, giro, inclinacion, forma: producto.forma, base: hexARgb(sabor.c1), dpr: 1, pasos: 90 });
-    const t = document.createElement('canvas'); t.width = tam; t.height = tam; const x = t.getContext('2d'); x.drawImage(c, 0, 0);
+  // Compone escenas de estudio (fondo, aro de marca, partículas, sombras y reflejo) con las fotos recortadas
+  // de cada producto (fuentes/productos/<slug>.png, fondo transparente).
+  const fotos = {};
+  const cargar = (slug) => fotos[slug] || (fotos[slug] = new Promise((ok, mal) => { const i = new Image(); i.onload = () => ok(i); i.onerror = mal; i.src = `../fuentes/productos/${slug}.png`; }));
+  function envase(img, tam, incl) {
+    const t = document.createElement('canvas'); t.width = tam; t.height = tam; const x = t.getContext('2d');
+    x.imageSmoothingQuality = 'high'; x.translate(tam / 2, tam / 2); x.rotate(incl || 0); x.drawImage(img, -tam / 2, -tam / 2, tam, tam);
     // Caja visible del envase (para apoyarlo en el piso).
     const d = x.getImageData(0, 0, tam, tam).data; let top = tam, bot = 0;
     for (let y = 0; y < tam; y++) for (let k = 0; k < tam; k += 2) if (d[(y * tam + k) * 4 + 3] > 40) { if (y < top) top = y; if (y > bot) bot = y; break; }
     return { t, top, bot };
   }
+  // Fotos de producto: el recorte en cuadrado transparente, en los tamaños que usa el sitio.
+  window.foto = async (slug, tamanos) => { const img = await cargar(slug); return tamanos.map((n) => { const k = document.createElement('canvas'); k.width = n; k.height = n; const x = k.getContext('2d'); x.imageSmoothingQuality = 'high'; x.drawImage(img, 0, 0, n, n); return k.toDataURL('image/webp', n <= 160 ? 0.8 : 0.84); }); };
   let semilla = 7; const azar = () => ((semilla = (semilla * 16807) % 2147483647) / 2147483647);
-  window.escena = (s) => {
+  window.escena = async (s) => {
+    const imgs = await Promise.all(s.items.map((it) => cargar(it.slug)));
     semilla = s.semilla || 7;
     const W = s.w, H = s.h; const o = document.createElement('canvas'); o.width = W; o.height = H; const x = o.getContext('2d');
     const g = x.createLinearGradient(0, 0, W * 0.3, H); g.addColorStop(0, s.fondo[0]); g.addColorStop(1, s.fondo[1]); x.fillStyle = g; x.fillRect(0, 0, W, H);
@@ -33,8 +34,8 @@
       x.fillStyle = s.colorParticulas[i % s.colorParticulas.length]; x.beginPath(); x.arc(px, py, pr, 0, Math.PI * 2); x.fill();
     }
     x.globalAlpha = 1;
-    s.items.forEach((it) => {
-      const tam = Math.round(it.h * H); const e = envase(it.p, it.s, tam, it.giro ?? 0.35, it.incl ?? 0.12);
+    s.items.forEach((it, n) => {
+      const tam = Math.round(it.h * H); const e = envase(imgs[n], tam, it.incl);
       const cx = it.x * W; const base = piso + (it.dy || 0) * H; const ox = cx - tam / 2; const oy = base - e.bot;
       const sh = x.createRadialGradient(cx, base, 0, cx, base, tam * 0.42); sh.addColorStop(0, 'rgba(0,0,0,0.45)'); sh.addColorStop(1, 'rgba(0,0,0,0)');
       x.save(); x.translate(cx, base); x.scale(1, 0.16); x.translate(-cx, -base); x.fillStyle = sh; x.beginPath(); x.arc(cx, base, tam * 0.42, 0, Math.PI * 2); x.fill(); x.restore();
@@ -50,5 +51,5 @@
     const ruido = x.getImageData(0, 0, W, H); const d = ruido.data; for (let i = 0; i < d.length; i += 4) { const n = (azar() - 0.5) * 10; d[i] += n; d[i + 1] += n; d[i + 2] += n; } x.putImageData(ruido, 0, 0);
     return s.tamanos.map((ancho) => { const k = document.createElement('canvas'); k.width = ancho; k.height = Math.round(H * ancho / W); k.getContext('2d').drawImage(o, 0, 0, k.width, k.height); return k.toDataURL('image/webp', 0.84); });
   };
-  window.listo = !!r;
+  window.listo = true;
 </script>

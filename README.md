@@ -1,11 +1,12 @@
 # Halo Nutrition
 
-Tienda de suplementos deportivos (demostración) con un frasco 3D que vive en la portada (flota, se balancea, sigue el puntero y salta al tocarlo), buscador de productos, cuentas de cliente (correo, Google y Facebook), panel de administración y pago con Mercado Pago Checkout Pro. Marca, precios, reseñas y textos son de ejemplo.
+Tienda de suplementos deportivos (demostración) que vende productos de marcas como Optimum Nutrition, Dragon Pharma y Nutramerican. La foto real del producto estrella "vive" en la portada (flota, se balancea, se inclina hacia el cursor y salta al tocarla). Incluye buscador, combos con descuento, cuentas de cliente (correo, Google y Facebook), panel de administración y pago con Mercado Pago Checkout Pro. Los precios son de ejemplo; los datos de cada producto salen solo de lo que dice su etiqueta.
 
 ## Estructura
 
 ```
-src/data/catalogo.mjs       Catálogo base (productos, sabores, reseñas, blog, envíos). Se usa si no hay Supabase.
+src/data/catalogo.mjs       Catálogo base (productos, combos, reseñas, blog, envíos). Se usa si no hay Supabase.
+fuentes/productos/          Fotos recortadas (PNG con fondo transparente) de cada producto. De aquí salen todas las imágenes.
 src/assets/css/main.css     Sistema de diseño (tema claro).
 src/assets/js/datos.js      Capa de datos: Supabase o, sin configurar, "modo demostración" en el navegador.
 src/assets/js/app.js        Carrito, buscador, datos en vivo (precio, stock, visibilidad), fichas, pago.
@@ -13,13 +14,10 @@ src/assets/js/precios.js     Combos, cupón y envío: el mismo cálculo en el ca
 src/assets/js/checkout.js    /finalizar-compra/: contacto, envío (departamentos de Colombia), cupón, pago y recibo.
 src/assets/js/cuenta.js     /cuenta/: entrar, crear cuenta, Google, Facebook, recuperar clave, mis pedidos.
 src/assets/js/admin.js      /admin/: resumen de ventas, productos (foto, precio, stock, visible, eliminar), pedidos.
-src/assets/js/escena.js     Escena 3D persistente entre páginas.
-src/assets/js/frasco-gl.js  Motor WebGL del frasco (también genera las fotos).
-src/assets/js/movimiento.js Animaciones con GSAP + ScrollTrigger (con alternativa sin GSAP).
+src/assets/js/movimiento.js Animaciones: entradas al hacer scroll (más rápidas en celular), foto viva, contadores.
 scripts/build.mjs           Genera public/: páginas, sitemap.xml con imágenes, robots.txt, JSON-LD.
 scripts/semilla-sql.mjs     Genera supabase/semilla.sql con los productos del catálogo.
-scripts/render-fotos.mjs    Renderiza las fotos WebP de cada producto y sabor.
-scripts/render-escenas.mjs  Compone las imágenes de ambiente (categorías, guías, familia, laboratorio).
+scripts/render-escenas.mjs  Genera las fotos WebP de producto (160/600/1000) y las imágenes de ambiente desde fuentes/productos/.
 scripts/auditar.cjs         Auditoría de SEO, accesibilidad, rendimiento y enlaces.
 supabase/esquema.sql        Tablas, seguridad por filas (RLS), inventario y almacenamiento de fotos.
 api/crear-preferencia.js    Valida el carrito (precio, visibilidad y stock), registra el pedido y crea la preferencia.
@@ -36,7 +34,7 @@ Sin variables de Supabase, el sitio funciona igual pero todo se guarda en el nav
 ```bash
 npm install              # SDK de Mercado Pago (solo lo usan las funciones de api/)
 npm run build            # genera public/
-npm run fotos            # vuelve a renderizar las fotos (necesita Playwright + Chromium)
+npm run fotos            # regenera fotos y escenas desde fuentes/productos/ (Playwright + Chromium)
 node scripts/semilla-sql.mjs   # genera supabase/semilla.sql
 npx http-server public   # servir en local; luego: node scripts/auditar.cjs http://127.0.0.1:8080
 ```
@@ -79,8 +77,9 @@ Precio, stock y visibilidad se actualizan solos en la tienda apenas se guardan e
 
 ## Antes de vender de verdad
 
-- Reemplazar el catálogo con la ficha real y volver a correr `npm run fotos` (o subir fotos desde el panel).
-- Reseñas: conectar reseñas reales y poner `resenasDeEjemplo: false`. Solo entonces se publican como datos estructurados.
+- Para agregar un producto: su foto recortada en `fuentes/productos/<slug>.png`, su ficha en el catálogo (solo datos de la etiqueta) y `npm run fotos` (o subir la foto desde el panel).
+- Confirmar que se pueden usar las fotos y marcas de cada fabricante, y completar la marca del BCAA (no se lee en la foto).
+- Reseñas: la tienda no muestra reseñas hasta conectar reseñas reales (`resenas` en el catálogo). Si se cargan reseñas de ejemplo, poner `resenasDeEjemplo: true`.
 - Mercado Pago: probar el flujo completo con credenciales y usuarios de prueba.
 - Webhook: implementar la validación de la firma `x-signature` según la documentación oficial ("Validar origen de la notificación"). Está marcado como pendiente en `api/webhook-mercadopago.js`.
 - Correos de confirmación de pedido y de envío (por ejemplo con Resend o el SMTP de Supabase).

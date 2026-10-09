@@ -10,7 +10,7 @@ const reducido = matchMedia('(prefers-reduced-motion: reduce)');
 const num = new Intl.NumberFormat('es-CO', { maximumFractionDigits: 0 });
 const cop = (n) => `$ ${num.format(Math.round(n))}`;
 // Fotos renderizadas por sabor; si el producto tiene foto propia (subida en el panel) se usa esa.
-const foto = (slug, sabor, t = 160) => { const p = P[slug]; return p && !p.con3D ? p.img : `${datos.assets}img/productos/${slug}-${sabor}-${t}.webp`; };
+const foto = (slug, sabor, t = 160) => { const p = P[slug]; return p && !p.conFotos ? p.img : `${datos.assets}img/productos/${slug}-${sabor}-${t}.webp`; };
 const esc = (t) => String(t ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
@@ -217,7 +217,6 @@ function vincularSabor(nombre, slug, alCambiar) {
     const s = sabor(slug, r.value); const fs = r.closest('fieldset');
     if (fs) $('[data-sabor-nombre]', fs).textContent = s.nombre;
     alCambiar?.(s);
-    document.dispatchEvent(new CustomEvent('frasco:sabor', { detail: { p: slug, s: s.slug } }));
   }));
 }
 const compra = $('[data-compra]');
@@ -225,9 +224,9 @@ if (compra) {
   const slug = compra.dataset.compra; const img = $('[data-ficha-img]'); const cant = $('#cantidad');
   vincularSabor('sabor', slug, (s) => {
     $('.ficha-galeria')?.style.setProperty('--c1', s.c1);
-    if (!img || !P[slug].con3D) return;
+    if (!img || !P[slug].conFotos) return;
     img.src = foto(slug, s.slug, 1000); img.srcset = `${foto(slug, s.slug, 600)} 600w, ${foto(slug, s.slug, 1000)} 1000w`;
-    img.alt = `${P[slug].nombre} de Halo, sabor ${s.nombre}, ${P[slug].presentacion}`;
+    img.alt = `${P[slug].nombre}, sabor ${s.nombre}, ${P[slug].presentacion}`;
   });
   $$('[data-cant]', compra).forEach((b) => b.addEventListener('click', () => { cant.value = Math.max(1, Math.min(9, (+cant.value || 1) + +b.dataset.cant)); }));
   compra.addEventListener('submit', (ev) => {
@@ -272,7 +271,7 @@ if (hero) {
   vincularSabor('sabor-hero', slug, (s) => {
     hero.style.setProperty('--hc1', s.c1); hero.style.setProperty('--hc2', s.c2);
     if (enlace) enlace.href = `${P[slug].url}?sabor=${s.slug}`;
-    if (img && P[slug].con3D) { img.srcset = `${foto(slug, s.slug, 600)} 600w, ${foto(slug, s.slug, 1000)} 1000w`; img.src = foto(slug, s.slug, 1000); }
+    if (img && P[slug].conFotos) { img.srcset = `${foto(slug, s.slug, 600)} 600w, ${foto(slug, s.slug, 1000)} 1000w`; img.src = foto(slug, s.slug, 1000); }
   });
   if (matchMedia('(hover: hover) and (pointer: fine)').matches && !reducido.matches) {
     let raf = 0; let ev = null;
@@ -286,7 +285,7 @@ document.addEventListener('click', (ev) => {
   const card = m.closest('[data-tarjeta]'); const slug = card.dataset.tarjeta; const s = sabor(slug, m.dataset.muestra);
   $$('[data-muestra]', card).forEach((b) => b.setAttribute('aria-pressed', String(b === m)));
   const img = $('.tarjeta-img img', card);
-  if (img && P[slug].con3D) {
+  if (img && P[slug].conFotos) {
     const nueva = () => { img.srcset = `${foto(slug, s.slug, 600)} 600w, ${foto(slug, s.slug, 1000)} 1000w`; img.src = foto(slug, s.slug, 600); };
     if (reducido.matches || !img.animate) nueva();
     else img.animate([{ opacity: 1, transform: 'none' }, { opacity: 0, transform: 'scale(0.94) rotate(-4deg)' }], { duration: 140, easing: 'ease-in' }).finished.then(() => { nueva(); img.animate([{ opacity: 0, transform: 'scale(0.94) rotate(4deg)' }, { opacity: 1, transform: 'none' }], { duration: 260, easing: 'cubic-bezier(0.23, 1, 0.32, 1)' }); });
@@ -299,7 +298,7 @@ document.addEventListener('click', (ev) => {
 // 1,4 a 2 g por kilo según objetivo; quien entrena 5 días o más suma 0,1 y quien entrena 1-2 días resta 0,1 (siempre dentro del rango).
 const calc = $('[data-calc]');
 if (calc) {
-  const kg = $('#calc-kg', calc); const porcion = 25; const arco = $('[data-calc-arco]', calc); const out = $('[data-calc-g]', calc);
+  const kg = $('#calc-kg', calc); const porcion = +calc.dataset.porcion || 24; const porciones = +calc.dataset.porciones || 29; const nombreTarro = calc.dataset.nombre || 'proteína'; const arco = $('[data-calc-arco]', calc); const out = $('[data-calc-g]', calc);
   let actual = +out.textContent || 126; let anim = 0;
   const contarA = (hasta) => {
     cancelAnimationFrame(anim); const desde = actual; actual = hasta;
@@ -312,14 +311,14 @@ if (calc) {
     const f = Math.min(2, Math.max(1.4, base + (dias >= 5 ? 0.1 : dias <= 2 ? -0.1 : 0)));
     const g = Math.round(kg.value * f);
     const batidos = Math.min(3, Math.max(1, Math.round((g * 0.25) / porcion))); const comida = g - batidos * porcion;
-    const partes = [['Desayuno', Math.round(comida * 0.25), '#f2b443', 'chispa'], ['Almuerzo', Math.round(comida * 0.4), '#e2662c', 'hoja'], ['Cena', comida - Math.round(comida * 0.25) - Math.round(comida * 0.4), '#7349c2', 'reloj'], [`${batidos} ${batidos === 1 ? 'batido' : 'batidos'} Halo`, batidos * porcion, '#2f6fd6', 'gota']];
+    const partes = [['Desayuno', Math.round(comida * 0.25), '#f2b443', 'chispa'], ['Almuerzo', Math.round(comida * 0.4), '#e2662c', 'hoja'], ['Cena', comida - Math.round(comida * 0.25) - Math.round(comida * 0.4), '#7349c2', 'reloj'], [`${batidos} ${batidos === 1 ? 'batido' : 'batidos'} de proteína`, batidos * porcion, '#2f6fd6', 'gota']];
     $('[data-calc-kg]', calc).textContent = `${kg.value} kg`;
     kg.style.setProperty('--p', `${((kg.value - kg.min) / (kg.max - kg.min)) * 100}%`);
     contarA(g);
     arco.style.strokeDasharray = `${Math.min(100, (g / 300) * 100).toFixed(1)} 100`;
     $('[data-calc-reparto]', calc).innerHTML = `<div class="rep-barra">${partes.map(([t, v, col]) => `<span style="flex:${v};background:${col}" title="${t}: ${v} g"></span>`).join('')}</div><ul class="rep-ley">${partes.map(([t, v, col, n]) => `<li><i style="background:${col}"><svg class="ico" aria-hidden="true"><use href="#i-${n}"/></svg></i><span>${t}</span><strong>${v} g</strong></li>`).join('')}</ul>`;
-    const dura = Math.floor(30 / batidos);
-    $('[data-calc-tarro]', calc).innerHTML = `<span class="tarro-ico" style="--p:${Math.min(1, dura / 30)}" aria-hidden="true"></span><span>Un tarro de Whey Isolate te dura <strong>${dura} días</strong> con ${batidos} ${batidos === 1 ? 'batido' : 'batidos'} al día.</span>`;
+    const dura = Math.floor(porciones / batidos);
+    $('[data-calc-tarro]', calc).innerHTML = `<span class="tarro-ico" style="--p:${Math.min(1, dura / porciones)}" aria-hidden="true"></span><span>Un envase de ${esc(nombreTarro)} te dura <strong>${dura} días</strong> con ${batidos} ${batidos === 1 ? 'batido' : 'batidos'} al día.</span>`;
     calc.classList.remove('pulso'); void calc.offsetWidth; calc.classList.add('pulso');
   };
   calc.addEventListener('input', pintar); pintar();
@@ -493,7 +492,7 @@ function pintarEstados() {
       linea.hidden = !(no || pocas); linea.textContent = p.oculto ? 'Este producto no está disponible por ahora' : agotado ? 'Agotado por ahora' : pocas ? `Últimas ${p.stock} unidades` : '';
       $$('[data-boton-compra], [data-barra-agregar]').forEach((b) => { b.disabled = no; });
       const cant = $('#cantidad'); if (cant && p.stock) cant.max = Math.min(9, p.stock);
-      const img = $('[data-ficha-img]'); if (img && p.fotoPropia && img.getAttribute('src') !== p.img) { img.removeAttribute('srcset'); img.src = p.img; document.body.classList.add('sin-frasco'); }
+      const img = $('[data-ficha-img]'); if (img && p.fotoPropia && img.getAttribute('src') !== p.img) { img.removeAttribute('srcset'); img.src = p.img; }
     }
   }
 }
@@ -505,11 +504,11 @@ function aplicarDatos(lista) {
     let p = P[x.slug];
     if (!p) {
       const k = (datos.categorias || []).find((c) => c.slug === x.categoria);
-      p = P[x.slug] = { slug: x.slug, nombre: x.nombre, porciones: x.porciones, presentacion: x.presentacion || '', forma: x.forma, categoria: x.categoria, categoriaNombre: k ? k.nombre : x.categoria, resumen: x.resumen || '', palabras: '', sabores: x.sabores?.length ? x.sabores : [{ slug: 'unico', nombre: 'Único', c1: '#3b3f47', c2: '#15171b' }], img: `${datos.assets}img/sin-foto.svg`, con3D: false, url: null };
+      p = P[x.slug] = { slug: x.slug, nombre: x.nombre, porciones: x.porciones, presentacion: x.presentacion || '', forma: x.forma, categoria: x.categoria, categoriaNombre: k ? k.nombre : x.categoria, resumen: x.resumen || '', palabras: '', sabores: x.sabores?.length ? x.sabores : [{ slug: 'unico', nombre: 'Único', c1: '#3b3f47', c2: '#15171b' }], img: `${datos.assets}img/sin-foto.svg`, conFotos: false, url: null };
       nuevos.push(p);
     }
     Object.assign(p, { oculto: false, nombre: x.nombre || p.nombre, precio: x.precio, stock: x.stock ?? null, stockMin: x.stock_minimo ?? 5 });
-    if (x.imagen_url) { p.img = x.imagen_url; p.con3D = false; p.fotoPropia = true; }
+    if (x.imagen_url) { p.img = x.imagen_url; p.conFotos = false; p.fotoPropia = true; }
   });
   // Productos creados en el panel que todavía no tienen página: se muestran en las rejillas del inicio y la tienda.
   nuevos.forEach((p) => {
@@ -533,34 +532,4 @@ if (haySesionGuardada()) {
 pintarContador();
 addEventListener('storage', (e) => { if (e.key === CLAVE) refrescar(); });
 import('./movimiento.js').then((m) => m.iniciarMovimiento()).catch(() => {});
-const ahorro = navigator.connection?.saveData;
-// Sin crear un contexto WebGL de prueba (eso solo cuesta tiempo al cargar): basta con saber si existe.
-const conGL = !!window.WebGLRenderingContext;
-// Celulares de gama baja: el frasco "vive" con la foto animada en CSS (misma imagen, sin cálculo 3D por cuadro).
-const gamaBaja = matchMedia('(pointer: coarse)').matches && ((navigator.deviceMemory && navigator.deviceMemory <= 3) || (navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 4));
-const quiere3D = () => { try { return localStorage.getItem('halo-3d') === 'si'; } catch { return false; } };
-let escenaIniciada = false;
-function iniciar3D() {
-  if (escenaIniciada) return; escenaIniciada = true;
-  const iniciar = () => import('./escena.js').then((m) => m.iniciarEscena(datos)).catch(() => {});
-  if (document.readyState === 'complete') (window.requestIdleCallback || setTimeout)(iniciar);
-  else addEventListener('load', () => (window.requestIdleCallback || setTimeout)(iniciar), { once: true });
-}
-// El 3D respeta "reducir movimiento" y el ahorro de datos. Si está apagado por eso, se explica y se ofrece activarlo.
-function avisar3D(texto, conBoton) {
-  try { if (sessionStorage.getItem('halo-3d-aviso') === 'cerrado') return; } catch { /* nada */ }
-  const el = document.createElement('div'); el.className = 'aviso-3d'; el.setAttribute('role', 'region'); el.setAttribute('aria-label', 'Animación 3D');
-  el.innerHTML = `<p>${texto}</p>${conBoton ? '<button class="btn btn-sec btn-sm" type="button" data-activar-3d>Activar 3D</button>' : ''}<button class="btn-icono" type="button" data-cerrar-3d aria-label="Cerrar aviso">×</button>`;
-  document.body.appendChild(el);
-  el.addEventListener('click', (e) => {
-    if (e.target.closest('[data-activar-3d]')) { try { localStorage.setItem('halo-3d', 'si'); } catch { /* nada */ } el.remove(); iniciar3D(); }
-    if (e.target.closest('[data-cerrar-3d]')) { try { sessionStorage.setItem('halo-3d-aviso', 'cerrado'); } catch { /* nada */ } el.remove(); }
-  });
-}
-if (document.body.dataset.frasco) {
-  if ((!conGL || gamaBaja) && !reducido.matches) document.documentElement.classList.add('frasco-css');
-  else if ((reducido.matches || ahorro) && !quiere3D()) avisar3D(reducido.matches ? 'El frasco 3D está en pausa porque tu sistema pide reducir el movimiento.' : 'El frasco 3D está en pausa porque tienes activado el ahorro de datos.', true);
-  else if (conGL) iniciar3D();
-}
-
 export { leer, guardar, validos, resumen, aplicarCupon, cuponActual, P, foto, cop, esc, avisar, refrescar, pintarContador };

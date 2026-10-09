@@ -213,7 +213,7 @@ function abrirProducto(p) {
       <div class="campo"><label for="f-min">Avisar cuando queden</label><input id="f-min" name="stock_minimo" type="number" inputmode="numeric" min="0" value="${p.stock_minimo}"></div></div>
     <div class="dos"><div class="campo"><label for="f-pres">Presentación</label><input id="f-pres" name="presentacion" value="${esc(p.presentacion)}" placeholder="900 g, 30 porciones"></div>
       <div class="campo"><label for="f-porc">Porciones</label><input id="f-porc" name="porciones" type="number" inputmode="numeric" min="0" value="${p.porciones ?? ''}"></div></div>
-    <div class="campo"><label for="f-forma">Envase (para el 3D)</label><select id="f-forma" name="forma">${[['tarro', 'Tarro'], ['lata', 'Lata'], ['shaker', 'Shaker'], ['caja', 'Caja']].map(([v, t]) => `<option value="${v}"${v === p.forma ? ' selected' : ''}>${t}</option>`).join('')}</select></div>
+    <div class="campo"><label for="f-forma">Tipo de envase</label><select id="f-forma" name="forma">${[['tarro', 'Tarro'], ['lata', 'Lata'], ['shaker', 'Shaker'], ['caja', 'Caja']].map(([v, t]) => `<option value="${v}"${v === p.forma ? ' selected' : ''}>${t}</option>`).join('')}</select></div>
     <div class="campo"><label for="f-res">Resumen (se ve en la tarjeta)</label><textarea id="f-res" name="resumen" maxlength="160" rows="2">${esc(p.resumen)}</textarea></div>
     ${modoDemo && nuevo ? '' : `<div class="campo"><label for="f-desc">Descripción (página del producto y Google)</label><textarea id="f-desc" name="descripcion" rows="4">${esc(p.descripcion || '')}</textarea></div>`}
     <label class="check"><input type="checkbox" name="visible"${p.visible ? ' checked' : ''}> Visible en la tienda</label>
