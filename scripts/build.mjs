@@ -360,7 +360,7 @@ function combosHTML(c, { cabecera = true, enlace = false } = {}) {
     const ps = k.items.map(prod); const lleno = ps.reduce((a, p) => a + p.precio, 0); const final = ps.reduce((a, p) => a + Math.round(p.precio * (1 - k.descuento / 100)), 0);
     return `<li class="combo-card" style="--c:${k.color};--i:${i}" data-revelar>
       <span class="combo-pct">−${k.descuento} %</span>
-      <div class="combo-fotos n${ps.length}" aria-hidden="true">${ps.map((p, j) => `<span style="--j:${j}">${imgProducto(c, p, p.sabores[0], { sizes: '160px', lazy: cabecera || i > 1 })}</span>`).join('')}</div>
+      <div class="combo-fotos n${ps.length}" aria-hidden="true">${ps.map((p, j) => `<span style="--j:${j}">${imgProducto(c, p, p.sabores[0], { sizes: '160px', lazy: cabecera })}</span>`).join('')}</div>
       <h3>${esc(k.nombre)}</h3><p class="combo-lema">${esc(k.lema)}</p>
       <ul class="combo-items">${ps.map((p) => `<li>${ico('check')}<a href="${c.h(`/productos/${p.slug}/`)}">${esc(p.nombre)}</a></li>`).join('')}</ul>
       <div class="combo-pie"><p class="combo-precio"><s>${cop(lleno)}</s><strong>${cop(final)}</strong><span>Ahorras ${cop(lleno - final)}${final >= sitio.envioGratisDesde ? ' + envío gratis' : ''}</span></p>
