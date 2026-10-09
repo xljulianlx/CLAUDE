@@ -97,6 +97,9 @@ const ICONOS = {
   pesa: ['<rect x="4" y="7" width="4" height="10" rx="1.5"/><rect x="16" y="7" width="4" height="10" rx="1.5"/>', '<rect x="4" y="7" width="4" height="10" rx="1.5"/><rect x="16" y="7" width="4" height="10" rx="1.5"/><path d="M8 12h8M2 10v4M22 10v4"/>'],
   gota: ['<path d="M12 3s6 6.6 6 11a6 6 0 0 1-12 0c0-4.4 6-11 6-11z"/>', '<path d="M12 3s6 6.6 6 11a6 6 0 0 1-12 0c0-4.4 6-11 6-11z"/><path d="M9 14.5a3 3 0 0 0 3 3"/>'],
   cero: ['<circle cx="12" cy="12" r="8"/>', '<circle cx="12" cy="12" r="8"/><path d="M6.5 17.5 17.5 6.5"/>'],
+  libro: ['<path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15H6.5A2.5 2.5 0 0 0 4 20.5z"/>', '<path d="M4 20.5A2.5 2.5 0 0 1 6.5 18H20V3H6.5A2.5 2.5 0 0 0 4 5.5zM20 18v3H6.5M9 7h7M9 11h5"/>'],
+  banco: ['<path d="M3 10h18L12 4z"/>', '<path d="M3 10h18L12 4zM5 10v8M9.5 10v8M14.5 10v8M19 10v8M3 21h18"/>'],
+  billete: ['<rect x="2.5" y="6" width="19" height="12" rx="2.5"/>', '<rect x="2.5" y="6" width="19" height="12" rx="2.5"/><circle cx="12" cy="12" r="2.6"/><path d="M6 9.5v5M18 9.5v5"/>'],
   casa: ['<path d="M4 10.5 12 4l8 6.5V20H4z"/>', '<path d="M3 11 12 3.5 21 11"/><path d="M5 9.5V20h5v-5.5h4V20h5V9.5"/>'],
   tienda: ['<rect x="4" y="4" width="6.5" height="6.5" rx="2"/><rect x="13.5" y="13.5" width="6.5" height="6.5" rx="2"/>', '<rect x="4" y="4" width="6.5" height="6.5" rx="2"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="2"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="2"/><rect x="13.5" y="13.5" width="6.5" height="6.5" rx="2"/>'],
   lupa: ['<circle cx="10.5" cy="10.5" r="7"/>', '<circle cx="10.5" cy="10.5" r="7"/><path d="m16 16 5 5"/>'],
@@ -142,15 +145,15 @@ function buscador(c, id) {
 }
 
 function cabecera(c) {
-  const enlaces = [['/tienda/', 'Tienda'], ['/blog/', 'Guías'], ['/nosotros/', 'Nosotros']];
-  const actual = (r) => (c.ruta.startsWith(r) ? ' aria-current="page"' : '');
+  const enlaces = [['/', 'Inicio', 'casa', 'naranja'], ['/tienda/', 'Tienda', 'tienda', 'violeta'], ['/tienda/combos/', 'Combos', 'caja', 'verde'], ['/blog/', 'Guías', 'libro', 'azul'], ['/nosotros/', 'Nosotros', 'corazon', 'rosa']];
+  const actual = (r) => ((r === '/' ? c.ruta === '/' : r === '/tienda/' ? c.ruta.startsWith(r) && !c.ruta.startsWith('/tienda/combos/') : c.ruta.startsWith(r)) ? ' aria-current="page"' : '');
   return `<header class="cabecera">
   <div class="cabecera-in">
     <a class="logo" href="${c.h('/')}" aria-label="Halo Nutrition, ir al inicio"><span class="logo-aro" aria-hidden="true"></span>HALO</a>
-    <nav class="menu" aria-label="Principal"><ul>${enlaces.map(([r, t]) => `<li><a href="${c.h(r)}"${actual(r)}>${t}</a></li>`).join('')}</ul></nav>
+    <nav class="menu" aria-label="Principal"><ul>${enlaces.map(([r, t, n, tono]) => `<li><a class="t-${tono}" href="${c.h(r)}"${actual(r)}><span class="menu-ico" aria-hidden="true">${ico(n)}</span>${t}</a></li>`).join('')}</ul></nav>
     ${buscador(c, 'q-cab')}
-    <a class="btn-cuenta" href="${c.h('/cuenta/')}" data-enlace-cuenta>Entrar</a>
-    <a class="btn-carrito" href="${c.h('/carrito/')}" data-abrir-carrito data-destino-carrito>Carrito <span class="cuenta" data-cuenta aria-hidden="true">0</span><span class="sr" data-cuenta-texto>, 0 productos</span></a>
+    <a class="btn-cuenta" href="${c.h('/cuenta/')}"><span class="menu-ico" aria-hidden="true">${ico('persona')}</span><span data-enlace-cuenta>Entrar</span></a>
+    <a class="btn-carrito" href="${c.h('/carrito/')}" data-abrir-carrito data-destino-carrito><span class="menu-ico" aria-hidden="true">${ico('bolsa')}</span>Carrito <span class="cuenta" data-cuenta aria-hidden="true">0</span><span class="sr" data-cuenta-texto>, 0 productos</span></a>
   </div>
 </header>`;
 }
@@ -168,12 +171,10 @@ function barraMovil(c) {
 
 function pie(c) {
   return `<footer class="pie">
-  <ul class="pie-confianza">
-    <li>${chip('camion', 'verde')}<span><strong>Envío a toda Colombia</strong>Gratis desde ${cop(sitio.envioGratisDesde)}</span></li>
-    <li>${chip('candado', 'violeta')}<span><strong>Pago seguro</strong>Con Mercado Pago</span></li>
-    <li>${chip('vuelta', 'azul')}<span><strong>${sitio.diasDevolucion} días de garantía</strong>Cambio o reembolso</span></li>
-    <li>${chip('escudo', 'naranja')}<span><strong>Marcas reconocidas</strong>Optimum Nutrition, Dragon Pharma y más</span></li>
-  </ul>
+  ${(() => { const items = [['camion', 'verde', 'Envío a toda Colombia', `Gratis desde ${cop(sitio.envioGratisDesde)}`], ['candado', 'violeta', 'Pago seguro', 'Con Mercado Pago'], ['vuelta', 'azul', `${sitio.diasDevolucion} días de garantía`, 'Cambio o reembolso'], ['escudo', 'naranja', 'Marcas reconocidas', 'Optimum Nutrition, Dragon Pharma y más']];
+    const li = (dup) => items.map(([n, t, h, d]) => `<li${dup ? ' class="dup" aria-hidden="true"' : ''}>${chip(n, t)}<span><strong>${h}</strong>${d}</span></li>`).join('');
+    // En celular corre como una cinta (la copia "dup" solo existe para que el giro no tenga cortes).
+    return `<div class="pie-confianza-marco"><ul class="pie-confianza">${li(false)}${li(true)}</ul></div>`; })()}
   <div class="pie-in">
     <div class="pie-marca">
       <a class="logo" href="${c.h('/')}"><span class="logo-aro" aria-hidden="true"></span>HALO</a>
@@ -188,7 +189,7 @@ function pie(c) {
     <nav aria-label="Ayuda"><h2>Ayuda</h2><ul><li><a href="${c.h('/envios-y-devoluciones/')}">Envíos y devoluciones</a></li><li><a href="${c.h('/nosotros/#preguntas')}">Preguntas frecuentes</a></li><li><a href="${c.h('/nosotros/#contacto')}">Contacto</a></li><li><a href="${c.h('/cuenta/')}">Mi cuenta</a></li></ul></nav>
     <nav aria-label="Guías"><h2>Guías</h2><ul>${blog.map((b) => `<li><a href="${c.h(`/blog/${b.slug}/`)}">${esc(b.titulo.split(':')[0])}</a></li>`).join('')}</ul></nav>
   </div>
-  <div class="pie-legal"><ul class="medios" aria-label="Medios de pago disponibles en Mercado Pago"><li>${ico('tarjeta')}Tarjeta crédito y débito</li><li>${ico('candado')}PSE</li><li>${ico('caja')}Efectivo</li></ul><p>Pagos procesados por Mercado Pago. Los suplementos no reemplazan una alimentación variada.</p><p>Sitio de demostración con precios de ejemplo. Las marcas y fotos de producto pertenecen a sus fabricantes.</p></div>
+  <div class="pie-legal"><ul class="medios" aria-label="Medios de pago disponibles en Mercado Pago"><li class="t-azul">${ico('tarjeta')}Tarjeta</li><li class="t-violeta">${ico('banco')}PSE</li><li class="t-verde">${ico('billete')}Efectivo</li></ul><p>Pagos procesados por Mercado Pago. Los suplementos no reemplazan una alimentación variada.</p><p>Sitio de demostración con precios de ejemplo. Las marcas y fotos de producto pertenecen a sus fabricantes.</p></div>
 </footer>`;
 }
 
@@ -319,7 +320,7 @@ function valoracion(slug, c, enlace, corta = false) {
 
 function tarjeta(c, p, i = 0, eager = false) {
   const s = p.sabores[0]; const pp = porPorcion(p); const agotado = !disponible(p);
-  return `<article class="tarjeta" style="--i:${i}" data-revelar data-tarjeta="${p.slug}" data-precio="${p.precio}" data-orden-base="${i}">
+  return `<article class="tarjeta cat-${p.categoria}" style="--i:${i};--pc:${s.c1}" data-revelar data-tarjeta="${p.slug}" data-precio="${p.precio}" data-orden-base="${i}">
   <div class="tarjeta-img">${imgProducto(c, p, s, { lazy: !eager, prioridad: false })}<p class="sello" data-stock-de="${p.slug}"${agotado ? '' : ' hidden'}>${agotado ? 'Agotado' : ''}</p></div>
   <div class="tarjeta-info">
     <p class="tarjeta-cat">${cat(p.categoria).nombre}</p>
@@ -327,8 +328,8 @@ function tarjeta(c, p, i = 0, eager = false) {
     ${p.sabores.length > 1 && tieneRender(p) && !p.imagenUrl ? `<div class="muestras" role="group" aria-label="Sabores de ${esc(p.nombre)}">${p.sabores.map((x, k) => `<button type="button" class="muestra" style="--c1:${x.c1};--c2:${x.c2}" data-muestra="${x.slug}" aria-pressed="${k === 0}" aria-label="${esc(x.nombre)}" title="${esc(x.nombre)}"></button>`).join('')}</div>` : ''}
     <p class="tarjeta-resumen">${esc(p.resumen)}</p>
     ${valoracion(p.slug, c, null, true)}
-    <div class="tarjeta-pie"><p class="precio"><span data-precio-de="${p.slug}">${cop(p.precio)}</span>${pp ? `<small>${cop(pp)} por porción</small>` : `<small>${esc(p.presentacion)}</small>`}</p>
-    <button class="btn btn-sec btn-sm" type="button" data-agregar="${p.slug}" data-sabor="${s.slug}"${agotado ? ' disabled' : ''} aria-label="Agregar ${esc(p.nombre)} sabor ${esc(s.nombre)} al carrito">Agregar</button></div>
+    <div class="tarjeta-pie"><p class="precio"><span data-precio-de="${p.slug}">${cop(p.precio)}</span>${pp ? `<small class="precio-porcion">${cop(pp)} por porción</small>` : `<small>${esc(p.presentacion)}</small>`}</p>
+    <button class="btn btn-sec btn-sm btn-agregar" type="button" data-agregar="${p.slug}" data-sabor="${s.slug}"${agotado ? ' disabled' : ''} aria-label="Agregar ${esc(p.nombre)} sabor ${esc(s.nombre)} al carrito">Agregar</button></div>
   </div>
 </article>`;
 }
@@ -502,11 +503,11 @@ ${combosHTML(c, { enlace: true })}
   </ol>
 </section>
 
-${Object.values(resenas).flat().length ? `<section class="seccion wrap resenas-sec" aria-labelledby="resenas-t">
-  <h2 class="h2" id="resenas-t">Lo que dicen quienes ya compran en Halo</h2>
+<section class="seccion wrap resenas-sec" aria-labelledby="resenas-t">
+  <h2 class="h2" id="resenas-t">Lo que dicen quienes ya entrenan con Halo</h2>
   ${cabeceraGoogle(Object.values(resenas).flat())}
   <div class="resenas-muro">${Object.entries(resenas).filter(([slug]) => prod(slug)).flatMap(([slug, l]) => l.slice(0, 1).map((r) => ({ ...r, slug }))).slice(0, 4).map((r) => `<figure class="resena" data-revelar><span class="resena-g">${GOOGLE_G}</span><span class="estrellas" aria-label="${r.rating} de 5 estrellas">${estrellas(r.rating)}</span><blockquote>“${esc(r.texto)}”</blockquote><figcaption><span class="avatar" style="--h:${tono(r.autor)}" aria-hidden="true">${esc(iniciales(r.autor))}</span><span><strong>${esc(r.autor)}</strong>, ${esc(r.ciudad)}<br>Compró <a href="${c.h(`/productos/${r.slug}/`)}">${esc(prod(r.slug).nombre)}</a></span><img class="resena-prod" src="${prod(r.slug).imagenUrl || c.a(foto(prod(r.slug), prod(r.slug).sabores[0], 160))}" width="160" height="160" alt="" loading="lazy" decoding="async"></figcaption></figure>`).join('')}</div>
-</section>` : ''}
+</section>
 
 
 

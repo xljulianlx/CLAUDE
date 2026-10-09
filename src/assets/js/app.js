@@ -371,11 +371,11 @@ const porPorcion = (p) => (p.porciones ? Math.round(p.precio / p.porciones / 100
 function tarjetaJS(p, i) {
   const s = p.sabores[0]; const pp = porPorcion(p);
   const nombre = p.url ? `<a href="${p.url}">${esc(p.nombre)}</a>` : esc(p.nombre);
-  return `<article class="tarjeta entra-js" style="--i:${i}" data-tarjeta="${p.slug}" data-precio="${p.precio}" data-orden-base="${i}">
+  return `<article class="tarjeta entra-js cat-${esc(p.categoria || '')}" style="--i:${i};--pc:${esc(s.c1 || '#d4561e')}" data-tarjeta="${p.slug}" data-precio="${p.precio}" data-orden-base="${i}">
   <div class="tarjeta-img"><img src="${esc(foto(p.slug, s.slug, 600))}" width="600" height="600" alt=""${i < 6 ? '' : ' loading="lazy"'} decoding="async"><p class="sello" data-stock-de="${p.slug}" hidden></p></div>
   <div class="tarjeta-info"><p class="tarjeta-cat">${esc(p.categoriaNombre || '')}</p><h3>${nombre}</h3><p class="tarjeta-resumen">${esc(p.resumen || '')}</p>
-  <div class="tarjeta-pie"><p class="precio"><span data-precio-de="${p.slug}">${cop(p.precio)}</span><small>${pp ? `${cop(pp)} por porción` : esc(p.presentacion || '')}</small></p>
-  <button class="btn btn-sec btn-sm" type="button" data-agregar="${p.slug}" data-sabor="${s.slug}" aria-label="Agregar ${esc(p.nombre)} al carrito">Agregar</button></div></div>
+  <div class="tarjeta-pie"><p class="precio"><span data-precio-de="${p.slug}">${cop(p.precio)}</span>${pp ? `<small class="precio-porcion">${cop(pp)} por porción</small>` : `<small>${esc(p.presentacion || '')}</small>`}</p>
+  <button class="btn btn-sec btn-sm btn-agregar" type="button" data-agregar="${p.slug}" data-sabor="${s.slug}" aria-label="Agregar ${esc(p.nombre)} al carrito">Agregar</button></div></div>
 </article>`;
 }
 
@@ -524,7 +524,7 @@ else if ($('[data-tarjeta], [data-producto], [data-buscar-resultados], [data-car
 
 /* ---------- estado de la cuenta en la cabecera ---------- */
 if (haySesionGuardada()) {
-  $$('[data-enlace-cuenta]').forEach((a) => { a.textContent = 'Mi cuenta'; a.classList.add('con-sesion'); });
+  $$('[data-enlace-cuenta]').forEach((a) => { a.textContent = 'Mi cuenta'; a.closest('a').classList.add('con-sesion'); });
   $$('[data-enlace-cuenta-tab]').forEach((a) => a.classList.add('con-sesion'));
 }
 

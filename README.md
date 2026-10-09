@@ -80,7 +80,7 @@ Precio, stock y visibilidad se actualizan solos en la tienda apenas se guardan e
 
 - Para agregar un producto: su foto recortada en `fuentes/productos/<slug>.png`, su ficha en el catálogo (solo datos de la etiqueta) y `npm run fotos` (o subir la foto desde el panel).
 - Confirmar que se pueden usar las fotos y marcas de cada fabricante, y completar la marca del BCAA (no se lee en la foto).
-- Reseñas: la tienda no muestra reseñas hasta conectar reseñas reales (`resenas` en el catálogo). Si se cargan reseñas de ejemplo, poner `resenasDeEjemplo: true`.
+- Reseñas: conectar reseñas reales y poner `resenasDeEjemplo: false`. Solo entonces se publican como datos estructurados.
 - Mercado Pago: probar el flujo completo con credenciales y usuarios de prueba.
 - Webhook: implementar la validación de la firma `x-signature` según la documentación oficial ("Validar origen de la notificación"). Está marcado como pendiente en `api/webhook-mercadopago.js`.
 - Correos de confirmación de pedido y de envío (por ejemplo con Resend o el SMTP de Supabase).

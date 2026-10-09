@@ -13,8 +13,8 @@ export const sitio = {
   diasDevolucion: 30,
   email: 'hola@halo.example',
   horario: 'Lunes a viernes, 8 a. m. a 6 p. m.',
-  // true solo si se cargan reseñas de ejemplo: muestra el aviso y no las publica como datos estructurados.
-  resenasDeEjemplo: false,
+  // Las reseñas de este archivo son de ejemplo. Con datos reales, poner en false para quitar el aviso.
+  resenasDeEjemplo: true,
   // Combos: si el carrito tiene una unidad de cada producto del combo, esas unidades llevan el descuento.
   // El navegador y el servidor usan las mismas reglas (src/assets/js/precios.js).
   combos: [
@@ -226,9 +226,32 @@ export const productos = [
   },
 ];
 
-// Reseñas: vacías hasta conectar reseñas reales (plataforma de reseñas o el Perfil de Empresa de Google).
-// Formato por slug: [{ autor, ciudad, rating, fecha: 'AAAA-MM-DD', texto }]
-export const resenas = {};
+// Reseñas de ejemplo. Con reseñas reales, conectar aquí la fuente (plataforma de reseñas o base de datos).
+export const resenas = {
+  'gold-standard-100-whey': [
+    { autor: 'Camila Restrepo', ciudad: 'Medellín', rating: 5, fecha: '2026-08-14', texto: 'Se mezcla sin grumos y no me cae pesada. Llevo seis meses con la de chocolate.' },
+    { autor: 'Andrés Moreno', ciudad: 'Bogotá', rating: 5, fecha: '2026-07-30', texto: 'Buen sabor sin ser empalagosa. Me gusta que digan cuánto trae cada porción.' },
+    { autor: 'Laura Peñaloza', ciudad: 'Cali', rating: 4, fecha: '2026-07-02', texto: 'La de vainilla es muy buena con avena. Le doy cuatro porque quisiera un tarro más grande.' },
+  ],
+  'micronized-creatine-powder': [
+    { autor: 'Julián Ospina', ciudad: 'Pereira', rating: 5, fecha: '2026-08-21', texto: 'Una cucharada en el batido y listo. Se disuelve rápido.' },
+    { autor: 'Daniela Vargas', ciudad: 'Bogotá', rating: 5, fecha: '2026-06-11', texto: 'Sin sabor de verdad, no cambia el gusto del jugo.' },
+  ],
+  'venom-inferno': [
+    { autor: 'Sebastián Gil', ciudad: 'Barranquilla', rating: 5, fecha: '2026-08-02', texto: 'Me da energía sin ponerme nervioso. El de mango es el mejor.' },
+    { autor: 'Natalia Ortiz', ciudad: 'Bucaramanga', rating: 4, fecha: '2026-07-19', texto: 'Funciona bien. El hormigueo al principio me sorprendió, pero pasa rápido.' },
+  ],
+  'bcaa-2-1-1-watermelon-candy': [
+    { autor: 'Felipe Cárdenas', ciudad: 'Manizales', rating: 4, fecha: '2026-07-08', texto: 'Lo tomo en las salidas largas en bici. La limonada es suave y refrescante.' },
+  ],
+  'fit-bar-chocolate': [
+    { autor: 'Valentina Rojas', ciudad: 'Bogotá', rating: 5, fecha: '2026-08-25', texto: 'Por fin una barra que no sabe a cartón. La de maní es mi favorita.' },
+    { autor: 'Mateo Castaño', ciudad: 'Medellín', rating: 4, fecha: '2026-06-29', texto: 'Muy prácticas para la oficina. Un poco duras si están frías.' },
+  ],
+  'botella-deportiva-negra': [
+    { autor: 'Paula Guerrero', ciudad: 'Cali', rating: 5, fecha: '2026-08-10', texto: 'No gotea en la maleta, que era lo que necesitaba.' },
+  ],
+};
 
 export const blog = [
   {

@@ -26,6 +26,14 @@ export function iniciarMovimiento() {
   anillos();
   ruta();
   conGsap();
+  desplegar();
+}
+
+/* ---------- calculadora (computador): la tarjeta se despliega hacia abajo al llegar a la sección ---------- */
+function desplegar() {
+  const sec = document.querySelector('.calc-sec'); if (!sec || !('IntersectionObserver' in window)) return;
+  const io = new IntersectionObserver(([e]) => { if (e.isIntersecting) { sec.classList.add('abierta'); io.disconnect(); } }, { rootMargin: '0px 0px -25% 0px' });
+  if (sec.getBoundingClientRect().top < innerHeight * 0.75) sec.classList.add('abierta'); else io.observe(sec);
 }
 
 /* ---------- revelar al entrar en pantalla ---------- */

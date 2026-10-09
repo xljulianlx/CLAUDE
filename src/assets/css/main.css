@@ -1623,3 +1623,169 @@ details[open] > summary .chip-ico { background: linear-gradient(140deg, color-mi
 /* El lienzo 3D tiene margen para el salto: que nunca genere scroll lateral. */
 .ficha-galeria, .hero-media { contain: layout; }
 main { overflow-x: clip; }
+
+/* ================= Portada: la primera pantalla siempre completa en computador ================= */
+@media (min-width: 861px) {
+  .hero { height: calc(100svh - var(--cab) - 1px); min-height: 0; max-height: none; }
+  .hero-in { row-gap: clamp(10px, 2.6svh, 28px); padding-block: clamp(8px, 2svh, 16px); min-height: 0; }
+  .hero .h1 { font-size: clamp(2.2rem, min(5.6vw, 10.5svh), 6.2rem); }
+  .hero-chip { margin-bottom: clamp(8px, 1.8svh, 18px); }
+  .hero-sub { margin-top: clamp(8px, 1.8svh, 20px); }
+  .hero-media { height: 100%; max-height: 100%; min-height: 0; }
+}
+@media (min-width: 861px) and (max-height: 640px) { .hero-sub, .hero-bajar { display: none; } }
+
+/* ================= Barra superior con íconos ================= */
+.menu-ico { display: inline-grid; place-items: center; width: 26px; height: 26px; border-radius: 8px; flex: none; color: #fff; background: linear-gradient(135deg, color-mix(in srgb, var(--c, var(--naranja)) 78%, #fff), var(--c, var(--naranja))); box-shadow: 0 4px 10px -4px var(--c, var(--naranja)); transition: transform 200ms var(--ease-out); }
+.menu-ico .ico { width: 15px; height: 15px; }
+.menu-ico .i-r { opacity: 0.3; }
+.menu a { display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px 6px 6px; color: var(--fg); }
+.menu a[aria-current="page"] { background: color-mix(in srgb, var(--c) 12%, var(--surface)); color: var(--fg); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--c) 30%, transparent); }
+@media (hover: hover) and (pointer: fine) { .menu a:hover .menu-ico, .btn-cuenta:hover .menu-ico, .btn-carrito:hover .menu-ico { transform: translateY(-2px) rotate(-6deg); } }
+.menu a::after { display: none; }
+.btn-cuenta { gap: 8px; color: var(--fg); padding-left: 6px; --c: var(--azul); }
+.btn-cuenta.con-sesion::before { display: none; }
+.btn-cuenta.con-sesion .menu-ico { box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px var(--verde); }
+.btn-carrito { gap: 8px; padding-left: 6px; --c: var(--naranja); }
+@media (min-width: 861px) and (max-width: 1180px) { .menu a { padding-right: 8px; font-size: 0.88rem; gap: 6px; } .menu ul { gap: 0; } .cabecera-in { gap: 14px; } }
+@media (min-width: 861px) and (max-width: 1040px) { .menu a { font-size: 0; gap: 0; padding: 6px; } .menu a .menu-ico { width: 30px; height: 30px; } }
+/* Celular: la barra superior con color de marca, para que se note que está ahí. */
+@media (max-width: 860px) {
+  .cabecera { background: linear-gradient(100deg, #b9471a, #e2662c 60%, #f08a3c); border-bottom: 0; box-shadow: 0 6px 18px -10px rgba(185, 71, 26, 0.6); }
+  .cabecera .logo { color: #fff; }
+  .cabecera .logo-aro { border-color: #fff; }
+  .cabecera .buscador input { background-color: rgba(255, 255, 255, 0.97); border-color: transparent; }
+  body.buscando .cabecera { background: var(--bg); box-shadow: none; }
+  body.buscando .cabecera .logo { color: var(--fg); }
+  body.buscando .cabecera .buscador input { border-color: var(--line); }
+}
+
+/* ================= Pie de página más compacto ================= */
+.pie { margin-top: 24px; }
+.pie-confianza-marco { border-bottom: 1px solid var(--line); overflow: hidden; }
+.pie-confianza { padding-block: 16px; gap: 12px; border-bottom: 0; }
+.pie-confianza .dup { display: none; }
+.pie-confianza .chip-ico { width: 36px; height: 36px; border-radius: 11px; }
+.pie-confianza .chip-ico .ico { width: 19px; height: 19px; }
+.pie-confianza span:not(.chip-ico) { font-size: 0.8rem; }
+.pie-confianza strong { font-size: 0.88rem; }
+.pie-in { padding-block: 28px 16px; gap: 20px 28px; }
+.pie-marca p { font-size: 0.86rem; margin-top: 8px; }
+.pie h2 { margin-bottom: 6px; font-size: 0.72rem; }
+.pie ul a { padding-block: 3px; font-size: 0.86rem; }
+.boletin { margin-top: 12px; gap: 6px; }
+.boletin label { font-size: 0.82rem; }
+.boletin input { min-height: 42px; }
+.boletin .btn { min-height: 42px; }
+.pie-legal { padding-block: 12px calc(18px + env(safe-area-inset-bottom, 0px)); font-size: 0.76rem; gap: 2px; }
+.medios { flex-wrap: nowrap; gap: 6px; margin-bottom: 6px; }
+.medios li { gap: 5px; padding: 3px 9px 3px 4px; font-size: 0.72rem; font-weight: 600; white-space: nowrap; border-color: color-mix(in srgb, var(--c) 30%, var(--line)); background: color-mix(in srgb, var(--c) 8%, var(--surface)); }
+.medios .ico { width: 18px; height: 18px; padding: 3px; box-sizing: border-box; border-radius: 6px; color: #fff; background: linear-gradient(135deg, color-mix(in srgb, var(--c) 75%, #fff), var(--c)); }
+.medios .i-r { opacity: 0.3; }
+@media (max-width: 860px) {
+  /* Las cuatro garantías corren de lado como una cinta, en vez de apilarse. */
+  .pie-confianza { display: flex; width: max-content; padding: 12px 0; gap: 0; grid-template-columns: none; }
+  .pie-confianza li { flex: none; padding-inline: 14px; gap: 10px; border-right: 1px solid var(--line); }
+  .pie-confianza span:not(.chip-ico) { white-space: nowrap; }
+  .pie-confianza .dup { display: flex; }
+  .pie-confianza { animation: pieCinta 26s linear infinite; }
+  .pie-confianza-marco:active .pie-confianza { animation-play-state: paused; }
+  @keyframes pieCinta { to { transform: translateX(-50%); } }
+  .pie-in { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px 12px; padding-block: 20px 10px; }
+  .pie-marca { grid-column: 1 / -1; }
+  .pie ul a { font-size: 0.8rem; padding-block: 4px; }
+  .pie h2 { font-size: 0.66rem; }
+  .pie-legal { padding-bottom: 14px; }
+}
+@media (max-width: 860px) and (prefers-reduced-motion: reduce) {
+  .pie-confianza { animation: none; }
+  .pie-confianza-marco { overflow-x: auto; scrollbar-width: none; }
+  .pie-confianza .dup { display: none; }
+}
+
+/* ================= Carruseles horizontales: nunca atrapan el scroll vertical ================= */
+/* Con overflow-x: auto el navegador también pone overflow-y: auto; si algo sobresale 1 px (sombra, entrada animada)
+   el carrusel se vuelve un mini scroll vertical que se traga el dedo. Se fija solo horizontal. */
+.carril, .objetivos-lista, .combos, .productos-cab .filtros ul, .tienda-barra .filtros ul, .chips, .admin-tabs, .pie-confianza-marco { overflow-y: hidden; overscroll-behavior-x: contain; touch-action: pan-x pan-y; }
+@media (max-width: 860px) { .objetivos-lista { padding-block: 4px 10px; } .objetivos-lista .rv { translate: none; } }
+
+/* ================= Compra por objetivo: la foto se ve completa ================= */
+.objetivo { aspect-ratio: 4 / 3.4; background: #15171b; }
+.objetivo img { object-position: center 35%; }
+.objetivo::after { background: linear-gradient(180deg, transparent 52%, rgba(8, 9, 11, 0.55) 72%, rgba(8, 9, 11, 0.86)); }
+.objetivo-txt { background: none; -webkit-backdrop-filter: none; backdrop-filter: none; padding: 14px 18px 16px; gap: 0; text-shadow: 0 1px 8px rgba(0, 0, 0, 0.45); }
+.objetivo-txt > span:nth-child(2) { font-size: 0.84rem; opacity: 0.92; display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; }
+.objetivo-t { font-size: 1.2rem; display: flex; align-items: center; gap: 8px; }
+.objetivo-t::before { content: ""; width: 10px; height: 10px; border-radius: 50%; background: var(--acc); box-shadow: 0 0 0 4px color-mix(in srgb, var(--acc) 35%, transparent); }
+.objetivo-ir { margin-top: 4px; font-size: 0.85rem; }
+@media (max-width: 860px) { .objetivo { aspect-ratio: 4 / 3.6; } }
+
+/* ================= Tarjetas de producto con más color ================= */
+.tarjeta { --pc: var(--naranja); --cc: var(--naranja); }
+.tarjeta.cat-proteinas { --cc: #c2410c; }
+.tarjeta.cat-rendimiento { --cc: var(--violeta); }
+.tarjeta.cat-accesorios { --cc: var(--azul); }
+.tarjeta-img { background: radial-gradient(75% 70% at 50% 58%, color-mix(in srgb, var(--pc) 24%, #fff), color-mix(in srgb, var(--pc) 7%, var(--surface-2)) 72%); }
+.tarjeta-img::after { content: ""; position: absolute; left: 22%; right: 22%; bottom: 7%; height: 6%; border-radius: 50%; background: radial-gradient(closest-side, rgba(0, 0, 0, 0.22), transparent); z-index: 0; pointer-events: none; }
+.tarjeta-img img { position: relative; z-index: 1; }
+.tarjeta-cat { justify-self: start; padding: 3px 8px; border-radius: 999px; font-weight: 700; color: var(--cc); background: color-mix(in srgb, var(--cc) 11%, var(--surface)); letter-spacing: 0.08em; }
+.tarjeta h3 { color: var(--fg); font-weight: 750; }
+.tarjeta-resumen { color: color-mix(in srgb, var(--fg) 72%, var(--mut)); }
+.tarjeta .precio span { color: #b9471a; font-weight: 800; }
+.tarjeta .precio small { color: color-mix(in srgb, var(--fg) 62%, var(--mut)); }
+.tarjeta .precio-porcion { justify-self: start; padding: 2px 7px; border-radius: 6px; color: #17733f !important; background: color-mix(in srgb, var(--verde) 12%, var(--surface)); font-weight: 650; }
+.tarjeta .btn-agregar { background: linear-gradient(135deg, #e2662c, #b9471a); color: #fff; border-color: transparent; box-shadow: 0 6px 14px -8px #b9471a; }
+.tarjeta .btn-agregar:disabled { background: var(--surface-2); color: var(--mut); box-shadow: none; }
+.tarjeta::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 3px; background: linear-gradient(90deg, var(--pc), color-mix(in srgb, var(--pc) 40%, #fff)); z-index: 2; opacity: 0.85; }
+@media (hover: hover) and (pointer: fine) {
+  .tarjeta:hover { border-color: color-mix(in srgb, var(--pc) 45%, var(--line)); box-shadow: 0 18px 36px -22px color-mix(in srgb, var(--pc) 70%, transparent); }
+  .tarjeta .btn-agregar:hover { filter: brightness(1.06); }
+}
+/* Seis productos en una fila en pantallas anchas (antes quedaba uno solo abajo). */
+@media (min-width: 1200px) { .rejilla.compacta { grid-template-columns: repeat(6, minmax(0, 1fr)); } }
+
+/* ================= Calculadora en computador: título arriba y la tarjeta baja debajo ================= */
+@media (min-width: 861px) {
+  .calc-sec { grid-template-columns: minmax(0, 1fr); justify-items: center; gap: 22px; }
+  .calc-texto { justify-items: center; text-align: center; max-width: 720px; gap: 10px; }
+  .calc { width: min(100%, 1000px); grid-template-columns: minmax(0, 1fr) minmax(0, 0.95fr); grid-template-areas: "peso res" "obj res" "dias res" "btn res"; column-gap: 28px; row-gap: 16px; padding: 22px 26px; align-items: start; }
+  .calc-peso { grid-area: peso; }
+  .calc-objetivo { grid-area: obj; }
+  .calc-dias { grid-area: dias; }
+  .calc > .btn { grid-area: btn; align-self: end; }
+  .calc-res { grid-area: res; align-self: stretch; align-content: center; padding: 14px 16px; }
+  .obj-card { padding: 10px 8px; gap: 6px; }
+  .obj-card .chip-ico { width: 38px; height: 38px; }
+  .calc-dias span { min-height: 40px; }
+  .medidor-g { width: min(210px, 75%); }
+  .calc-num strong { font-size: clamp(2.4rem, 3.6vw, 3rem); }
+  /* Entrada: la tarjeta se despliega hacia abajo desde el título. */
+  .js-mov .calc-sec .calc { clip-path: inset(0 0 100% 0 round 24px); translate: 0 -18px; opacity: 0.4; transition: clip-path 900ms var(--ease-out), translate 900ms var(--ease-out), opacity 500ms ease; }
+  .js-mov .calc-sec.abierta .calc { clip-path: inset(0 0 0 0 round 24px); translate: none; opacity: 1; }
+}
+/* La regla general ".pie ul" (grid) le ganaba a estas listas: se fijan con más especificidad. */
+.pie ul.medios { display: flex; flex-wrap: nowrap; gap: 6px; }
+.pie ul.pie-confianza { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+@media (max-width: 860px) { .pie ul.pie-confianza { display: flex; gap: 0; } }
+/* Seis por fila: precio en una línea y botón a lo ancho. */
+.tarjeta .precio span { white-space: nowrap; }
+@media (min-width: 1200px) {
+  .rejilla.compacta .tarjeta-pie { flex-direction: column; align-items: stretch; gap: 8px; }
+  .rejilla.compacta .tarjeta-pie .btn { width: 100%; }
+}
+@media (max-width: 860px) {
+  .pie-marca p { display: none; }
+  .boletin label { font-size: 0.78rem; }
+  .boletin-fila { flex-wrap: nowrap; }
+  .boletin input { flex: 1 1 0; width: 0; min-width: 0; min-height: 40px; }
+  .boletin .btn { flex: none; }
+  .boletin .btn { min-height: 40px; padding-inline: 14px; font-size: 0.85rem; }
+  .pie-in { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .pie-in > nav[aria-label="Guías"] { display: none; }
+  .pie ul { gap: 0; }
+  .pie ul a { padding-block: 5px; }
+}
+/* Contraste AA de las etiquetas de categoría. */
+.tarjeta.cat-proteinas { --cc: #a8380a; }
+.tarjeta.cat-accesorios { --cc: #1f56b0; }
+.tarjeta.cat-rendimiento { --cc: #5f37a8; }
