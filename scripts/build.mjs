@@ -335,7 +335,7 @@ function tarjeta(c, p, i = 0, eager = false) {
 
 function selectorSabor(p, nombre, sel = 0) {
   // Un solo sabor: se informa (sin botones) y queda elegido para el carrito.
-  if (p.sabores.length < 2) return `<p class="sabor-unico"><span class="sabor-muestra" style="--c1:${p.sabores[0].c1};--c2:${p.sabores[0].c2}" aria-hidden="true"></span>${p.slug && p.categoria === 'accesorios' ? 'Color' : 'Sabor'}: <strong>${esc(p.sabores[0].nombre)}</strong><input type="radio" name="${nombre}" value="${p.sabores[0].slug}" checked hidden></p>`;
+  if (p.sabores.length < 2) return `<p class="sabor-unico"><span class="sabor-muestra" style="--c1:${p.sabores[0].c1};--c2:${p.sabores[0].c2}" aria-hidden="true"></span>${p.slug && p.categoria === 'accesorios' ? 'Color' : 'Sabor'}: <strong>${esc(p.sabores[0].nombre)}</strong><input type="radio" name="${nombre}" value="${p.sabores[0].slug}" checked hidden aria-label="${esc(p.sabores[0].nombre)}"></p>`;
   return `<fieldset class="sabores"><legend>Sabor: <span data-sabor-nombre>${esc(p.sabores[sel].nombre)}</span></legend><div class="sabores-op">${p.sabores.map((s, i) => `<label class="sabor"><input type="radio" name="${nombre}" value="${s.slug}"${i === sel ? ' checked' : ''}><span class="sabor-muestra" style="--c1:${s.c1};--c2:${s.c2}" aria-hidden="true"></span><span>${esc(s.nombre)}</span></label>`).join('')}</div></fieldset>`;
 }
 
@@ -360,7 +360,7 @@ function combosHTML(c, { cabecera = true, enlace = false } = {}) {
     const ps = k.items.map(prod); const lleno = ps.reduce((a, p) => a + p.precio, 0); const final = ps.reduce((a, p) => a + Math.round(p.precio * (1 - k.descuento / 100)), 0);
     return `<li class="combo-card" style="--c:${k.color};--i:${i}" data-revelar>
       <span class="combo-pct">−${k.descuento} %</span>
-      <div class="combo-fotos n${ps.length}" aria-hidden="true">${ps.map((p, j) => `<span style="--j:${j}">${imgProducto(c, p, p.sabores[0], { sizes: '160px' })}</span>`).join('')}</div>
+      <div class="combo-fotos n${ps.length}" aria-hidden="true">${ps.map((p, j) => `<span style="--j:${j}">${imgProducto(c, p, p.sabores[0], { sizes: '160px', lazy: cabecera || i > 1 })}</span>`).join('')}</div>
       <h3>${esc(k.nombre)}</h3><p class="combo-lema">${esc(k.lema)}</p>
       <ul class="combo-items">${ps.map((p) => `<li>${ico('check')}<a href="${c.h(`/productos/${p.slug}/`)}">${esc(p.nombre)}</a></li>`).join('')}</ul>
       <div class="combo-pie"><p class="combo-precio"><s>${cop(lleno)}</s><strong>${cop(final)}</strong><span>Ahorras ${cop(lleno - final)}${final >= sitio.envioGratisDesde ? ' + envío gratis' : ''}</span></p>
@@ -400,7 +400,7 @@ const orgLD = { '@context': 'https://schema.org', '@type': 'Organization', name:
 // Inicio
 paginas.push({
   ruta: '/', tipo: 'inicio', titulo: 'Halo Nutrition | Proteína whey, creatina y pre-entreno',
-  descripcion: 'Tienda de suplementos deportivos en Colombia: Gold Standard 100% Whey, creatina micronizada, pre-entreno Venom Inferno, BCAA y barras Fit Bar. Envío a todo el país.',
+  descripcion: 'Suplementos deportivos en Colombia: Gold Standard 100% Whey, creatina micronizada, pre-entreno Venom Inferno, BCAA y Fit Bar. Envío a todo el país.',
   lcp: conFotos(estrella) ? { src: foto(estrella, estrella.sabores[0], 1000), srcset: `${foto(estrella, estrella.sabores[0], 600)} 600w, ${foto(estrella, estrella.sabores[0], 1000)} 1000w`, sizes: '(min-width: 1024px) 46vw, 90vw' } : null,
   jsonld: [orgLD, {
     '@context': 'https://schema.org', '@type': 'WebSite', name: sitio.nombre, url: sitio.url, inLanguage: sitio.idioma,
