@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
+  <url><loc>https://halo.example/</loc><lastmod>2026-10-11</lastmod></url>
+  <url><loc>https://halo.example/tienda/</loc><lastmod>2026-10-11</lastmod></url>
+  <url><loc>https://halo.example/tienda/proteinas/</loc><lastmod>2026-10-11</lastmod></url>
+  <url><loc>https://halo.example/tienda/rendimiento/</loc><lastmod>2026-10-11</lastmod></url>
+  <url><loc>https://halo.example/tienda/accesorios/</loc><lastmod>2026-10-11</lastmod></url>
+  <url><loc>https://halo.example/tienda/combos/</loc><lastmod>2026-10-11</lastmod></url>
+  <url><loc>https://halo.example/productos/gold-standard-100-whey/</loc><lastmod>2026-10-11</lastmod><image:image><image:loc>https://halo.example/assets/img/productos/gold-standard-100-whey-strawberries-cream-1000.webp</image:loc></image:image></url>
+  <url><loc>https://halo.example/productos/micronized-creatine-powder/</loc><lastmod>2026-10-11</lastmod><image:image><image:loc>https://halo.example/assets/img/productos/micronized-creatine-powder-sin-sabor-1000.webp</image:loc></image:image></url>
+  <url><loc>https://halo.example/productos/venom-inferno/</loc><lastmod>2026-10-11</lastmod><image:image><image:loc>https://halo.example/assets/img/productos/venom-inferno-cotton-candy-1000.webp</image:loc></image:image></url>
+  <url><loc>https://halo.example/productos/bcaa-2-1-1-watermelon-candy/</loc><lastmod>2026-10-11</lastmod><image:image><image:loc>https://halo.example/assets/img/productos/bcaa-2-1-1-watermelon-candy-watermelon-candy-1000.webp</image:loc></image:image></url>
+  <url><loc>https://halo.example/productos/fit-bar-chocolate/</loc><lastmod>2026-10-11</lastmod><image:image><image:loc>https://halo.example/assets/img/productos/fit-bar-chocolate-chocolate-1000.webp</image:loc></image:image></url>
+  <url><loc>https://halo.example/productos/botella-deportiva-negra/</loc><lastmod>2026-10-11</lastmod><image:image><image:loc>https://halo.example/assets/img/productos/botella-deportiva-negra-negro-1000.webp</image:loc></image:image></url>
+  <url><loc>https://halo.example/nosotros/</loc><lastmod>2026-10-11</lastmod></url>
+  <url><loc>https://halo.example/envios-y-devoluciones/</loc><lastmod>2026-10-11</lastmod></url>
+  <url><loc>https://halo.example/blog/</loc><lastmod>2026-10-11</lastmod></url>
+  <url><loc>https://halo.example/blog/como-tomar-creatina/</loc><lastmod>2026-10-11</lastmod></url>
+  <url><loc>https://halo.example/blog/whey-isolate-o-concentrada/</loc><lastmod>2026-10-11</lastmod></url>
+  <url><loc>https://halo.example/blog/que-es-el-pre-entreno/</loc><lastmod>2026-10-11</lastmod></url>
+  <url><loc>https://halo.example/blog/cuanta-proteina-necesitas/</loc><lastmod>2026-10-11</lastmod></url>
+</urlset>

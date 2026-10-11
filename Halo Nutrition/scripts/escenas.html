@@ -1,0 +1,55 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Render de escenas</title>
+<canvas id="c" width="1000" height="1000"></canvas>
+<script type="module">
+  // Compone escenas de estudio (fondo, aro de marca, partículas, sombras y reflejo) con las fotos recortadas
+  // de cada producto (fuentes/productos/<slug>.png, fondo transparente).
+  const fotos = {};
+  const cargar = (slug) => fotos[slug] || (fotos[slug] = new Promise((ok, mal) => { const i = new Image(); i.onload = () => ok(i); i.onerror = mal; i.src = `../fuentes/productos/${slug}.png`; }));
+  function envase(img, tam, incl) {
+    const t = document.createElement('canvas'); t.width = tam; t.height = tam; const x = t.getContext('2d');
+    x.imageSmoothingQuality = 'high'; x.translate(tam / 2, tam / 2); x.rotate(incl || 0); x.drawImage(img, -tam / 2, -tam / 2, tam, tam);
+    // Caja visible del envase (para apoyarlo en el piso).
+    const d = x.getImageData(0, 0, tam, tam).data; let top = tam, bot = 0;
+    for (let y = 0; y < tam; y++) for (let k = 0; k < tam; k += 2) if (d[(y * tam + k) * 4 + 3] > 40) { if (y < top) top = y; if (y > bot) bot = y; break; }
+    return { t, top, bot };
+  }
+  // Fotos de producto: el recorte en cuadrado transparente, en los tamaños que usa el sitio.
+  window.foto = async (slug, tamanos) => { const img = await cargar(slug); return tamanos.map((n) => { const k = document.createElement('canvas'); k.width = n; k.height = n; const x = k.getContext('2d'); x.imageSmoothingQuality = 'high'; x.drawImage(img, 0, 0, n, n); return k.toDataURL('image/webp', n <= 160 ? 0.8 : 0.84); }); };
+  let semilla = 7; const azar = () => ((semilla = (semilla * 16807) % 2147483647) / 2147483647);
+  window.escena = async (s) => {
+    const imgs = await Promise.all(s.items.map((it) => cargar(it.slug)));
+    semilla = s.semilla || 7;
+    const W = s.w, H = s.h; const o = document.createElement('canvas'); o.width = W; o.height = H; const x = o.getContext('2d');
+    const g = x.createLinearGradient(0, 0, W * 0.3, H); g.addColorStop(0, s.fondo[0]); g.addColorStop(1, s.fondo[1]); x.fillStyle = g; x.fillRect(0, 0, W, H);
+    (s.brillos || []).forEach(([bx, by, br, col]) => { const rg = x.createRadialGradient(bx * W, by * H, 0, bx * W, by * H, br * W); rg.addColorStop(0, col); rg.addColorStop(1, 'rgba(0,0,0,0)'); x.fillStyle = rg; x.fillRect(0, 0, W, H); });
+    if (s.cuadricula) { x.strokeStyle = s.cuadricula; x.lineWidth = 1; for (let i = 0; i < W; i += 48) { x.beginPath(); x.moveTo(i, 0); x.lineTo(i, H); x.stroke(); } for (let i = 0; i < H; i += 48) { x.beginPath(); x.moveTo(0, i); x.lineTo(W, i); x.stroke(); } }
+    if (s.aro) { const [ax, ay, ar, col, gr] = s.aro; x.strokeStyle = col; x.lineWidth = gr * W; x.beginPath(); x.arc(ax * W, ay * H, ar * W, 0, Math.PI * 2); x.stroke(); }
+    const piso = s.piso * H;
+    // Piso: un degradado suave para que los envases no floten.
+    const pg = x.createLinearGradient(0, piso - H * 0.04, 0, H); pg.addColorStop(0, 'rgba(0,0,0,0)'); pg.addColorStop(1, s.sombraPiso || 'rgba(0,0,0,0.22)'); x.fillStyle = pg; x.fillRect(0, piso - H * 0.04, W, H);
+    for (let i = 0; i < (s.particulas || 0); i++) {
+      const px = azar() * W, py = azar() * piso * 0.95, pr = (0.002 + azar() * 0.008) * W; x.globalAlpha = 0.15 + azar() * 0.45;
+      x.fillStyle = s.colorParticulas[i % s.colorParticulas.length]; x.beginPath(); x.arc(px, py, pr, 0, Math.PI * 2); x.fill();
+    }
+    x.globalAlpha = 1;
+    s.items.forEach((it, n) => {
+      const tam = Math.round(it.h * H); const e = envase(imgs[n], tam, it.incl);
+      const cx = it.x * W; const base = piso + (it.dy || 0) * H; const ox = cx - tam / 2; const oy = base - e.bot;
+      const sh = x.createRadialGradient(cx, base, 0, cx, base, tam * 0.42); sh.addColorStop(0, 'rgba(0,0,0,0.45)'); sh.addColorStop(1, 'rgba(0,0,0,0)');
+      x.save(); x.translate(cx, base); x.scale(1, 0.16); x.translate(-cx, -base); x.fillStyle = sh; x.beginPath(); x.arc(cx, base, tam * 0.42, 0, Math.PI * 2); x.fill(); x.restore();
+      if (s.reflejo) {
+        const rf = document.createElement('canvas'); rf.width = tam; rf.height = tam; const rx = rf.getContext('2d');
+        rx.translate(0, tam); rx.scale(1, -1); rx.drawImage(e.t, 0, 0); rx.setTransform(1, 0, 0, 1, 0, 0);
+        rx.globalCompositeOperation = 'destination-in'; const fg = rx.createLinearGradient(0, tam - e.bot, 0, tam - e.bot + tam * 0.25); fg.addColorStop(0, 'rgba(0,0,0,0.28)'); fg.addColorStop(1, 'rgba(0,0,0,0)'); rx.fillStyle = fg; rx.fillRect(0, 0, tam, tam);
+        x.drawImage(rf, ox, base - (tam - e.bot));
+      }
+      x.drawImage(e.t, ox, oy);
+    });
+    // Grano fino para que el degradado no se vea plano.
+    const ruido = x.getImageData(0, 0, W, H); const d = ruido.data; for (let i = 0; i < d.length; i += 4) { const n = (azar() - 0.5) * 10; d[i] += n; d[i + 1] += n; d[i + 2] += n; } x.putImageData(ruido, 0, 0);
+    return s.tamanos.map((ancho) => { const k = document.createElement('canvas'); k.width = ancho; k.height = Math.round(H * ancho / W); k.getContext('2d').drawImage(o, 0, 0, k.width, k.height); return k.toDataURL('image/webp', 0.84); });
+  };
+  window.listo = true;
+</script>
