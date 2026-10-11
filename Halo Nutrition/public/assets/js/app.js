@@ -1,7 +1,7 @@
 // Lógica de la tienda: carrito (localStorage), cajón accesible, buscador, fichas de producto, datos en vivo
 // (precio, stock y visibilidad desde el panel) y pago con Mercado Pago.
-import { datos, modoDemo, productosPublico, haySesionGuardada, sesion } from './datos.js?v=3064786bb4';
-import { calcularPedido, comboCercano } from './precios.js?v=3064786bb4';
+import { datos, modoDemo, productosPublico, haySesionGuardada, sesion } from './datos.js?v=0ab179adc3';
+import { calcularPedido, comboCercano } from './precios.js?v=0ab179adc3';
 
 const P = Object.fromEntries(datos.productos.map((p) => [p.slug, p]));
 
@@ -533,8 +533,8 @@ if (haySesionGuardada()) {
 /* ---------- arranque ---------- */
 pintarContador();
 addEventListener('storage', (e) => { if (e.key === CLAVE) refrescar(); });
-import('./movimiento.js?v=3064786bb4').then((m) => m.iniciarMovimiento()).catch(() => {});
+import('./movimiento.js?v=0ab179adc3').then((m) => m.iniciarMovimiento()).catch(() => {});
 // Envase en 3D con la foto real: siempre activo, sin preguntar. Se carga apenas se pinta la página.
-if ($('[data-vivo]') && window.WebGLRenderingContext) requestAnimationFrame(() => setTimeout(() => import('./vivo3d.js?v=3064786bb4').then((m) => m.iniciar()).catch(() => {}), 0));
+if ($('[data-vivo]') && window.WebGLRenderingContext) requestAnimationFrame(() => setTimeout(() => import('./vivo3d.js?v=0ab179adc3').then((m) => m.iniciar()).catch(() => {}), 0));
 
 export { leer, guardar, validos, resumen, aplicarCupon, cuponActual, P, foto, cop, esc, avisar, refrescar, pintarContador };

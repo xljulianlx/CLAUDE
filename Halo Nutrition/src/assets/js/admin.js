@@ -301,6 +301,60 @@ function pintarPedidos() {
   ${modoDemo ? '<p class="nota" style="margin-top:12px">Los pedidos de ejemplo son ficticios. Los que hagas con “Simular pago” en el carrito aparecen aquí.</p>' : ''}`;
   if (conservar) { const i = $('[data-q-ped]'); i.focus(); i.setSelectionRange(i.value.length, i.value.length); }
 }
+/* ---------- datos del cliente, verificación y WhatsApp ---------- */
+const soloDigitos = (v) => String(v || '').replace(/\D/g, '');
+// Celular colombiano en formato internacional para wa.me (57 + 10 dígitos que empiezan por 3).
+function celularWA(p) {
+  let d = soloDigitos(p.cliente_telefono);
+  if (d.length === 12 && d.startsWith('57')) d = d.slice(2);
+  return /^3\d{9}$/.test(d) ? `57${d}` : '';
+}
+const celularBonito = (p) => { const d = celularWA(p).slice(2); return d ? `${d.slice(0, 3)} ${d.slice(3, 6)} ${d.slice(6)}` : ''; };
+function direccionDe(p) {
+  const e = p.envio_datos || {};
+  return { linea1: [e.direccion, e.detalle].filter(Boolean).join(', '), linea2: [e.barrio, e.ciudad, e.departamento].filter(Boolean).join(', '), completa: !!(e.direccion && e.ciudad && e.departamento) };
+}
+function bloqueCliente(p) {
+  const d = direccionDe(p); const cel = celularBonito(p);
+  return `<div class="caja caja-cliente"><h3>${ico('persona')} Cliente</h3>
+    <dl class="datos-cliente">
+      <div><dt>Nombre</dt><dd>${esc(p.cliente_nombre || 'Sin nombre')}</dd></div>
+      <div><dt>Correo</dt><dd><a href="mailto:${esc(p.cliente_email)}">${esc(p.cliente_email || '—')}</a></dd></div>
+      <div><dt>Celular</dt><dd>${cel ? `<a href="tel:+${celularWA(p)}">${cel}</a>` : 'Sin celular'}</dd></div>
+      ${p.documento ? `<div><dt>Documento</dt><dd>${esc(p.documento)}</dd></div>` : ''}
+      <div class="ancho"><dt>Dirección de envío</dt><dd>${d.linea1 || d.linea2 ? `${esc(d.linea1)}${d.linea1 && d.linea2 ? '<br>' : ''}${esc(d.linea2)}` : 'Sin dirección registrada'}</dd></div>
+    </dl></div>`;
+}
+function bloqueVerificacion(p) {
+  const pagado = ['pagado', 'preparando', 'enviado', 'entregado'].includes(p.estado);
+  const sumaItems = (p.items || []).reduce((s, it) => s + it.precio * it.cantidad, 0);
+  const neto = p.subtotal - (p.descuento || 0); // los precios de cada línea ya traen el descuento
+  const cuadra = Math.abs(sumaItems - neto) < 1 && Math.abs(neto + (p.envio || 0) - p.total) < 1;
+  const checks = [
+    [pagado, pagado ? `Pago confirmado${p.mp_payment_id ? ` (Mercado Pago ${esc(p.mp_payment_id)})` : ''}` : p.estado === 'cancelado' ? 'Pedido cancelado' : 'Pago pendiente: no despaches todavía'],
+    [/^\S+@\S+\.\S+$/.test(p.cliente_email || ''), /^\S+@\S+\.\S+$/.test(p.cliente_email || '') ? 'Correo válido' : 'Falta un correo válido'],
+    [!!celularWA(p), celularWA(p) ? 'Celular válido' : 'Falta un celular válido'],
+    [direccionDe(p).completa, direccionDe(p).completa ? 'Dirección completa' : 'Dirección incompleta'],
+    [cuadra, cuadra ? 'Los valores cuadran (productos, descuento, envío y total)' : 'Revisa los valores: el total no coincide con los productos'],
+  ];
+  const listos = checks.filter(([ok]) => ok).length;
+  return `<div class="caja caja-verif${listos === checks.length ? ' todo-ok' : ''}"><h3>${ico('escudo')} Verificación del pedido <span class="verif-n">${listos}/${checks.length}</span></h3>
+    <ul class="verif">${checks.map(([ok, txt]) => `<li class="${ok ? 'ok' : 'alerta'}"><span aria-hidden="true">${ok ? '✓' : '!'}</span>${txt}</li>`).join('')}</ul></div>`;
+}
+function mensajeWA(p, nombre, sabor) {
+  const quien = (p.cliente_nombre || '').split(' ')[0];
+  const lista = (p.items || []).map((it) => `• ${it.cantidad} × ${nombre(it)}${sabor(it) ? ` (${sabor(it)})` : ''}`).join('\n');
+  const hola = `Hola${quien ? ` ${quien}` : ''}, te escribimos de Halo Nutrition.`;
+  switch (p.estado) {
+    case 'pendiente': return `${hola} Vimos que tu pedido ${p.referencia} por ${cop(p.total)} quedó pendiente de pago. ¿Te ayudamos a terminarlo?`;
+    case 'pagado': return `${hola} Recibimos el pago de tu pedido ${p.referencia} por ${cop(p.total)}:\n${lista}\n\nYa lo estamos preparando y te avisamos cuando salga.`;
+    case 'preparando': return `${hola} Tu pedido ${p.referencia} se está preparando:\n${lista}\n\nTe avisamos apenas salga con la transportadora.`;
+    case 'enviado': return `${hola} ¡Tu pedido ${p.referencia} ya va en camino!${p.guia ? `\nNúmero de guía: ${p.guia}` : ''}\n\nCualquier duda, escríbenos por aquí.`;
+    case 'entregado': return `${hola} Tu pedido ${p.referencia} figura como entregado. ¿Llegó todo bien? Nos encantaría saber cómo te fue.`;
+    case 'cancelado': return `${hola} Tu pedido ${p.referencia} fue cancelado. Si tienes alguna pregunta, con gusto te ayudamos.`;
+    default: return `${hola} Te escribimos sobre tu pedido ${p.referencia}.`;
+  }
+}
 function abrirPedido(p) {
   const dlg = $('[data-dlg-ped]');
   const nombre = (it) => st.prods.find((x) => x.slug === it.slug)?.nombre || PC[it.slug]?.nombre || it.slug;
@@ -308,12 +362,17 @@ function abrirPedido(p) {
   dlg.innerHTML = `<form novalidate data-form-ped>
     <div class="dialogo-cab"><h2 id="dlg-ped-t">Pedido ${esc(p.referencia)}</h2><button class="btn-icono" type="button" data-cerrar-dlg aria-label="Cerrar">×</button></div>
     <p class="nota">${fechaHora(p.creado)}${p.mp_payment_id ? ` · Pago Mercado Pago ${esc(p.mp_payment_id)}` : ''}</p>
-    <div class="caja"><h3>Cliente</h3><p>${esc(p.cliente_nombre || 'Sin nombre')}<br><a href="mailto:${esc(p.cliente_email)}">${esc(p.cliente_email)}</a></p></div>
+    ${bloqueCliente(p)}
+    ${bloqueVerificacion(p)}
     <ul class="items-ped">${(p.items || []).map((it) => `<li><img src="${esc(imgDe(st.prods.find((x) => x.slug === it.slug) || { slug: it.slug }))}" width="44" height="44" alt=""><span>${it.cantidad} × ${esc(nombre(it))}${sabor(it) ? `, ${esc(sabor(it))}` : ''}</span><strong>${cop(it.precio * it.cantidad)}</strong></li>`).join('')}</ul>
     <div><div class="fila-total"><span>Subtotal</span><span>${cop(p.subtotal)}</span></div><div class="fila-total"><span>Envío</span><span>${p.envio ? cop(p.envio) : 'Gratis'}</span></div><div class="fila-total total"><span>Total</span><span>${cop(p.total)}</span></div></div>
     <div class="dos"><div class="campo"><label for="p-estado">Estado</label><select id="p-estado" name="estado">${Object.entries(ESTADOS).map(([k, t]) => `<option value="${k}"${k === p.estado ? ' selected' : ''}>${t}</option>`).join('')}</select></div>
       <div class="campo"><label for="p-guia">Número de guía</label><input id="p-guia" name="guia" value="${esc(p.guia || '')}" autocomplete="off"></div></div>
     <div class="campo"><label for="p-notas">Notas internas</label><textarea id="p-notas" name="notas" rows="2">${esc(p.notas || '')}</textarea></div>
+    <div class="caja caja-wa"><h3>${ico('chat')} Mensaje por WhatsApp</h3>
+      ${celularWA(p) ? `<div class="campo"><label for="p-wa">Mensaje para ${esc(p.cliente_nombre || 'el cliente')}</label><textarea id="p-wa" rows="4" data-wa-texto></textarea></div>
+      <a class="btn btn-wa" data-wa href="#" target="_blank" rel="noopener">${ico('chat')} Enviar por WhatsApp</a>` : '<p class="nota">El pedido no tiene un celular válido, así que no se puede escribir por WhatsApp.</p>'}
+    </div>
     <p class="campo-error" role="alert" data-error></p>
     <div class="dialogo-pie">${p.estado === 'pagado' || p.estado === 'preparando' ? '<button class="btn btn-sec" type="button" data-marcar-enviado>Marcar como enviado</button>' : '<button class="btn btn-sec" type="button" data-cerrar-dlg>Cerrar</button>'}<button class="btn btn-pri" type="submit">Guardar</button></div>
   </form>`;
@@ -325,6 +384,17 @@ function abrirPedido(p) {
   };
   const valores = () => ({ estado: f.elements.estado.value, guia: f.elements.guia.value.trim(), notas: f.elements.notas.value.trim() });
   f.addEventListener('submit', (e) => { e.preventDefault(); guardar(valores()); });
+  // El mensaje de WhatsApp se arma según el estado y la guía; se puede editar antes de enviarlo.
+  const wa = $('[data-wa-texto]', dlg);
+  if (wa) {
+    let editado = false;
+    const rehacer = () => { if (!editado) wa.value = mensajeWA({ ...p, ...valores() }, nombre, sabor); enlazar(); };
+    const enlazar = () => { $('[data-wa]', dlg).href = `https://wa.me/${celularWA(p)}?text=${encodeURIComponent(wa.value)}`; };
+    wa.addEventListener('input', () => { editado = true; enlazar(); });
+    f.elements.estado.addEventListener('change', () => { editado = false; rehacer(); });
+    f.elements.guia.addEventListener('input', () => { editado = false; rehacer(); });
+    rehacer();
+  }
   $('[data-marcar-enviado]', dlg)?.addEventListener('click', () => guardar({ ...valores(), estado: 'enviado' }));
   dlg.showModal();
 }

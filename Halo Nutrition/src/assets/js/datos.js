@@ -163,6 +163,8 @@ function pedidosEjemplo() {
   const nombres = ['Camila Restrepo', 'Andrés Moreno', 'Laura Peñaloza', 'Julián Ospina', 'Valentina Rojas', 'Mateo Castaño', 'Daniela Vélez', 'Santiago Gil', 'Mariana Duque', 'Felipe Cárdenas', 'Sara Montoya', 'Tomás Arango', 'Isabella Cruz', 'Samuel Pardo', 'Luciana Mejía', 'Nicolás Ríos'];
   const peso = [9, 6, 5, 3, 4, 2]; // whey y creatina se venden más
   const elegir = () => { let r = azar() * peso.reduce((a, b) => a + b, 0); for (let i = 0; i < P.length; i++) { r -= peso[i] || 1; if (r <= 0) return P[i]; } return P[0]; };
+  // Datos de contacto ficticios para los pedidos de ejemplo (celulares 300 000 00xx, que no son de nadie).
+  const ciudades = [['Antioquia', 'Medellín', 'Laureles'], ['Bogotá D.C.', 'Bogotá', 'Chapinero'], ['Valle del Cauca', 'Cali', 'Granada'], ['Atlántico', 'Barranquilla', 'El Prado'], ['Risaralda', 'Pereira', 'Pinares']];
   const lista = []; let n = 0;
   for (let d = 89; d >= 0; d--) {
     const finde = new Date(ahora - d * dia).getDay() % 6 === 0;
@@ -174,7 +176,7 @@ function pedidosEjemplo() {
       const subtotal = items.reduce((s, it) => s + it.precio * it.cantidad, 0); const envio = subtotal >= datos.gratisDesde ? 0 : datos.envio;
       const estado = d > 6 ? (azar() < 0.05 ? 'cancelado' : 'entregado') : d > 3 ? (azar() < 0.5 ? 'enviado' : 'entregado') : d > 1 ? (azar() < 0.6 ? 'preparando' : 'enviado') : (azar() < 0.15 ? 'pendiente' : 'pagado');
       const creado = new Date(ahora - d * dia - Math.floor(azar() * 10) * 36e5).toISOString();
-      lista.push({ id: `demo-${n}`, referencia: `halo-ejemplo-${1040 + n}`, creado, estado, cliente_nombre: nombre, cliente_email: `${nombre.split(' ')[0].toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')}@correo.example`, items, subtotal, envio, total: subtotal + envio, guia: ['enviado', 'entregado'].includes(estado) ? `INT${88123400 + n}` : '', ejemplo: true });
+      lista.push({ id: `demo-${n}`, referencia: `halo-ejemplo-${1040 + n}`, creado, estado, cliente_nombre: nombre, cliente_email: `${nombre.split(' ')[0].toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')}@correo.example`, cliente_telefono: `30000000${String(n % 100).padStart(2, '0')}`, envio_datos: (([dep, ciu, bar]) => ({ departamento: dep, ciudad: ciu, barrio: bar, direccion: `Calle ${10 + (n % 80)} # ${5 + (n % 40)}-${10 + (n % 60)}`, detalle: n % 3 ? 'Apto 302' : '' }))(ciudades[n % ciudades.length]), items, subtotal, envio, total: subtotal + envio, guia: ['enviado', 'entregado'].includes(estado) ? `INT${88123400 + n}` : '', ejemplo: true });
       n++;
     }
   }
@@ -183,6 +185,8 @@ function pedidosEjemplo() {
 export async function pedidos({ propios = false } = {}) {
   if (modoDemo) {
     let l = leerLS(DEMO_PED, null); if (!l) { l = pedidosEjemplo(); guardarLS(DEMO_PED, l); }
+    // Los ejemplos guardados antes no traían celular ni dirección: se completan sin tocar los pedidos propios.
+    if (l.some((p) => p.ejemplo && !p.envio_datos)) { const base = Object.fromEntries(pedidosEjemplo().map((p) => [p.id, p])); l.forEach((p) => { if (p.ejemplo && !p.envio_datos && base[p.id]) { p.cliente_telefono = base[p.id].cliente_telefono; p.envio_datos = base[p.id].envio_datos; } }); guardarLS(DEMO_PED, l); }
     if (propios) { const s = await sesion(); return l.filter((p) => s && p.cliente_email === s.email); }
     return l;
   }
@@ -201,7 +205,7 @@ export async function pagoSimulado(r, comprador = {}, envioDatos = null) {
   const lista = estadoDemo();
   const items = r.lineas.map((l) => ({ slug: l.slug, sabor: l.sabor, cantidad: l.cantidad, precio: l.precioFinal }));
   const l = leerLS(DEMO_PED, null) || pedidosEjemplo();
-  const pedido = { id: `demo-${Date.now()}`, referencia: `halo-${Date.now().toString(36)}`, creado: new Date().toISOString(), estado: 'pagado', cliente_nombre: [comprador.nombre, comprador.apellido].filter(Boolean).join(' '), cliente_email: comprador.email || 'cliente.demo@correo.example', cliente_telefono: comprador.celular || '', envio_datos: envioDatos, items, subtotal: r.subtotal, descuento: r.subtotal - r.productos, cupon: r.cupon?.codigo || null, envio: r.envio, total: r.total, guia: '' };
+  const pedido = { id: `demo-${Date.now()}`, referencia: `halo-${Date.now().toString(36)}`, creado: new Date().toISOString(), estado: 'pagado', cliente_nombre: [comprador.nombre, comprador.apellido].filter(Boolean).join(' '), cliente_email: comprador.email || 'cliente.demo@correo.example', cliente_telefono: comprador.celular || '', documento: comprador.documento?.numero ? `${comprador.documento.tipo} ${comprador.documento.numero}` : null, envio_datos: envioDatos, items, subtotal: r.subtotal, descuento: r.subtotal - r.productos, cupon: r.cupon?.codigo || null, envio: r.envio, total: r.total, guia: '' };
   l.unshift(pedido); guardarLS(DEMO_PED, l);
   items.forEach((it) => { const p = lista.lista.find((x) => x.slug === it.slug); if (p) p.stock = Math.max(0, p.stock - it.cantidad); });
   guardarLS(DEMO_PROD, lista);

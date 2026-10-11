@@ -1,6 +1,6 @@
 // Página /cuenta/: iniciar sesión (correo y contraseña, Google, Facebook), crear cuenta, recuperar contraseña
 // y, con sesión, ver los pedidos propios. Si el correo es de administrador, enlaza al panel.
-import { datos, modoDemo, DEMO_ADMIN, sesion, entrar, registrar, entrarCon, recuperarClave, cambiarClave, alRecuperar, salir, esAdmin, pedidos } from './datos.js?v=3064786bb4';
+import { datos, modoDemo, DEMO_ADMIN, sesion, entrar, registrar, entrarCon, recuperarClave, cambiarClave, alRecuperar, salir, esAdmin, pedidos } from './datos.js?v=0ab179adc3';
 
 const app = document.querySelector('[data-cuenta-app]');
 const $ = (s, r = app) => r.querySelector(s);
