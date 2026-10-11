@@ -88,7 +88,7 @@ async function vistaCuenta(s) {
     const l = await pedidos({ propios: true });
     $('[data-mis-pedidos]').innerHTML = l.length ? l.map((p) => `<article class="pedido">
       <div class="pedido-cab"><div><strong>${cop(p.total)}</strong> <span class="pedido-ref">${esc(p.referencia)}</span></div><span class="estado estado-${p.estado}">${ESTADOS[p.estado] || esc(p.estado)}</span></div>
-      <p class="nota">${fecha(p.creado)}${p.guia ? `. Guía de envío: <strong>${esc(p.guia)}</strong>` : ''}</p>
+      <p class="nota">${fecha(p.creado)}${p.guia ? `. Guía de envío: <strong>${esc(p.guia)}</strong>${p.transportadora ? ` (${esc(p.transportadora)})` : ''}` : ''}</p>
       <ul>${(p.items || []).map((it) => `<li>${it.cantidad} × ${esc(P[it.slug]?.nombre || it.slug)}${P[it.slug]?.sabores?.find((x) => x.slug === it.sabor) ? `, ${esc(P[it.slug].sabores.find((x) => x.slug === it.sabor).nombre)}` : ''}</li>`).join('')}</ul>
     </article>`).join('') : `<div class="vacio"><p>Todavía no tienes pedidos.</p><a class="btn btn-pri" href="${datos.tienda}">Ver productos</a></div>`;
   } catch {

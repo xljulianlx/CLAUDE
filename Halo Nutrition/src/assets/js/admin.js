@@ -288,7 +288,7 @@ function filaPedido(p) {
 const filtroPedido = (p) => (st.filtroE === 'todos' || (st.filtroE === 'despachar' ? (p.estado === 'pagado' || p.estado === 'preparando') : p.estado === st.filtroE));
 function pedidosFiltrados() {
   const q = st.qE.trim().toLowerCase();
-  return st.peds.filter((p) => filtroPedido(p) && (!q || `${p.referencia} ${p.cliente_email} ${p.cliente_nombre} ${p.guia || ''}`.toLowerCase().includes(q)));
+  return st.peds.filter((p) => filtroPedido(p) && (!q || `${p.referencia} ${p.cliente_email} ${p.cliente_nombre} ${p.guia || ''} ${p.transportadora || ''}`.toLowerCase().includes(q)));
 }
 function pintarPedidos() {
   const cuenta = (k) => st.peds.filter((p) => (k === 'todos' ? true : k === 'despachar' ? p.estado === 'pagado' || p.estado === 'preparando' : p.estado === k)).length;
@@ -341,18 +341,22 @@ function bloqueVerificacion(p) {
   return `<div class="caja caja-verif${listos === checks.length ? ' todo-ok' : ''}"><h3>${ico('escudo')} Verificación del pedido <span class="verif-n">${listos}/${checks.length}</span></h3>
     <ul class="verif">${checks.map(([ok, txt]) => `<li class="${ok ? 'ok' : 'alerta'}"><span aria-hidden="true">${ok ? '✓' : '!'}</span>${txt}</li>`).join('')}</ul></div>`;
 }
+const TRANSPORTADORAS = ['Servientrega', 'Interrapidísimo', 'Coordinadora', 'Envía', 'TCC', 'Deprisa', '472'];
+// Mensaje de WhatsApp según el estado. Los productos van en lista numerada (una línea por producto).
 function mensajeWA(p, nombre, sabor) {
   const quien = (p.cliente_nombre || '').split(' ')[0];
-  const lista = (p.items || []).map((it) => `• ${it.cantidad} × ${nombre(it)}${sabor(it) ? ` (${sabor(it)})` : ''}`).join('\n');
-  const hola = `Hola${quien ? ` ${quien}` : ''}, te escribimos de Halo Nutrition.`;
+  const lista = (p.items || []).map((it, i) => `${i + 1}. ${nombre(it)}${sabor(it) ? ` (${sabor(it)})` : ''} × ${it.cantidad}`).join('\n');
+  const productos = `🛒 *Tus productos:*\n${lista}`;
+  const hola = `¡Hola${quien ? ` ${quien}` : ''}! 👋 Te escribimos de *Halo Nutrition*.`;
+  const firma = '\n\nCualquier duda, escríbenos por aquí. 💪';
   switch (p.estado) {
-    case 'pendiente': return `${hola} Vimos que tu pedido ${p.referencia} por ${cop(p.total)} quedó pendiente de pago. ¿Te ayudamos a terminarlo?`;
-    case 'pagado': return `${hola} Recibimos el pago de tu pedido ${p.referencia} por ${cop(p.total)}:\n${lista}\n\nYa lo estamos preparando y te avisamos cuando salga.`;
-    case 'preparando': return `${hola} Tu pedido ${p.referencia} se está preparando:\n${lista}\n\nTe avisamos apenas salga con la transportadora.`;
-    case 'enviado': return `${hola} ¡Tu pedido ${p.referencia} ya va en camino!${p.guia ? `\nNúmero de guía: ${p.guia}` : ''}\n\nCualquier duda, escríbenos por aquí.`;
-    case 'entregado': return `${hola} Tu pedido ${p.referencia} figura como entregado. ¿Llegó todo bien? Nos encantaría saber cómo te fue.`;
-    case 'cancelado': return `${hola} Tu pedido ${p.referencia} fue cancelado. Si tienes alguna pregunta, con gusto te ayudamos.`;
-    default: return `${hola} Te escribimos sobre tu pedido ${p.referencia}.`;
+    case 'pendiente': return `${hola}\n\n💳 Tu pedido por *${cop(p.total)}* quedó pendiente de pago.\n\n${productos}\n\n¿Te ayudamos a terminarlo? 🙌`;
+    case 'pagado': return `${hola}\n\n✅ ¡Recibimos tu pago de *${cop(p.total)}*!\n\n${productos}\n\n📦 Ya lo estamos preparando y te avisamos apenas salga.${firma}`;
+    case 'preparando': return `${hola}\n\n📦 Estamos preparando tu pedido.\n\n${productos}\n\n🚚 Te avisamos apenas salga con la transportadora.${firma}`;
+    case 'enviado': return `${hola}\n\n🚚 ¡Tu pedido ya va en camino!\n\n${productos}\n\n🏢 *Transportadora:* ${p.transportadora || '(escribe la transportadora)'}\n🧾 *Número de guía:* ${p.guia || '(escribe el número de guía)'}${firma}`;
+    case 'entregado': return `${hola}\n\n🎉 Tu pedido figura como entregado.\n\n${productos}\n\n¿Llegó todo bien? Nos encantaría saber cómo te fue. ⭐`;
+    case 'cancelado': return `${hola}\n\n❌ Tu pedido fue cancelado.\n\n${productos}\n\nSi tienes alguna pregunta, con gusto te ayudamos. 🙏`;
+    default: return `${hola}\n\n${productos}${firma}`;
   }
 }
 function abrirPedido(p) {
@@ -368,6 +372,7 @@ function abrirPedido(p) {
     <div><div class="fila-total"><span>Subtotal</span><span>${cop(p.subtotal)}</span></div><div class="fila-total"><span>Envío</span><span>${p.envio ? cop(p.envio) : 'Gratis'}</span></div><div class="fila-total total"><span>Total</span><span>${cop(p.total)}</span></div></div>
     <div class="dos"><div class="campo"><label for="p-estado">Estado</label><select id="p-estado" name="estado">${Object.entries(ESTADOS).map(([k, t]) => `<option value="${k}"${k === p.estado ? ' selected' : ''}>${t}</option>`).join('')}</select></div>
       <div class="campo"><label for="p-guia">Número de guía</label><input id="p-guia" name="guia" value="${esc(p.guia || '')}" autocomplete="off"></div></div>
+    <div class="campo"><label for="p-transp">Transportadora</label><input id="p-transp" name="transportadora" list="l-transp" value="${esc(p.transportadora || '')}" autocomplete="off" placeholder="Ej.: Servientrega"><datalist id="l-transp">${TRANSPORTADORAS.map((x) => `<option value="${x}">`).join('')}</datalist></div>
     <div class="campo"><label for="p-notas">Notas internas</label><textarea id="p-notas" name="notas" rows="2">${esc(p.notas || '')}</textarea></div>
     <div class="caja caja-wa"><h3>${ico('chat')} Mensaje por WhatsApp</h3>
       ${celularWA(p) ? `<div class="campo"><label for="p-wa">Mensaje para ${esc(p.cliente_nombre || 'el cliente')}</label><textarea id="p-wa" rows="4" data-wa-texto></textarea></div>
@@ -380,19 +385,21 @@ function abrirPedido(p) {
   const guardar = async (cambios) => {
     const err = $('[data-error]', dlg); err.textContent = '';
     if (cambios.estado === 'enviado' && !cambios.guia) { err.textContent = 'Escribe el número de guía antes de marcarlo como enviado.'; f.elements.guia.focus(); return; }
+    if (cambios.estado === 'enviado' && !cambios.transportadora) { err.textContent = 'Escribe la transportadora antes de marcarlo como enviado.'; f.elements.transportadora.focus(); return; }
     try { await actualizarPedido(p.id, cambios); Object.assign(p, cambios); dlg.close(); avisar(`Pedido ${p.referencia}: ${ESTADOS[p.estado]}`); pintar(); } catch (er) { err.textContent = er.message; }
   };
-  const valores = () => ({ estado: f.elements.estado.value, guia: f.elements.guia.value.trim(), notas: f.elements.notas.value.trim() });
+  const valores = () => ({ estado: f.elements.estado.value, guia: f.elements.guia.value.trim(), transportadora: f.elements.transportadora.value.trim(), notas: f.elements.notas.value.trim() });
   f.addEventListener('submit', (e) => { e.preventDefault(); guardar(valores()); });
   // El mensaje de WhatsApp se arma según el estado y la guía; se puede editar antes de enviarlo.
   const wa = $('[data-wa-texto]', dlg);
   if (wa) {
     let editado = false;
     const rehacer = () => { if (!editado) wa.value = mensajeWA({ ...p, ...valores() }, nombre, sabor); enlazar(); };
-    const enlazar = () => { $('[data-wa]', dlg).href = `https://wa.me/${celularWA(p)}?text=${encodeURIComponent(wa.value)}`; };
+    const enlazar = () => { $('[data-wa]', dlg).href = `https://api.whatsapp.com/send?phone=${celularWA(p)}&text=${encodeURIComponent(wa.value)}`; };
     wa.addEventListener('input', () => { editado = true; enlazar(); });
     f.elements.estado.addEventListener('change', () => { editado = false; rehacer(); });
     f.elements.guia.addEventListener('input', () => { editado = false; rehacer(); });
+    f.elements.transportadora.addEventListener('input', () => { editado = false; rehacer(); });
     rehacer();
   }
   $('[data-marcar-enviado]', dlg)?.addEventListener('click', () => guardar({ ...valores(), estado: 'enviado' }));
@@ -400,8 +407,8 @@ function abrirPedido(p) {
 }
 function exportarCSV() {
   const celda = (v) => `"${String(v ?? '').replace(/"/g, '""')}"`;
-  const filas = [['Referencia', 'Fecha', 'Estado', 'Cliente', 'Correo', 'Productos', 'Subtotal', 'Envío', 'Total', 'Guía']]
-    .concat(pedidosFiltrados().map((p) => [p.referencia, new Date(p.creado).toISOString().slice(0, 16).replace('T', ' '), ESTADOS[p.estado] || p.estado, p.cliente_nombre, p.cliente_email, (p.items || []).map((it) => `${it.cantidad}x ${PC[it.slug]?.nombre || it.slug}`).join('; '), p.subtotal, p.envio, p.total, p.guia]));
+  const filas = [['Referencia', 'Fecha', 'Estado', 'Cliente', 'Correo', 'Productos', 'Subtotal', 'Envío', 'Total', 'Guía', 'Transportadora']]
+    .concat(pedidosFiltrados().map((p) => [p.referencia, new Date(p.creado).toISOString().slice(0, 16).replace('T', ' '), ESTADOS[p.estado] || p.estado, p.cliente_nombre, p.cliente_email, (p.items || []).map((it) => `${it.cantidad}x ${PC[it.slug]?.nombre || it.slug}`).join('; '), p.subtotal, p.envio, p.total, p.guia, p.transportadora]));
   const blob = new Blob(['﻿' + filas.map((f) => f.map(celda).join(';')).join('\r\n')], { type: 'text/csv;charset=utf-8' });
   const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `pedidos-halo-${new Date().toISOString().slice(0, 10)}.csv`; a.click();
   setTimeout(() => URL.revokeObjectURL(a.href), 1000);

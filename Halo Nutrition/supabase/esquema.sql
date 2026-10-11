@@ -67,6 +67,7 @@ create table if not exists public.pedidos (
 alter table public.pedidos add column if not exists cliente_telefono text;
 alter table public.pedidos add column if not exists documento text;
 alter table public.pedidos add column if not exists envio_datos jsonb;
+alter table public.pedidos add column if not exists transportadora text;
 alter table public.pedidos add column if not exists cupon text;
 alter table public.pedidos add column if not exists descuento integer not null default 0;
 create index if not exists pedidos_creado_idx on public.pedidos (creado desc);

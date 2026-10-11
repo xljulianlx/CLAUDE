@@ -176,7 +176,7 @@ function pedidosEjemplo() {
       const subtotal = items.reduce((s, it) => s + it.precio * it.cantidad, 0); const envio = subtotal >= datos.gratisDesde ? 0 : datos.envio;
       const estado = d > 6 ? (azar() < 0.05 ? 'cancelado' : 'entregado') : d > 3 ? (azar() < 0.5 ? 'enviado' : 'entregado') : d > 1 ? (azar() < 0.6 ? 'preparando' : 'enviado') : (azar() < 0.15 ? 'pendiente' : 'pagado');
       const creado = new Date(ahora - d * dia - Math.floor(azar() * 10) * 36e5).toISOString();
-      lista.push({ id: `demo-${n}`, referencia: `halo-ejemplo-${1040 + n}`, creado, estado, cliente_nombre: nombre, cliente_email: `${nombre.split(' ')[0].toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')}@correo.example`, cliente_telefono: `30000000${String(n % 100).padStart(2, '0')}`, envio_datos: (([dep, ciu, bar]) => ({ departamento: dep, ciudad: ciu, barrio: bar, direccion: `Calle ${10 + (n % 80)} # ${5 + (n % 40)}-${10 + (n % 60)}`, detalle: n % 3 ? 'Apto 302' : '' }))(ciudades[n % ciudades.length]), items, subtotal, envio, total: subtotal + envio, guia: ['enviado', 'entregado'].includes(estado) ? `INT${88123400 + n}` : '', ejemplo: true });
+      lista.push({ id: `demo-${n}`, referencia: `halo-ejemplo-${1040 + n}`, creado, estado, cliente_nombre: nombre, cliente_email: `${nombre.split(' ')[0].toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')}@correo.example`, cliente_telefono: `30000000${String(n % 100).padStart(2, '0')}`, envio_datos: (([dep, ciu, bar]) => ({ departamento: dep, ciudad: ciu, barrio: bar, direccion: `Calle ${10 + (n % 80)} # ${5 + (n % 40)}-${10 + (n % 60)}`, detalle: n % 3 ? 'Apto 302' : '' }))(ciudades[n % ciudades.length]), items, subtotal, envio, total: subtotal + envio, guia: ['enviado', 'entregado'].includes(estado) ? `INT${88123400 + n}` : '', transportadora: ['enviado', 'entregado'].includes(estado) ? 'Interrapidísimo' : '', ejemplo: true });
       n++;
     }
   }
@@ -186,7 +186,7 @@ export async function pedidos({ propios = false } = {}) {
   if (modoDemo) {
     let l = leerLS(DEMO_PED, null); if (!l) { l = pedidosEjemplo(); guardarLS(DEMO_PED, l); }
     // Los ejemplos guardados antes no traían celular ni dirección: se completan sin tocar los pedidos propios.
-    if (l.some((p) => p.ejemplo && !p.envio_datos)) { const base = Object.fromEntries(pedidosEjemplo().map((p) => [p.id, p])); l.forEach((p) => { if (p.ejemplo && !p.envio_datos && base[p.id]) { p.cliente_telefono = base[p.id].cliente_telefono; p.envio_datos = base[p.id].envio_datos; } }); guardarLS(DEMO_PED, l); }
+    if (l.some((p) => p.ejemplo && (!p.envio_datos || (p.guia && !p.transportadora)))) { const base = Object.fromEntries(pedidosEjemplo().map((p) => [p.id, p])); l.forEach((p) => { if (p.ejemplo && base[p.id]) { if (!p.envio_datos) { p.cliente_telefono = base[p.id].cliente_telefono; p.envio_datos = base[p.id].envio_datos; } if (p.guia && !p.transportadora) p.transportadora = 'Interrapidísimo'; } }); guardarLS(DEMO_PED, l); }
     if (propios) { const s = await sesion(); return l.filter((p) => s && p.cliente_email === s.email); }
     return l;
   }
