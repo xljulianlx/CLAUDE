@@ -1,8 +1,8 @@
 // Panel de administración (/admin/). Solo para correos registrados como administradores.
 // Resumen de ventas, productos (foto, precio, stock, visible, eliminar, crear) y pedidos (estado, guía, CSV).
 // La seguridad real está en la base de datos (RLS): este panel solo muestra lo que el servidor permite.
-import { datos, modoDemo, sesion, entrar, esAdmin, productos, guardarProducto, eliminarProducto, subirImagen, pedidos, actualizarPedido, publicar } from './datos.js?v=98d78c0a77';
-import { COLORES, sparkline, lineaVentas, calendario, barras, embudo, medidor, copCorto } from './graficas.js?v=98d78c0a77';
+import { datos, modoDemo, sesion, entrar, esAdmin, productos, guardarProducto, eliminarProducto, subirImagen, pedidos, actualizarPedido, publicar } from './datos.js?v=3064786bb4';
+import { COLORES, sparkline, lineaVentas, calendario, barras, embudo, medidor, copCorto } from './graficas.js?v=3064786bb4';
 
 const app = document.querySelector('[data-admin-app]');
 const $ = (s, r = document) => r.querySelector(s);
@@ -36,11 +36,12 @@ function vistaEntrar(mensaje = '') {
     <form class="auth" data-entrar-panel novalidate>
       <p class="lead">Inicia sesión con el correo de administrador.</p>
       <div class="campo"><label for="a-email">Correo</label><input id="a-email" name="email" type="email" inputmode="email" autocomplete="username" autocapitalize="none" spellcheck="false" required></div>
-      <div class="campo"><label for="a-clave">Contraseña</label><input id="a-clave" name="clave" type="password" autocomplete="current-password" required></div>
+      <div class="campo"><label for="a-clave">Contraseña</label><input id="a-clave" name="clave" type="password" autocomplete="current-password" autocapitalize="none" autocorrect="off" spellcheck="false" required><label class="nota" style="display:flex;gap:8px;align-items:center;margin-top:8px"><input type="checkbox" data-ver-clave> Mostrar contraseña</label></div>
       <p class="campo-error" role="alert" data-error>${esc(mensaje)}</p>
       <button class="btn btn-pri btn-grande" type="submit">Entrar al panel</button>
     </form></div>`;
   const f = app.querySelector('[data-entrar-panel]');
+  f.querySelector('[data-ver-clave]').addEventListener('change', (e) => { f.elements.clave.type = e.target.checked ? 'text' : 'password'; });
   f.addEventListener('submit', async (e) => {
     e.preventDefault();
     const err = f.querySelector('[data-error]'); const boton = f.querySelector('[type="submit"]'); err.textContent = '';
@@ -69,10 +70,8 @@ async function arrancar() {
   try { s = await sesion(); } catch { app.innerHTML = '<div class="wrap"><h1 class="h1 h1-pag">Panel de administración</h1><p class="campo-error">No pudimos conectar con el servicio de cuentas.</p></div>'; return; }
   // Sin sesión: el panel muestra su propio formulario (no redirige a otra página y vuelve).
   if (!s) { vistaEntrar(); return; }
-  if (!(await esAdmin())) {
-    app.innerHTML = `<div class="wrap"><h1 class="h1 h1-pag">Panel de administración</h1><p class="lead">La cuenta <strong>${esc(s.email)}</strong> no tiene permisos de administrador.</p><div class="cta"><a class="btn btn-pri" href="${datos.cuenta}">Ir a mi cuenta</a></div></div>`;
-    return;
-  }
+  // Con una sesión que no es de administrador (por ejemplo, una cuenta de cliente creada antes), pide entrar con la de administrador.
+  if (!(await esAdmin())) { vistaEntrar(`Entraste como ${s.email}, que no es la cuenta de administrador. Inicia sesión con el correo de administrador.`); return; }
   app.innerHTML = `<div class="wrap">
     <div class="admin-cab"><div class="admin-hola"><span class="admin-avatar" aria-hidden="true">${esc((s.nombre || s.email).slice(0, 1).toUpperCase())}</span><div><p class="eyebrow">${saludo()} · ${new Date().toLocaleDateString('es-CO', { weekday: 'long', day: 'numeric', month: 'long' })}</p><h1 class="h1 h1-pag">Panel de Halo</h1></div></div>
       <div class="cta" style="margin-top:0"><a class="btn btn-sec btn-sm" href="${datos.tienda}">${ico('caja')} Ver la tienda</a><button class="btn btn-pri btn-sm" type="button" data-nuevo>${ico('chispa')} Nuevo producto</button></div></div>

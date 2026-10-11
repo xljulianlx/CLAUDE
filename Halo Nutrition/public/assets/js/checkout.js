@@ -1,7 +1,7 @@
 // Finalizar compra: datos de contacto y envío, cupón, resumen y pago con Mercado Pago Checkout Pro.
 // También pinta el recibo en /pago/exito/ y /pago/pendiente/ con el pedido guardado antes de pagar.
-import { datos, modoDemo, sesion, pagoSimulado } from './datos.js?v=98d78c0a77';
-import { leer, guardar, validos, resumen, aplicarCupon, cuponActual, P, foto, cop, esc, refrescar } from './app.js?v=98d78c0a77';
+import { datos, modoDemo, sesion, pagoSimulado } from './datos.js?v=3064786bb4';
+import { leer, guardar, validos, resumen, aplicarCupon, cuponActual, P, foto, cop, esc, refrescar } from './app.js?v=3064786bb4';
 
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
