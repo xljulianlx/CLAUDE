@@ -103,7 +103,7 @@ export async function entrar(email, clave) {
   email = email.trim().toLowerCase();
   if (modoDemo) {
     const usuarios = leerLS(DEMO_USR, {});
-    const hc = await huella(clave); const ok = (email === DEMO_ADMIN.email && hc === DEMO_ADMIN.huella) || (usuarios[email] && usuarios[email] === hc);
+    const hc = await huella(clave); const hl = await huella(clave.trim()); const ok = (email === DEMO_ADMIN.email && (hc === DEMO_ADMIN.huella || hl === DEMO_ADMIN.huella)) || (usuarios[email] && (usuarios[email] === hc || usuarios[email] === hl));
     if (!ok) throw new Error('El correo o la contraseña no coinciden.');
     guardarLS(DEMO_SES, { email, nombre: '' }); return;
   }
