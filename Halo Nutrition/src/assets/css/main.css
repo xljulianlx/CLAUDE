@@ -1843,3 +1843,28 @@ main { overflow-x: clip; }
 @media (max-width: 860px) { .resumen { order: 0; } }
 /* El resumen espera a que se pinten los productos: así no salta hacia abajo al cargar (CLS). */
 .carrito-rejilla:not(.listo) .resumen { visibility: hidden; }
+
+/* ================= Mi cuenta: en computador, en horizontal (beneficios + formulario) ================= */
+.acceso-lado { display: none; }
+.acceso-cambio { text-align: center; color: var(--mut); font-size: 0.92rem; }
+.acceso-cambio .enlace-btn { font-weight: 700; color: #a83f12; }
+@media (min-width: 900px) {
+  .acceso { margin-top: 20px; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 460px); gap: 28px; align-items: stretch; max-width: 1100px; }
+  .acceso .auth { max-width: none; margin-top: 0; }
+  .acceso-lado { display: flex; flex-direction: column; justify-content: space-between; gap: 32px; padding: 44px; border-radius: calc(var(--r-tarjeta) + 6px); color: #f6f2eb; background: radial-gradient(120% 90% at 85% 10%, rgba(226, 102, 44, 0.55), transparent 55%), linear-gradient(160deg, #1d2026, #14161a); box-shadow: 0 30px 60px -36px rgba(20, 22, 26, 0.6); }
+  .acceso-eyebrow { font-family: var(--mono); font-size: 0.78rem; letter-spacing: 0.14em; text-transform: uppercase; color: #ff9a62; font-weight: 700; }
+  .acceso-lado h2 { margin-top: 10px; font-size: clamp(2rem, 3vw, 2.7rem); line-height: 1.08; letter-spacing: -0.02em; color: #f6f2eb; }
+  .acceso-sub { margin-top: 12px; color: #c9c3b8; font-size: 1.02rem; }
+  .acceso-lista { list-style: none; padding: 0; display: grid; gap: 18px; }
+  .acceso-lista li { display: flex; gap: 14px; align-items: flex-start; }
+  .acceso-lista strong { display: block; color: #f6f2eb; font-size: 1rem; }
+  .acceso-lista span:not(.acceso-ico) { color: #c9c3b8; font-size: 0.93rem; line-height: 1.4; }
+  .acceso-ico { width: 42px; height: 42px; flex: none; border-radius: 13px; display: grid; place-items: center; color: #fff; background: linear-gradient(135deg, #e2662c, #b9471a); box-shadow: 0 8px 18px -8px #e2662c; }
+  .acceso-ico .ico { width: 22px; height: 22px; }
+  .acceso-ico .i-r { opacity: 0.3; }
+}
+@media (min-width: 900px) {
+  .acceso-lado { justify-content: flex-start; gap: 28px; }
+  .acceso-img { margin-top: auto; width: 100%; flex: 1 1 auto; min-height: 150px; max-height: 240px; object-fit: cover; border-radius: 18px; box-shadow: 0 18px 36px -20px rgba(0, 0, 0, 0.7); }
+}
+@media (max-width: 899px) { .acceso-img { display: none; } }

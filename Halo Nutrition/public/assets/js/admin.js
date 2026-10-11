@@ -1,8 +1,8 @@
 // Panel de administración (/admin/). Solo para correos registrados como administradores.
 // Resumen de ventas, productos (foto, precio, stock, visible, eliminar, crear) y pedidos (estado, guía, CSV).
 // La seguridad real está en la base de datos (RLS): este panel solo muestra lo que el servidor permite.
-import { datos, modoDemo, sesion, esAdmin, productos, guardarProducto, eliminarProducto, subirImagen, pedidos, actualizarPedido, publicar } from './datos.js?v=854b6320dc';
-import { COLORES, sparkline, lineaVentas, calendario, barras, embudo, medidor, copCorto } from './graficas.js?v=854b6320dc';
+import { datos, modoDemo, sesion, entrar, esAdmin, productos, guardarProducto, eliminarProducto, subirImagen, pedidos, actualizarPedido, publicar } from './datos.js?v=98d78c0a77';
+import { COLORES, sparkline, lineaVentas, calendario, barras, embudo, medidor, copCorto } from './graficas.js?v=98d78c0a77';
 
 const app = document.querySelector('[data-admin-app]');
 const $ = (s, r = document) => r.querySelector(s);
@@ -31,26 +31,44 @@ let avisoT;
 function avisar(msg) { const a = $('[data-aviso]'); if (!a) return; a.textContent = msg; a.classList.add('visible'); clearTimeout(avisoT); avisoT = setTimeout(() => a.classList.remove('visible'), 2400); }
 
 /* ---------- acceso ---------- */
+function vistaEntrar(mensaje = '') {
+  app.innerHTML = `<div class="wrap"><h1 class="h1 h1-pag">Panel de administración</h1>
+    <form class="auth" data-entrar-panel novalidate>
+      <p class="lead">Inicia sesión con el correo de administrador.</p>
+      <div class="campo"><label for="a-email">Correo</label><input id="a-email" name="email" type="email" inputmode="email" autocomplete="username" autocapitalize="none" spellcheck="false" required></div>
+      <div class="campo"><label for="a-clave">Contraseña</label><input id="a-clave" name="clave" type="password" autocomplete="current-password" required></div>
+      <p class="campo-error" role="alert" data-error>${esc(mensaje)}</p>
+      <button class="btn btn-pri btn-grande" type="submit">Entrar al panel</button>
+    </form></div>`;
+  const f = app.querySelector('[data-entrar-panel]');
+  f.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const err = f.querySelector('[data-error]'); const boton = f.querySelector('[type="submit"]'); err.textContent = '';
+    if (!f.elements.email.value.trim() || !f.elements.clave.value) { err.textContent = 'Escribe tu correo y tu contraseña.'; return; }
+    boton.disabled = true;
+    try {
+      await entrar(f.elements.email.value, f.elements.clave.value);
+      // Si el navegador no guardó la sesión, explica por qué en lugar de volver a pedirla.
+      if (!(await sesion())) { diagnostico(); return; }
+      arrancar();
+    } catch (er) { err.textContent = er.message; boton.disabled = false; }
+  });
+  f.elements.email.focus();
+}
 // Explica por qué el panel no encuentra la sesión (en vez de quedarse en un ciclo de redirecciones).
 function diagnostico() {
   let ls = 'bloqueado'; let claves = [];
   try { localStorage.setItem('halo-prueba', '1'); ls = localStorage.getItem('halo-prueba') === '1' ? 'disponible' : 'no guarda'; localStorage.removeItem('halo-prueba'); claves = Object.keys(localStorage).filter((k) => k.startsWith('halo-')); } catch { /* bloqueado */ }
   app.innerHTML = `<div class="wrap"><h1 class="h1 h1-pag">Panel de administración</h1>
-    <p class="lead">El panel no encontró tu sesión en este navegador, así que no pudo abrirse.</p>
+    <p class="lead">Los datos son correctos, pero este navegador no guardó la sesión, así que el panel no puede abrirse.</p>
     <ul class="nota" style="margin-top:12px;line-height:1.7"><li>Dirección: <code>${esc(location.origin + location.pathname)}</code></li><li>Almacenamiento del navegador: <strong>${ls}</strong></li><li>Datos guardados de Halo: ${claves.length ? esc(claves.join(', ')) : 'ninguno'}</li><li>Modo: ${modoDemo ? 'demostración' : 'Supabase'}</li></ul>
-    <p class="nota" style="margin-top:12px">Toma una captura de esta pantalla. Luego inicia sesión otra vez desde la misma dirección.</p>
-    <div class="cta"><a class="btn btn-pri" href="${datos.cuenta}">Iniciar sesión</a></div></div>`;
+    <p class="nota" style="margin-top:12px">El navegador no está guardando la sesión. Toma una captura de esta pantalla y envíala.</p></div>`;
 }
 async function arrancar() {
   let s;
   try { s = await sesion(); } catch { app.innerHTML = '<div class="wrap"><h1 class="h1 h1-pag">Panel de administración</h1><p class="campo-error">No pudimos conectar con el servicio de cuentas.</p></div>'; return; }
-  if (!s) {
-    // Si ya rebotó una vez entre la cuenta y el panel, no vuelve a redirigir: muestra qué ve el navegador.
-    let n = 0; try { n = +(sessionStorage.getItem('halo-rebote') || 0); sessionStorage.setItem('halo-rebote', String(n + 1)); } catch { /* sin sessionStorage */ }
-    if (n >= 1) { diagnostico(); return; }
-    location.replace(`${datos.cuenta}?volver=admin`); return;
-  }
-  try { sessionStorage.removeItem('halo-rebote'); } catch { /* nada */ }
+  // Sin sesión: el panel muestra su propio formulario (no redirige a otra página y vuelve).
+  if (!s) { vistaEntrar(); return; }
   if (!(await esAdmin())) {
     app.innerHTML = `<div class="wrap"><h1 class="h1 h1-pag">Panel de administración</h1><p class="lead">La cuenta <strong>${esc(s.email)}</strong> no tiene permisos de administrador.</p><div class="cta"><a class="btn btn-pri" href="${datos.cuenta}">Ir a mi cuenta</a></div></div>`;
     return;

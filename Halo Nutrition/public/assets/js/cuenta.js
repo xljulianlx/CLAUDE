@@ -1,6 +1,6 @@
 // Página /cuenta/: iniciar sesión (correo y contraseña, Google, Facebook), crear cuenta, recuperar contraseña
 // y, con sesión, ver los pedidos propios. Si el correo es de administrador, enlaza al panel.
-import { datos, modoDemo, DEMO_ADMIN, sesion, entrar, registrar, entrarCon, recuperarClave, cambiarClave, alRecuperar, salir, esAdmin, pedidos } from './datos.js?v=854b6320dc';
+import { datos, modoDemo, DEMO_ADMIN, sesion, entrar, registrar, entrarCon, recuperarClave, cambiarClave, alRecuperar, salir, esAdmin, pedidos } from './datos.js?v=98d78c0a77';
 
 const app = document.querySelector('[data-cuenta-app]');
 const $ = (s, r = app) => r.querySelector(s);
@@ -20,7 +20,22 @@ const notaDemo = () => (modoDemo ? `<div class="demo-nota"><p><strong>Modo demos
 
 function vistaAcceso(modo = 'entrar', mensaje = '') {
   const reg = modo === 'registro';
+  const ic = (n) => `<span class="acceso-ico" aria-hidden="true"><svg class="ico"><use href="#i-${n}"/></svg></span>`;
   app.innerHTML = `${titulo}
+  <div class="acceso">
+  <aside class="acceso-lado" aria-label="Por qué crear una cuenta">
+    <div>
+      <p class="acceso-eyebrow">Tu cuenta Halo</p>
+      <h2>${reg ? 'Crea tu cuenta en un minuto' : 'Qué bueno verte otra vez'}</h2>
+      <p class="acceso-sub">Entra con tu correo, Google o Facebook.</p>
+    </div>
+    <ul class="acceso-lista">
+      <li>${ic('camion')}<span><strong>Sigue tus pedidos</strong>Estado y número de guía de envío.</span></li>
+      <li>${ic('candado')}<span><strong>Pago seguro</strong>Pagas con Mercado Pago.</span></li>
+      <li>${ic('bolsa')}<span><strong>Combos y cupones</strong>El descuento se aplica solo en el carrito.</span></li>
+    </ul>
+    <img class="acceso-img" src="${datos.assets}img/escenas/familia-800.webp" width="800" height="450" alt="" loading="lazy" decoding="async">
+  </aside>
   <div class="auth">
     <div class="pestanas" role="tablist" aria-label="Acceso">
       <button type="button" role="tab" id="tab-entrar" aria-selected="${!reg}" aria-controls="panel-acceso" data-modo="entrar">Entrar</button>
@@ -41,8 +56,10 @@ function vistaAcceso(modo = 'entrar', mensaje = '') {
         ${reg ? '' : '<button class="enlace-btn" type="button" data-olvide>¿Olvidaste tu contraseña?</button>'}
         <p class="ok-msg" role="status" data-ok></p>
       </form>
+      <p class="acceso-cambio">${reg ? '¿Ya tienes cuenta? <button class="enlace-btn" type="button" data-modo="entrar">Inicia sesión</button>' : '¿No tienes cuenta? <button class="enlace-btn" type="button" data-modo="registro">Regístrate gratis</button>'}</p>
     </div>
     ${notaDemo()}
+  </div>
   </div>`;
 }
 
