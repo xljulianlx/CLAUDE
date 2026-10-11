@@ -59,7 +59,7 @@ function vistaNuevaClave() {
 
 async function vistaCuenta(s) {
   const admin = await esAdmin();
-  if (admin && volver === 'admin') { location.replace(datos.admin); return; }
+  if (admin && volver === 'admin') { let n = 0; try { n = +(sessionStorage.getItem('halo-rebote') || 0); } catch { /* nada */ } if (n < 2) { location.replace(datos.admin); return; } }
   app.innerHTML = `${titulo}
   <div class="mi-cuenta">
     <div class="mi-cuenta-cab"><p>Hola${s.nombre ? `, <strong>${esc(s.nombre)}</strong>` : ''}. Entraste como <strong>${esc(s.email)}</strong>.</p><button class="btn btn-sec btn-sm" type="button" data-salir>Cerrar sesión</button></div>

@@ -31,10 +31,26 @@ let avisoT;
 function avisar(msg) { const a = $('[data-aviso]'); if (!a) return; a.textContent = msg; a.classList.add('visible'); clearTimeout(avisoT); avisoT = setTimeout(() => a.classList.remove('visible'), 2400); }
 
 /* ---------- acceso ---------- */
+// Explica por qué el panel no encuentra la sesión (en vez de quedarse en un ciclo de redirecciones).
+function diagnostico() {
+  let ls = 'bloqueado'; let claves = [];
+  try { localStorage.setItem('halo-prueba', '1'); ls = localStorage.getItem('halo-prueba') === '1' ? 'disponible' : 'no guarda'; localStorage.removeItem('halo-prueba'); claves = Object.keys(localStorage).filter((k) => k.startsWith('halo-')); } catch { /* bloqueado */ }
+  app.innerHTML = `<div class="wrap"><h1 class="h1 h1-pag">Panel de administración</h1>
+    <p class="lead">El panel no encontró tu sesión en este navegador, así que no pudo abrirse.</p>
+    <ul class="nota" style="margin-top:12px;line-height:1.7"><li>Dirección: <code>${esc(location.origin + location.pathname)}</code></li><li>Almacenamiento del navegador: <strong>${ls}</strong></li><li>Datos guardados de Halo: ${claves.length ? esc(claves.join(', ')) : 'ninguno'}</li><li>Modo: ${modoDemo ? 'demostración' : 'Supabase'}</li></ul>
+    <p class="nota" style="margin-top:12px">Toma una captura de esta pantalla. Luego inicia sesión otra vez desde la misma dirección.</p>
+    <div class="cta"><a class="btn btn-pri" href="${datos.cuenta}">Iniciar sesión</a></div></div>`;
+}
 async function arrancar() {
   let s;
   try { s = await sesion(); } catch { app.innerHTML = '<div class="wrap"><h1 class="h1 h1-pag">Panel de administración</h1><p class="campo-error">No pudimos conectar con el servicio de cuentas.</p></div>'; return; }
-  if (!s) { location.replace(`${datos.cuenta}?volver=admin`); return; }
+  if (!s) {
+    // Si ya rebotó una vez entre la cuenta y el panel, no vuelve a redirigir: muestra qué ve el navegador.
+    let n = 0; try { n = +(sessionStorage.getItem('halo-rebote') || 0); sessionStorage.setItem('halo-rebote', String(n + 1)); } catch { /* sin sessionStorage */ }
+    if (n >= 1) { diagnostico(); return; }
+    location.replace(`${datos.cuenta}?volver=admin`); return;
+  }
+  try { sessionStorage.removeItem('halo-rebote'); } catch { /* nada */ }
   if (!(await esAdmin())) {
     app.innerHTML = `<div class="wrap"><h1 class="h1 h1-pag">Panel de administración</h1><p class="lead">La cuenta <strong>${esc(s.email)}</strong> no tiene permisos de administrador.</p><div class="cta"><a class="btn btn-pri" href="${datos.cuenta}">Ir a mi cuenta</a></div></div>`;
     return;
