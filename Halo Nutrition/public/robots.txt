@@ -1,0 +1,11 @@
+User-agent: *
+Allow: /
+Disallow: /carrito/
+Disallow: /pago/
+Disallow: /api/
+Disallow: /cuenta/
+Disallow: /admin/
+Disallow: /buscar/
+Disallow: /finalizar-compra/
+
+Sitemap: https://halo.example/sitemap.xml
