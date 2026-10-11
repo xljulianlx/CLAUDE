@@ -1,0 +1,16 @@
+# Hostinger publica el repositorio completo en public_html. La tienda ya
+# construida vive en "Halo Nutrition/public", así que todo se sirve desde ahí
+# y el resto del repositorio (código fuente, scripts) queda oculto.
+Options -Indexes
+DirectoryIndex index.html
+
+RewriteEngine On
+RewriteCond %{ENV:REDIRECT_STATUS} ^$
+RewriteCond %{REQUEST_URI} !^/Halo(\s|%20)Nutrition/public/
+RewriteRule ^(.*)$ "Halo Nutrition/public/$1" [L]
+
+ErrorDocument 404 /404.html
+
+<FilesMatch "\.html$">
+  Header set Cache-Control "no-cache"
+</FilesMatch>
