@@ -30,7 +30,7 @@ api/publicar.js             Regenera el sitio cuando un administrador publica ca
 
 ## Modo demostración
 
-Sin variables de Supabase, el sitio funciona igual pero todo se guarda en el navegador: cuentas, cambios del panel y pedidos simulados. Cuenta de administrador de prueba: `admin@halo.example` con la clave `demo1234`. El botón del carrito dice "Simular pago" y el pedido aparece en el panel.
+Sin variables de Supabase, el sitio funciona igual pero todo se guarda en el navegador: cuentas, cambios del panel y pedidos simulados. La cuenta de administrador de la demostración está definida en `src/assets/js/datos.js` (`DEMO_ADMIN`): ahí solo hay el correo y la huella de la clave. Para cambiarla, genera la huella SHA-256 de la nueva clave. El botón del carrito dice "Simular pago" y el pedido aparece en el panel.
 
 ## Comandos
 

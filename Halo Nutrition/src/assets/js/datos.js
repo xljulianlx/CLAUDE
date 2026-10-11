@@ -90,7 +90,8 @@ export async function subirImagen(archivo, slug) {
 
 /* ---------- sesión ---------- */
 const DEMO_SES = 'halo-demo-sesion'; const DEMO_USR = 'halo-demo-usuarios';
-export const DEMO_ADMIN = { email: 'admin@halo.example', clave: 'demo1234' };
+// Cuenta de administrador del modo demostración. La clave no está escrita aquí: solo su huella SHA-256.
+export const DEMO_ADMIN = { email: 'admin-2wa25b73@halo.example', huella: '9918d1bca2f9805035381af1379f1e0bef03e0006b63fe9a0ace653c0af90dae' };
 async function huella(t) { const b = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(t)); return [...new Uint8Array(b)].map((x) => x.toString(16).padStart(2, '0')).join(''); }
 
 export async function sesion() {
@@ -102,7 +103,7 @@ export async function entrar(email, clave) {
   email = email.trim().toLowerCase();
   if (modoDemo) {
     const usuarios = leerLS(DEMO_USR, {});
-    const ok = (email === DEMO_ADMIN.email && clave === DEMO_ADMIN.clave) || (usuarios[email] && usuarios[email] === await huella(clave));
+    const hc = await huella(clave); const ok = (email === DEMO_ADMIN.email && hc === DEMO_ADMIN.huella) || (usuarios[email] && usuarios[email] === hc);
     if (!ok) throw new Error('El correo o la contraseña no coinciden.');
     guardarLS(DEMO_SES, { email, nombre: '' }); return;
   }
@@ -128,7 +129,7 @@ export async function entrarCon(proveedor) {
   if (error) throw new Error(error.message);
 }
 export async function recuperarClave(email) {
-  if (modoDemo) throw new Error('En la demostración no se envían correos. La cuenta de administrador de prueba es admin@halo.example con la clave demo1234.');
+  if (modoDemo) throw new Error('En la demostración no se envían correos. Pide la clave a quien administra la tienda.');
   const sb = await cliente(); const { error } = await sb.auth.resetPasswordForEmail(email.trim(), { redirectTo: `${location.origin}${location.pathname}` });
   if (error) throw new Error(error.message);
 }

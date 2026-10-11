@@ -16,7 +16,7 @@ const G = '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#4285F4" d="M
 const F = '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#1877F2" d="M24 12a12 12 0 1 0-13.9 11.9v-8.4H7.1V12h3V9.4c0-3 1.8-4.7 4.5-4.7 1.3 0 2.7.2 2.7.2v3h-1.5c-1.5 0-2 .9-2 1.9V12h3.4l-.5 3.5h-2.9v8.4A12 12 0 0 0 24 12z"/></svg>';
 
 const titulo = '<h1 class="h1 h1-pag">Mi cuenta</h1>';
-const notaDemo = () => (modoDemo ? `<div class="demo-nota"><p><strong>Modo demostración.</strong> Las cuentas se guardan solo en este navegador. Para probar el panel de administración entra con <code>${DEMO_ADMIN.email}</code> y la clave <code>${DEMO_ADMIN.clave}</code>.</p><button class="btn btn-sec btn-sm" type="button" data-usar-demo>Usar la cuenta de administrador de prueba</button></div>` : '');
+const notaDemo = () => (modoDemo ? `<div class="demo-nota"><p><strong>Modo demostración.</strong> Las cuentas se guardan solo en este navegador.</p></div>` : '');
 
 function vistaAcceso(modo = 'entrar', mensaje = '') {
   const reg = modo === 'registro';
@@ -83,7 +83,6 @@ app.addEventListener('click', async (e) => {
   const t = e.target.closest('button'); if (!t) return;
   if (t.dataset.modo) { vistaAcceso(t.dataset.modo); $(`#tab-${t.dataset.modo}`).focus(); return; }
   if (t.hasAttribute('data-ver-clave')) { const i = $('#c-clave'); const ver = i.type === 'password'; i.type = ver ? 'text' : 'password'; t.textContent = ver ? 'Ocultar' : 'Mostrar'; t.setAttribute('aria-pressed', String(ver)); return; }
-  if (t.hasAttribute('data-usar-demo')) { if (!$('#c-email')) vistaAcceso('entrar'); $('#c-email').value = DEMO_ADMIN.email; $('#c-clave').value = DEMO_ADMIN.clave; $('[data-form-acceso]').requestSubmit(); return; }
   if (t.dataset.proveedor) {
     const err = $('[data-error]'); err.textContent = '';
     try { t.disabled = true; await entrarCon(t.dataset.proveedor); } catch (er) { err.textContent = er.message; t.disabled = false; }
